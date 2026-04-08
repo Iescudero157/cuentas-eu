@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, FileText, Eye } from "lucide-react";
+import { Plus, FileText } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { demoInvoices } from "@/lib/demo-data";
+import { loadData } from "@/lib/storage";
+import { useState, useEffect } from "react";
+import type { Invoice } from "@/lib/types";
 
 const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }> = {
   cobrada: { bg: "bg-brand-success/10", text: "text-brand-success", label: "Cobrada" },
@@ -12,9 +15,20 @@ const STATUS_STYLES: Record<string, { bg: string; text: string; label: string }>
 };
 
 export default function FacturasPage() {
-  const invoices = [...demoInvoices].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+
+  useEffect(() => {
+    const stored = loadData<Invoice[]>("kuentas_facturas", []);
+    const all = stored.length > 0 ? [...stored, ...demoInvoices] : [...demoInvoices];
+    // deduplicate by id
+    const seen = new Set<string>();
+    const deduped = all.filter((inv) => {
+      if (seen.has(inv.id)) return false;
+      seen.add(inv.id);
+      return true;
+    });
+    setInvoices(deduped.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+  }, []);
 
   const totalFacturado = invoices.reduce((s, i) => s + i.total, 0);
   const pendiente = invoices.filter((i) => i.status === "pendiente").reduce((s, i) => s + i.total, 0);
@@ -65,7 +79,7 @@ export default function FacturasPage() {
             </thead>
             <tbody className="divide-y divide-brand-border/50">
               {invoices.map((inv) => {
-                const status = STATUS_STYLES[inv.status];
+                const status = STATUS_STYLES[inv.status] ?? STATUS_STYLES.pendiente;
                 return (
                   <tr key={inv.id} className="hover:bg-brand-gray/50">
                     <td className="px-6 py-4">

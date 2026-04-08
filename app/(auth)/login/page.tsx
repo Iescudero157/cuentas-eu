@@ -4,20 +4,43 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, ArrowRight } from "lucide-react";
+import { Mail, Lock, ArrowRight, AlertCircle, Info } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [loading, setLoading] = useState(false);
+
+  function validate() {
+    const errs: { email?: string; password?: string } = {};
+    if (!email) errs.email = "El email es obligatorio";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = "Email no valido";
+    if (!password) errs.password = "La contrasena es obligatoria";
+    else if (password.length < 8) errs.password = "Minimo 8 caracteres";
+    return errs;
+  }
 
   function handleDemo() {
-    router.push("/dashboard");
+    setLoading(true);
+    setTimeout(() => {
+      router.push("/dashboard");
+    }, 500);
   }
 
   function handleLogin(e: React.FormEvent) {
     e.preventDefault();
-    router.push("/dashboard");
+    const errs = validate();
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs);
+      return;
+    }
+    setErrors({});
+    setLoading(true);
+    setTimeout(() => {
+      router.push("/dashboard");
+    }, 500);
   }
 
   return (
@@ -26,14 +49,25 @@ export default function LoginPage() {
       <div className="flex-1 flex items-center justify-center p-8">
         <div className="w-full max-w-md">
           <Link href="/" className="flex items-center gap-2 mb-10">
-            <Image src="/logo.png" alt="CUENTAS.EU" width={32} height={32} />
-            <span className="text-xl font-bold text-gradient-brand">CUENTAS.EU</span>
+            <Image src="/logo.png" alt="KUENTAS.EU" width={32} height={32} />
+            <span className="text-xl font-bold text-gradient-brand">KUENTAS.EU</span>
           </Link>
+
+          {/* Demo Mode Banner */}
+          <div className="mb-6 flex items-start gap-3 bg-brand-blue/10 border border-brand-blue/20 rounded-xl p-4">
+            <Info className="w-5 h-5 text-brand-blue shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-semibold text-brand-blue">Modo Demo disponible</p>
+              <p className="text-xs text-brand-muted mt-0.5">
+                Puedes explorar la app sin registrarte usando el boton &quot;Probar sin registro&quot;
+              </p>
+            </div>
+          </div>
 
           <h1 className="text-2xl font-bold text-brand-text mb-2">Bienvenido de vuelta</h1>
           <p className="text-brand-muted mb-8">Inicia sesion para gestionar tus finanzas</p>
 
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4" noValidate>
             <div>
               <label className="block text-sm font-medium text-brand-text mb-1.5">Email</label>
               <div className="relative">
@@ -41,11 +75,16 @@ export default function LoginPage() {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => { setEmail(e.target.value); if (errors.email) setErrors({ ...errors, email: undefined }); }}
                   placeholder="tu@email.com"
-                  className="w-full pl-10 pr-4 py-2.5 border border-brand-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+                  className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue ${errors.email ? "border-brand-danger" : "border-brand-border"}`}
                 />
               </div>
+              {errors.email && (
+                <p className="mt-1 text-xs text-brand-danger flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> {errors.email}
+                </p>
+              )}
             </div>
             <div>
               <label className="block text-sm font-medium text-brand-text mb-1.5">Contrasena</label>
@@ -54,17 +93,23 @@ export default function LoginPage() {
                 <input
                   type="password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors({ ...errors, password: undefined }); }}
                   placeholder="Tu contrasena"
-                  className="w-full pl-10 pr-4 py-2.5 border border-brand-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+                  className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue ${errors.password ? "border-brand-danger" : "border-brand-border"}`}
                 />
               </div>
+              {errors.password && (
+                <p className="mt-1 text-xs text-brand-danger flex items-center gap-1">
+                  <AlertCircle className="w-3 h-3" /> {errors.password}
+                </p>
+              )}
             </div>
             <button
               type="submit"
-              className="w-full gradient-brand text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition"
+              disabled={loading}
+              className="w-full gradient-brand text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition disabled:opacity-60"
             >
-              Iniciar sesion
+              {loading ? "Entrando..." : "Iniciar sesion"}
             </button>
           </form>
 
@@ -79,7 +124,8 @@ export default function LoginPage() {
 
           <button
             onClick={handleDemo}
-            className="w-full flex items-center justify-center gap-2 border-2 border-brand-blue text-brand-blue font-semibold py-2.5 rounded-lg hover:bg-brand-blue/5 transition"
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-2 border-2 border-brand-blue text-brand-blue font-semibold py-2.5 rounded-lg hover:bg-brand-blue/5 transition disabled:opacity-60"
           >
             Probar sin registro <ArrowRight className="w-4 h-4" />
           </button>

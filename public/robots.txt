@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://app.cuentas.eu/sitemap.xml
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /

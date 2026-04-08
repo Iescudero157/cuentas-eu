@@ -89,16 +89,58 @@ export function getFiscalAlerts(): FiscalAlert[] {
     .sort((a, b) => a.daysLeft - b.daysLeft);
 }
 
+export function calculateIRPFProgressive(annualBenefit: number): number {
+  if (annualBenefit <= 0) return 0;
+
+  const tramos = [
+    { hasta: 12450, tipo: 0.19 },
+    { hasta: 20200, tipo: 0.24 },
+    { hasta: 35200, tipo: 0.30 },
+    { hasta: 60000, tipo: 0.37 },
+    { hasta: 300000, tipo: 0.45 },
+    { hasta: Infinity, tipo: 0.47 },
+  ];
+
+  let impuesto = 0;
+  let baseRestante = annualBenefit;
+  let limiteAnterior = 0;
+
+  for (const tramo of tramos) {
+    if (baseRestante <= 0) break;
+    const baseTramo = Math.min(baseRestante, tramo.hasta - limiteAnterior);
+    impuesto += baseTramo * tramo.tipo;
+    baseRestante -= baseTramo;
+    limiteAnterior = tramo.hasta;
+  }
+
+  return impuesto;
+}
+
 export function calculateMonthlyTaxReserve(
-  monthlyIncome: number,
-  monthlyExpenses: number
+  transactions: Transaction[],
+  month: number,
+  year: number
 ): { iva: number; irpf: number; total: number } {
-  const ivaRepercutido = monthlyIncome * IVA_GENERAL;
-  const ivaSoportado = monthlyExpenses * IVA_GENERAL;
+  const monthTransactions = transactions.filter((t) => {
+    const d = new Date(t.date);
+    return d.getFullYear() === year && d.getMonth() + 1 === month;
+  });
+
+  const ingresos = monthTransactions.filter((t) => t.type === "ingreso");
+  const gastos = monthTransactions.filter((t) => t.type === "gasto");
+
+  const ivaRepercutido = ingresos.reduce((sum, t) => sum + t.iva, 0);
+  const ivaSoportado = gastos.reduce((sum, t) => sum + t.iva, 0);
   const iva = Math.max(0, ivaRepercutido - ivaSoportado);
 
-  const beneficio = monthlyIncome - monthlyExpenses;
-  const irpf = Math.max(0, beneficio * IRPF_AUTONOMO);
+  const ingresosBrutos = ingresos.reduce((sum, t) => sum + t.amount, 0);
+  const gastosDeducibles = gastos.reduce((sum, t) => sum + t.amount, 0);
+  const beneficioMensual = ingresosBrutos - gastosDeducibles;
+
+  // Extrapola a beneficio anual estimado para calcular tramo IRPF
+  const beneficioAnualEstimado = beneficioMensual * 12;
+  const irpfAnual = calculateIRPFProgressive(beneficioAnualEstimado);
+  const irpf = Math.max(0, irpfAnual / 12);
 
   return { iva, irpf, total: iva + irpf };
 }

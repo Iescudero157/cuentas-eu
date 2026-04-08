@@ -4,13 +4,59 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Trash2, Eye, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { formatCurrency } from "@/lib/utils";
 import { demoUser } from "@/lib/demo-data";
+import { loadData, saveData } from "@/lib/storage";
+import type { Invoice, InvoiceItem } from "@/lib/types";
+
+const InvoicePDFButton = dynamic(() => import("@/components/InvoicePDF"), { ssr: false });
 
 interface LineItem {
   description: string;
   quantity: number;
   unitPrice: number;
+}
+
+function buildInvoice(
+  number: string,
+  clientName: string,
+  clientNif: string,
+  clientAddress: string,
+  items: LineItem[],
+  ivaRate: number,
+  irpfRate: number,
+  today: string,
+): Invoice {
+  const invoiceItems: InvoiceItem[] = items.map((item) => ({
+    description: item.description,
+    quantity: item.quantity,
+    unitPrice: item.unitPrice,
+    total: item.quantity * item.unitPrice,
+  }));
+  const subtotal = invoiceItems.reduce((s, i) => s + i.total, 0);
+  const iva = subtotal * (ivaRate / 100);
+  const irpf = subtotal * (irpfRate / 100);
+  const total = subtotal + iva - irpf;
+  const dueDate = new Date(today);
+  dueDate.setDate(dueDate.getDate() + 30);
+  return {
+    id: `inv-${Date.now()}`,
+    number,
+    clientName,
+    clientNif,
+    clientAddress,
+    items: invoiceItems,
+    subtotal,
+    iva,
+    ivaRate,
+    irpf,
+    irpfRate,
+    total,
+    date: today,
+    dueDate: dueDate.toISOString().split("T")[0],
+    status: "pendiente",
+  };
 }
 
 export default function NuevaFacturaPage() {
@@ -23,13 +69,17 @@ export default function NuevaFacturaPage() {
   const [items, setItems] = useState<LineItem[]>([
     { description: "", quantity: 1, unitPrice: 0 },
   ]);
+  const [savedInvoice, setSavedInvoice] = useState<Invoice | null>(null);
 
   const subtotal = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
   const iva = subtotal * (ivaRate / 100);
   const irpf = subtotal * (irpfRate / 100);
   const total = subtotal + iva - irpf;
 
-  const nextNumber = "FACT-2026-006";
+  // Compute next number from localStorage
+  const existingInvoices = loadData<Invoice[]>("kuentas_facturas", []);
+  const nextSeq = existingInvoices.length + 6; // offset from demo data
+  const nextNumber = `FACT-2026-${String(nextSeq).padStart(3, "0")}`;
   const today = new Date().toISOString().split("T")[0];
 
   function addItem() {
@@ -49,7 +99,22 @@ export default function NuevaFacturaPage() {
   }
 
   function handleSave() {
-    alert("Factura guardada correctamente (demo)");
+    const invoice = buildInvoice(
+      nextNumber,
+      clientName || "Cliente sin nombre",
+      clientNif,
+      clientAddress,
+      items,
+      ivaRate,
+      irpfRate,
+      today,
+    );
+    const existing = loadData<Invoice[]>("kuentas_facturas", []);
+    saveData("kuentas_facturas", [invoice, ...existing]);
+    setSavedInvoice(invoice);
+  }
+
+  function handleGoToList() {
     router.push("/dashboard/facturas");
   }
 
@@ -64,6 +129,28 @@ export default function NuevaFacturaPage() {
           <p className="text-brand-muted text-sm mt-1">Numero: {nextNumber}</p>
         </div>
       </div>
+
+      {savedInvoice && (
+        <div className="bg-brand-success/10 border border-brand-success/20 rounded-xl p-4 flex items-center justify-between">
+          <p className="text-brand-success text-sm font-medium">
+            Factura {savedInvoice.number} guardada correctamente
+          </p>
+          <div className="flex items-center gap-3">
+            <InvoicePDFButton
+              invoice={savedInvoice}
+              issuerName={demoUser.name}
+              issuerNif={demoUser.nif}
+              issuerAddress={demoUser.address}
+            />
+            <button
+              onClick={handleGoToList}
+              className="text-sm text-brand-blue font-medium hover:underline"
+            >
+              Ver listado
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Form */}
@@ -166,13 +253,21 @@ export default function NuevaFacturaPage() {
             </button>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex gap-3 flex-wrap">
             <button
               onClick={handleSave}
               className="gradient-brand text-white font-semibold px-6 py-2.5 rounded-lg hover:opacity-90 transition text-sm"
             >
               Guardar factura
             </button>
+            {savedInvoice && (
+              <InvoicePDFButton
+                invoice={savedInvoice}
+                issuerName={demoUser.name}
+                issuerNif={demoUser.nif}
+                issuerAddress={demoUser.address}
+              />
+            )}
             <Link
               href="/dashboard/facturas"
               className="border border-brand-border text-brand-muted font-medium px-6 py-2.5 rounded-lg hover:bg-brand-gray transition text-sm"

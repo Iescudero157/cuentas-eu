@@ -108,8 +108,8 @@ export default function LandingPage() {
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-brand-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
-            <Image src="/logo.png" alt="CUENTAS.EU" width={36} height={36} />
-            <span className="text-xl font-bold text-gradient-brand">CUENTAS.EU</span>
+            <Image src="/logo.png" alt="KUENTAS.EU" width={36} height={36} />
+            <span className="text-xl font-bold text-gradient-brand">KUENTAS.EU</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-brand-muted">
             <a href="#features" className="hover:text-brand-blue transition">Funcionalidades</a>
@@ -173,7 +173,7 @@ export default function LandingPage() {
               Todo lo que un autonomo necesita
             </h2>
             <p className="mt-4 text-lg text-brand-muted max-w-2xl mx-auto">
-              Deja de perder tiempo con Excel y gestorias caras. CUENTAS.EU automatiza tu
+              Deja de perder tiempo con Excel y gestorias caras. KUENTAS.EU automatiza tu
               contabilidad.
             </p>
           </div>
@@ -275,8 +275,8 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
-                <Image src="/logo.png" alt="CUENTAS.EU" width={28} height={28} />
-                <span className="text-white font-bold">CUENTAS.EU</span>
+                <Image src="/logo.png" alt="KUENTAS.EU" width={28} height={28} />
+                <span className="text-white font-bold">KUENTAS.EU</span>
               </div>
               <p className="text-sm">
                 Gestion financiera con IA para autonomos, freelancers y creadores.
@@ -308,7 +308,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-10 pt-8 border-t border-white/10 text-sm text-center">
-            &copy; {new Date().getFullYear()} CUENTAS.EU - MercadonetGlobal. Todos los derechos reservados.
+            &copy; {new Date().getFullYear()} KUENTAS.EU - MercadonetGlobal. Todos los derechos reservados.
           </div>
         </div>
       </footer>
