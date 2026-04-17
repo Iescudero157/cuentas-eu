@@ -197,7 +197,7 @@ async function sendNotificationEmail({
           <tr><td style="padding:8px;background:#f5f5f5;font-weight:bold;">Mensaje</td><td style="padding:8px;">${message || "(ninguno)"}</td></tr>
         </table>
         <p style="margin-top:16px;font-size:13px;color:#666;">
-          Ver todos los contactos: <a href="https://gitlab.com/iescudero/kuentas/-/raw/main/data/contacts.csv">contacts.csv en GitLab</a>
+          Ver todos los contactos: <a href="https://gitlab.com/iv.escudero.s/kuentas-2026-03-22-zmq64/-/raw/main/data/contacts.csv">contacts.csv en GitLab</a>
         </p>
       </div>
     `,
