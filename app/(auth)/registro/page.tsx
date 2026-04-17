@@ -4,9 +4,82 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Lock, User, ArrowRight, AlertCircle, Info } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, AlertCircle, Info, Building2, Sparkles } from "lucide-react";
+
+// ── Plan selector shown before the registration form ────────────────────────
+function PlanSelector() {
+  return (
+    <div className="min-h-screen flex items-center justify-center p-6 bg-brand-gray">
+      <div className="w-full max-w-sm">
+        <Link href="/" className="flex items-center gap-2 mb-8">
+          <Image src="/logo.png" alt="KUENTAS.EU" width={32} height={32} />
+          <span className="text-xl font-bold text-gradient-brand">KUENTAS.EU</span>
+        </Link>
+
+        <h1 className="text-2xl font-bold text-brand-text mb-2">Crear cuenta</h1>
+        <p className="text-brand-muted mb-8">Elige el tipo de cuenta que necesitas</p>
+
+        <div className="space-y-4">
+          {/* Profesional */}
+          <Link href="/registro/profesional" className="block bg-white rounded-2xl border-2 border-brand-border hover:border-brand-green transition p-5 group">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-brand-green/10 flex items-center justify-center shrink-0 group-hover:bg-brand-green/20 transition">
+                <User className="w-6 h-6 text-brand-green" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-bold text-brand-text">Registro Profesional</h2>
+                  <span className="text-xs font-semibold text-brand-green bg-brand-green/10 px-2 py-0.5 rounded-full">Gratis</span>
+                </div>
+                <p className="text-sm text-brand-muted mt-0.5">Autónomos, freelancers y creadores de contenido</p>
+              </div>
+            </div>
+          </Link>
+
+          {/* Empresa */}
+          <Link href="/registro/empresa" className="block bg-white rounded-2xl border-2 border-brand-border hover:border-brand-blue transition p-5 group">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-brand-blue/10 flex items-center justify-center shrink-0 group-hover:bg-brand-blue/20 transition">
+                <Building2 className="w-6 h-6 text-brand-blue" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <h2 className="font-bold text-brand-text">Registro Empresa</h2>
+                  <span className="text-xs font-semibold text-brand-blue bg-brand-blue/10 px-2 py-0.5 rounded-full">Desde 29,99€</span>
+                </div>
+                <p className="text-sm text-brand-muted mt-0.5">Pymes, equipos y negocios con múltiples usuarios</p>
+              </div>
+            </div>
+          </Link>
+
+          {/* Demo */}
+          <Link href="/dashboard" className="block bg-brand-gray rounded-2xl border-2 border-dashed border-brand-border hover:border-brand-blue/40 transition p-5 group">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shrink-0">
+                <Sparkles className="w-6 h-6 text-brand-muted" />
+              </div>
+              <div>
+                <h2 className="font-bold text-brand-text">Probar sin registro</h2>
+                <p className="text-sm text-brand-muted mt-0.5">Accede al demo con datos de ejemplo</p>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        <p className="mt-6 text-center text-sm text-brand-muted">
+          ¿Ya tienes cuenta?{" "}
+          <Link href="/login" className="text-brand-blue font-medium hover:underline">Iniciar sesión</Link>
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export default function RegistroPage() {
+  return <PlanSelector />;
+}
+
+function _RegistroPageOriginal() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
