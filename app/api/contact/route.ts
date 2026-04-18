@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
 
 // CORS – allow kuentas.eu static site AND the Vercel app itself
 const ALLOWED_ORIGINS = [
@@ -59,6 +58,9 @@ export async function POST(req: NextRequest) {
     const perfilText = perfilLabel[perfil] || sector || perfil || "No indicado";
     const fecha = new Date().toISOString().slice(0, 19).replace("T", " ");
 
+    // ── Get Gmail access token once, reuse for both emails ──────────────
+    const accessToken = await getGmailAccessToken();
+
     // ── 1. Store in Google Sheets (non-fatal) ────────────────────────────
     try {
       await storeInGoogleSheets({
@@ -75,34 +77,90 @@ export async function POST(req: NextRequest) {
     }
 
     // ── 2. Welcome email to user ─────────────────────────────────────────
-    await sendWelcomeEmail({ name, email, tipo: tipo ?? "lista", perfilText, empresa });
+    await sendWelcomeEmail({ name, email, tipo: tipo ?? "lista", perfilText, empresa, accessToken });
 
     // ── 3. Notification to Ivan ──────────────────────────────────────────
-    await sendNotificationEmail({ name, email, tipoText, perfilText, empresa, cif, telefono, message: message || "", fecha });
+    await sendNotificationEmail({ name, email, tipoText, perfilText, empresa, cif, telefono, message: message || "", fecha, accessToken });
 
     return NextResponse.json({ success: true }, { headers: cors });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
     console.error("[contact] Error:", err);
     return NextResponse.json(
-      { success: false, error: "Error interno. Inténtalo de nuevo.", _debug: msg },
+      { success: false, error: "Error interno. Inténtalo de nuevo." },
       { status: 500, headers: cors }
     );
   }
 }
 
-// ── Gmail transporter ─────────────────────────────────────────────────────────
-function createTransporter() {
-  return nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      type: "OAuth2",
-      user: process.env.GMAIL_USER!,
-      clientId: process.env.GMAIL_CLIENT_ID!,
-      clientSecret: process.env.GMAIL_CLIENT_SECRET!,
-      refreshToken: process.env.GMAIL_REFRESH_TOKEN!,
-    },
-  } as Parameters<typeof nodemailer.createTransport>[0]);
+// ── Gmail OAuth2 access token ─────────────────────────────────────────────────
+async function getGmailAccessToken(): Promise<string> {
+  const res = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "refresh_token",
+      refresh_token: process.env.GMAIL_REFRESH_TOKEN!,
+      client_id: process.env.GMAIL_CLIENT_ID!,
+      client_secret: process.env.GMAIL_CLIENT_SECRET!,
+    }),
+  });
+  const json = await res.json();
+  if (!json.access_token) {
+    throw new Error(`OAuth2 token error: ${JSON.stringify(json)}`);
+  }
+  return json.access_token as string;
+}
+
+// ── Send email via Gmail REST API ─────────────────────────────────────────────
+async function sendGmailMessage({
+  accessToken, from, to, subject, html,
+}: {
+  accessToken: string;
+  from: string;
+  to: string;
+  subject: string;
+  html: string;
+}) {
+  // Build RFC 2822 message
+  const boundary = "kuentas_boundary_" + Math.random().toString(36).slice(2);
+  const subjectEncoded = "=?UTF-8?B?" + Buffer.from(subject).toString("base64") + "?=";
+  const raw = [
+    `From: ${from}`,
+    `To: ${to}`,
+    `Subject: ${subjectEncoded}`,
+    `MIME-Version: 1.0`,
+    `Content-Type: multipart/alternative; boundary="${boundary}"`,
+    ``,
+    `--${boundary}`,
+    `Content-Type: text/html; charset=UTF-8`,
+    `Content-Transfer-Encoding: base64`,
+    ``,
+    Buffer.from(html, "utf-8").toString("base64"),
+    `--${boundary}--`,
+  ].join("\r\n");
+
+  const encoded = Buffer.from(raw)
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+
+  const res = await fetch(
+    `https://gmail.googleapis.com/gmail/v1/users/me/messages/send`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ raw: encoded }),
+    }
+  );
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Gmail API error ${res.status}: ${err}`);
+  }
 }
 
 // ── Google Sheets storage ─────────────────────────────────────────────────────
@@ -152,11 +210,12 @@ async function storeInGoogleSheets(row: {
 
 // ── Welcome email ─────────────────────────────────────────────────────────────
 async function sendWelcomeEmail({
-  name, email, tipo, perfilText, empresa,
+  name, email, tipo, perfilText, empresa, accessToken,
 }: {
-  name: string; email: string; tipo: string; perfilText: string; empresa?: string;
+  name: string; email: string; tipo: string; perfilText: string; empresa?: string; accessToken: string;
 }) {
   const firstName = name.split(" ")[0];
+  const GMAIL_USER = process.env.GMAIL_USER!;
 
   const isProfesional = tipo === "profesional";
   const isEmpresa = tipo === "empresa";
@@ -208,9 +267,9 @@ async function sendWelcomeEmail({
 </table>
 </body></html>`;
 
-  const transporter = createTransporter();
-  await transporter.sendMail({
-    from: `"KUENTAS.EU" <${process.env.GMAIL_USER}>`,
+  await sendGmailMessage({
+    accessToken,
+    from: `"KUENTAS.EU" <${GMAIL_USER}>`,
     to: email,
     subject,
     html,
@@ -221,8 +280,11 @@ async function sendWelcomeEmail({
 async function sendNotificationEmail(data: {
   name: string; email: string; tipoText: string; perfilText: string;
   empresa?: string; cif?: string; telefono?: string; message?: string; fecha: string;
+  accessToken: string;
 }) {
-  const transporter = createTransporter();
+  const GMAIL_USER = process.env.GMAIL_USER!;
+  const SHEETS_ID = process.env.GOOGLE_SHEETS_ID;
+
   const rows = [
     ["Fecha", data.fecha], ["Tipo", data.tipoText], ["Nombre", data.name],
     ["Email", data.email], ["Perfil/Sector", data.perfilText],
@@ -232,13 +294,7 @@ async function sendNotificationEmail(data: {
     ...(data.message ? [["Mensaje", data.message]] : []),
   ];
 
-  const SHEETS_ID = process.env.GOOGLE_SHEETS_ID;
-
-  await transporter.sendMail({
-    from: `"KUENTAS.EU Leads" <${process.env.GMAIL_USER}>`,
-    to: "iv.escudero@hotmail.com",
-    subject: `[KUENTAS] ${data.tipoText}: ${data.name}${data.empresa ? ` (${data.empresa})` : ""}`,
-    html: `
+  const html = `
 <div style="font-family:Arial,sans-serif;max-width:520px;">
   <h2 style="color:#2A5AAE;">Nuevo registro: ${data.tipoText}</h2>
   <table style="border-collapse:collapse;width:100%;">
@@ -248,6 +304,13 @@ async function sendNotificationEmail(data: {
   ${SHEETS_ID ? `<p style="margin-top:16px;font-size:12px;color:#666;">
     Ver todos los registros: <a href="https://docs.google.com/spreadsheets/d/${SHEETS_ID}">Google Sheets (Drive Kuentas)</a>
   </p>` : ""}
-</div>`,
+</div>`;
+
+  await sendGmailMessage({
+    accessToken: data.accessToken,
+    from: `"KUENTAS.EU Leads" <${GMAIL_USER}>`,
+    to: "iv.escudero@hotmail.com",
+    subject: `[KUENTAS] ${data.tipoText}: ${data.name}${data.empresa ? ` (${data.empresa})` : ""}`,
+    html,
   });
 }
