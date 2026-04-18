@@ -59,16 +59,20 @@ export async function POST(req: NextRequest) {
     const perfilText = perfilLabel[perfil] || sector || perfil || "No indicado";
     const fecha = new Date().toISOString().slice(0, 19).replace("T", " ");
 
-    // ── 1. Store in Google Sheets ────────────────────────────────────────
-    await storeInGoogleSheets({
-      fecha, name, email,
-      tipo: tipoText,
-      perfil: perfilText,
-      empresa: empresa || "",
-      cif: cif || "",
-      telefono: telefono || "",
-      message: message || "",
-    });
+    // ── 1. Store in Google Sheets (non-fatal) ────────────────────────────
+    try {
+      await storeInGoogleSheets({
+        fecha, name, email,
+        tipo: tipoText,
+        perfil: perfilText,
+        empresa: empresa || "",
+        cif: cif || "",
+        telefono: telefono || "",
+        message: message || "",
+      });
+    } catch (sheetsErr) {
+      console.warn("[contact] Sheets storage failed (non-fatal):", sheetsErr);
+    }
 
     // ── 2. Welcome email to user ─────────────────────────────────────────
     await sendWelcomeEmail({ name, email, tipo: tipo ?? "lista", perfilText, empresa });
