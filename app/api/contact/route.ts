@@ -84,10 +84,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true }, { headers: cors });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
     console.error("[contact] Error:", err);
     return NextResponse.json(
-      { success: false, error: "Error interno. Inténtalo de nuevo.", _debug: msg },
+      { success: false, error: "Error interno. Inténtalo de nuevo." },
       { status: 500, headers: cors }
     );
   }
