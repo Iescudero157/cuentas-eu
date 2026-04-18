@@ -9,5 +9,8 @@ export async function GET() {
     GMAIL_USER: process.env.GMAIL_USER ?? "MISSING",
     GOOGLE_SHEETS_ID_len: (process.env.GOOGLE_SHEETS_ID ?? "").length,
     NODE_ENV: process.env.NODE_ENV,
+    VERCEL: process.env.VERCEL ?? "MISSING",
+    VERCEL_ENV: process.env.VERCEL_ENV ?? "MISSING",
+    VERCEL_URL: process.env.VERCEL_URL ?? "MISSING",
   });
 }
