@@ -95,19 +95,30 @@ export async function POST(req: NextRequest) {
 
 // ── Gmail OAuth2 access token ─────────────────────────────────────────────────
 async function getGmailAccessToken(): Promise<string> {
+  const clientId = (process.env.GMAIL_CLIENT_ID ?? "").trim();
+  const clientSecret = (process.env.GMAIL_CLIENT_SECRET ?? "").trim();
+  const refreshToken = (process.env.GMAIL_REFRESH_TOKEN ?? "").trim();
+
+  const body = new URLSearchParams({
+    grant_type: "refresh_token",
+    refresh_token: refreshToken,
+    client_id: clientId,
+    client_secret: clientSecret,
+  });
+
   const res = await fetch("https://oauth2.googleapis.com/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type: "refresh_token",
-      refresh_token: process.env.GMAIL_REFRESH_TOKEN!,
-      client_id: process.env.GMAIL_CLIENT_ID!,
-      client_secret: process.env.GMAIL_CLIENT_SECRET!,
-    }),
-  });
+    body: body.toString(),
+    // Disable Next.js fetch caching for token requests
+    cache: "no-store",
+  } as RequestInit);
+
   const json = await res.json();
   if (!json.access_token) {
-    throw new Error(`OAuth2 token error: ${JSON.stringify(json)}`);
+    throw new Error(
+      `OAuth2 token error: ${JSON.stringify(json)} | cid_len=${clientId.length} | rt_len=${refreshToken.length}`
+    );
   }
   return json.access_token as string;
 }
