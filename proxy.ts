@@ -4,12 +4,19 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
-  // Only try Supabase auth if env vars are configured
+  // Only try Supabase auth if env vars are properly configured
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  if (!supabaseUrl || !supabaseKey) {
-    // No Supabase configured - allow all requests (demo mode)
+  const isConfigured =
+    supabaseUrl &&
+    supabaseKey &&
+    supabaseUrl.startsWith("https://") &&
+    supabaseUrl.includes(".supabase.co") &&
+    supabaseKey.length > 50;
+
+  if (!isConfigured) {
+    // Supabase not configured yet - allow all requests (demo mode)
     return supabaseResponse;
   }
 
