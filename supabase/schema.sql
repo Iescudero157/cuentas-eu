@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS profiles (
   tipo_iva INTEGER DEFAULT 21,
   retencion_irpf INTEGER DEFAULT 15,
   plan TEXT DEFAULT 'gratis' CHECK (plan IN ('gratis', 'autonomo', 'creator', 'business')),
+  stripe_customer_id TEXT,
+  stripe_subscription_id TEXT,
   notif_fiscales BOOLEAN DEFAULT TRUE,
   notif_facturas BOOLEAN DEFAULT TRUE,
   notif_resumen BOOLEAN DEFAULT FALSE,

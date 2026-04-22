@@ -52,6 +52,7 @@ const plans = [
     desc: "Para empezar",
     features: ["Dashboard basico", "5 facturas/mes", "Categorizacion manual", "Resumen mensual"],
     cta: "Empezar gratis",
+    href: "/registro",
     highlighted: false,
   },
   {
@@ -67,6 +68,7 @@ const plans = [
       "Soporte prioritario",
     ],
     cta: "Empezar prueba gratis",
+    href: "/precios#autonomo",
     highlighted: true,
   },
   {
@@ -82,6 +84,7 @@ const plans = [
       "Dashboard creador",
     ],
     cta: "Empezar prueba gratis",
+    href: "/precios#creator",
     highlighted: false,
   },
   {
@@ -97,6 +100,7 @@ const plans = [
       "Account manager",
     ],
     cta: "Contactar ventas",
+    href: "mailto:hola@kuentas.eu",
     highlighted: false,
   },
 ];
@@ -235,7 +239,7 @@ export default function LandingPage() {
                   ))}
                 </ul>
                 <Link
-                  href="/registro"
+                  href={plan.href}
                   className={`block text-center py-2.5 rounded-lg font-semibold text-sm transition ${
                     plan.highlighted
                       ? "gradient-brand text-white hover:opacity-90"
@@ -301,7 +305,7 @@ export default function LandingPage() {
             <div>
               <h4 className="text-white font-semibold mb-3 text-sm">Contacto</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="mailto:hola@cuentas.eu" className="hover:text-white transition">hola@cuentas.eu</a></li>
+                <li><a href="mailto:hola@kuentas.eu" className="hover:text-white transition">hola@kuentas.eu</a></li>
                 <li><a href="#" className="hover:text-white transition">Twitter/X</a></li>
                 <li><a href="#" className="hover:text-white transition">LinkedIn</a></li>
               </ul>

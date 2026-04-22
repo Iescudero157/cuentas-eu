@@ -1,8 +1,81 @@
 "use client";
 
-import { User, Building2, CreditCard, Bell, Shield } from "lucide-react";
+import { User, Building2, CreditCard, Bell, Shield, Loader2, ExternalLink, Star } from "lucide-react";
 import { demoUser } from "@/lib/demo-data";
 import { useState, useEffect } from "react";
+import Link from "next/link";
+
+const PLAN_LABELS: Record<string, { label: string; price: string; color: string }> = {
+  gratis: { label: "Plan Gratis", price: "0 EUR/mes", color: "text-brand-muted" },
+  autonomo: { label: "Plan Autónomo", price: "9,99 EUR/mes", color: "text-brand-blue" },
+  creator: { label: "Plan Creator", price: "19,99 EUR/mes", color: "text-brand-green" },
+  business: { label: "Plan Business", price: "29,99 EUR/mes", color: "text-brand-blue" },
+};
+
+function PlanCard() {
+  const [loading, setLoading] = useState(false);
+  // In demo mode the plan comes from localStorage (set by Supabase in production)
+  const currentPlan = "gratis"; // will be replaced with real Supabase data
+
+  const planInfo = PLAN_LABELS[currentPlan] ?? PLAN_LABELS.gratis;
+
+  async function handleManageBilling() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/stripe/portal", { method: "POST" });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert(data.error ?? "Error accediendo al portal de facturación");
+      }
+    } catch {
+      alert("Error de conexión");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="bg-white rounded-xl p-6 border border-brand-border/50 shadow-sm">
+      <div className="flex items-center gap-2 mb-4">
+        <CreditCard className="w-5 h-5 text-brand-blue" />
+        <h3 className="font-semibold text-brand-text">Tu plan</h3>
+      </div>
+      <div className="bg-brand-blue/5 rounded-lg p-4 flex items-center justify-between">
+        <div>
+          <p className={`font-semibold ${planInfo.color}`}>{planInfo.label}</p>
+          <p className="text-sm text-brand-muted">{planInfo.price}</p>
+        </div>
+        <span className="text-xs bg-brand-success/10 text-brand-success px-3 py-1 rounded-full font-medium">
+          {currentPlan === "gratis" ? "Gratuito" : "Activo"}
+        </span>
+      </div>
+      <div className="mt-4 flex gap-3">
+        {currentPlan === "gratis" ? (
+          <Link
+            href="/precios"
+            className="flex-1 flex items-center justify-center gap-2 gradient-brand text-white text-sm font-semibold py-2 rounded-lg hover:opacity-90 transition"
+          >
+            <Star className="w-4 h-4" /> Mejorar plan
+          </Link>
+        ) : (
+          <button
+            onClick={handleManageBilling}
+            disabled={loading}
+            className="flex-1 flex items-center justify-center gap-2 border border-brand-blue text-brand-blue text-sm font-semibold py-2 rounded-lg hover:bg-brand-blue/5 transition disabled:opacity-60"
+          >
+            {loading ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Cargando...</>
+            ) : (
+              <><ExternalLink className="w-4 h-4" /> Gestionar suscripción</>
+            )}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
 
 const STORAGE_KEY = "kuentas_ajustes";
 
@@ -178,24 +251,7 @@ export default function AjustesPage() {
           </div>
 
           {/* Plan */}
-          <div className="bg-white rounded-xl p-6 border border-brand-border/50 shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <CreditCard className="w-5 h-5 text-brand-blue" />
-              <h3 className="font-semibold text-brand-text">Tu plan</h3>
-            </div>
-            <div className="bg-brand-blue/5 rounded-lg p-4 flex items-center justify-between">
-              <div>
-                <p className="font-semibold text-brand-text">Plan Autonomo</p>
-                <p className="text-sm text-brand-muted">9,99 EUR/mes</p>
-              </div>
-              <span className="text-xs bg-brand-success/10 text-brand-success px-3 py-1 rounded-full font-medium">
-                Activo
-              </span>
-            </div>
-            <button className="mt-4 w-full border border-brand-blue text-brand-blue text-sm font-semibold py-2 rounded-lg hover:bg-brand-blue/5 transition">
-              Cambiar plan
-            </button>
-          </div>
+          <PlanCard />
 
           {/* Notifications */}
           <div className="bg-white rounded-xl p-6 border border-brand-border/50 shadow-sm">
