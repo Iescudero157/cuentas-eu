@@ -43,7 +43,7 @@ export default function FacturasPage() {
         </div>
         <Link
           href="/dashboard/facturas/nueva"
-          className="gradient-brand text-white font-semibold px-4 py-2.5 rounded-lg hover:opacity-90 transition flex items-center gap-2 text-sm"
+          className="bg-brand-blue text-white font-semibold px-4 py-2.5 rounded-lg hover:opacity-90 transition flex items-center gap-2 text-sm"
         >
           <Plus className="w-4 h-4" /> Nueva factura
         </Link>

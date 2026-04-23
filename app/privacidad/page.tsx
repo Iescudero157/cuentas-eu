@@ -13,7 +13,7 @@ export default function PrivacidadPage() {
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">
             <Image src="/logo.png" alt="KUENTAS.EU" width={28} height={28} />
-            <span className="font-bold text-gradient-brand">KUENTAS.EU</span>
+            <span className="font-bold text-brand-blue">KUENTAS.EU</span>
           </Link>
         </div>
       </nav>

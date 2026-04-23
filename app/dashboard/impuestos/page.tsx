@@ -23,7 +23,7 @@ export default function ImpuestosPage() {
       </div>
 
       {/* Current quarter highlight */}
-      <div className="gradient-brand rounded-2xl p-6 text-white">
+      <div className="bg-brand-blue rounded-2xl p-6 text-white">
         <div className="flex items-center gap-2 mb-4">
           <Calculator className="w-5 h-5" />
           <h3 className="font-semibold">Trimestre actual - {currentQuarterData.quarter}</h3>

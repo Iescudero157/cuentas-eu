@@ -132,7 +132,7 @@ export default function PreciosPage() {
               }`}
             >
               {plan.highlighted && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 gradient-brand text-white text-xs font-bold px-4 py-1 rounded-full">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-blue text-white text-xs font-bold px-4 py-1 rounded-full">
                   MÁS POPULAR
                 </div>
               )}
@@ -156,7 +156,7 @@ export default function PreciosPage() {
                   href={plan.href}
                   className={`block text-center py-2.5 rounded-lg font-semibold text-sm transition ${
                     plan.highlighted
-                      ? "gradient-brand text-white hover:opacity-90"
+                      ? "bg-brand-blue text-white hover:opacity-90"
                       : "bg-brand-gray text-brand-text hover:bg-brand-blue/10"
                   }`}
                 >
@@ -175,7 +175,7 @@ export default function PreciosPage() {
                   disabled={loading === plan.id}
                   className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg font-semibold text-sm transition disabled:opacity-60 ${
                     plan.highlighted
-                      ? "gradient-brand text-white hover:opacity-90"
+                      ? "bg-brand-blue text-white hover:opacity-90"
                       : "bg-brand-gray text-brand-text hover:bg-brand-blue/10"
                   }`}
                 >

@@ -55,7 +55,7 @@ function PlanCard() {
         {currentPlan === "gratis" ? (
           <Link
             href="/precios"
-            className="flex-1 flex items-center justify-center gap-2 gradient-brand text-white text-sm font-semibold py-2 rounded-lg hover:opacity-90 transition"
+            className="flex-1 flex items-center justify-center gap-2 bg-brand-blue text-white text-sm font-semibold py-2 rounded-lg hover:opacity-90 transition"
           >
             <Star className="w-4 h-4" /> Mejorar plan
           </Link>
@@ -194,7 +194,7 @@ export default function AjustesPage() {
             </div>
             <button
               type="submit"
-              className="gradient-brand text-white text-sm font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition"
+              className="bg-brand-blue text-white text-sm font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition"
             >
               Guardar cambios
             </button>

@@ -41,7 +41,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="flex flex-col h-full">
       <div className="p-6 flex items-center gap-2">
         <Image src="/logo.png" alt="CUENTAS.EU" width={32} height={32} />
-        <span className="text-lg font-bold text-gradient-brand">CUENTAS.EU</span>
+        <span className="text-lg font-bold text-brand-blue">CUENTAS.EU</span>
       </div>
 
       <nav className="flex-1 px-3 space-y-1">
@@ -52,7 +52,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             onClick={() => setSidebarOpen(false)}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
               isActive(item.href)
-                ? "gradient-brand text-white shadow-sm"
+                ? "bg-brand-blue text-white shadow-sm"
                 : "text-brand-muted hover:text-brand-text hover:bg-brand-gray"
             }`}
           >
@@ -64,7 +64,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       <div className="p-4 border-t border-brand-border">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-9 h-9 rounded-full gradient-brand flex items-center justify-center text-white text-sm font-bold">
+          <div className="w-9 h-9 rounded-full bg-brand-blue flex items-center justify-center text-white text-sm font-bold">
             {demoUser.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
           </div>
           <div className="flex-1 min-w-0">

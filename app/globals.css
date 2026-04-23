@@ -19,14 +19,3 @@ body {
   color: var(--color-brand-text);
   background: #ffffff;
 }
-
-.gradient-brand {
-  background: linear-gradient(135deg, var(--color-brand-blue), var(--color-brand-green));
-}
-
-.text-gradient-brand {
-  background: linear-gradient(135deg, var(--color-brand-blue), var(--color-brand-green));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}

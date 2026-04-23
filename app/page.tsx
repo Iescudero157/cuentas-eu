@@ -113,7 +113,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
           <div className="flex items-center gap-2">
             <Image src="/logo.png" alt="KUENTAS.EU" width={36} height={36} />
-            <span className="text-xl font-bold text-gradient-brand">KUENTAS.EU</span>
+            <span className="text-xl font-bold text-brand-blue">KUENTAS.EU</span>
           </div>
           <div className="hidden md:flex items-center gap-8 text-sm font-medium text-brand-muted">
             <a href="#features" className="hover:text-brand-blue transition">Funcionalidades</a>
@@ -125,7 +125,7 @@ export default function LandingPage() {
             </Link>
             <Link
               href="/registro"
-              className="gradient-brand text-white text-sm font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition"
+              className="bg-brand-blue text-white text-sm font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition"
             >
               Registrarse
             </Link>
@@ -135,7 +135,7 @@ export default function LandingPage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 gradient-brand opacity-5" />
+        <div className="absolute inset-0 bg-brand-blue opacity-5" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32 text-center relative">
           <div className="inline-flex items-center gap-2 bg-brand-blue/10 text-brand-blue text-sm font-medium px-4 py-1.5 rounded-full mb-6">
             <Star className="w-4 h-4" />
@@ -143,7 +143,7 @@ export default function LandingPage() {
           </div>
           <h1 className="text-4xl md:text-6xl font-extrabold text-brand-text leading-tight max-w-4xl mx-auto">
             Tu gestoria con IA.{" "}
-            <span className="text-gradient-brand">Todas tus cuentas, en una app.</span>
+            <span className="text-brand-blue">Todas tus cuentas, en una app.</span>
           </h1>
           <p className="mt-6 text-lg md:text-xl text-brand-muted max-w-2xl mx-auto">
             Conecta tu banco, categoriza gastos con IA, estima impuestos en tiempo real, factura en
@@ -152,7 +152,7 @@ export default function LandingPage() {
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               href="/dashboard"
-              className="gradient-brand text-white font-semibold px-8 py-3.5 rounded-xl text-lg hover:opacity-90 transition flex items-center gap-2 shadow-lg shadow-brand-blue/25"
+              className="bg-brand-blue text-white font-semibold px-8 py-3.5 rounded-xl text-lg hover:opacity-90 transition flex items-center gap-2 shadow-lg"
             >
               Probar demo gratis <ArrowRight className="w-5 h-5" />
             </Link>
@@ -187,7 +187,7 @@ export default function LandingPage() {
                 key={f.title}
                 className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-md transition border border-brand-border/50"
               >
-                <div className="w-12 h-12 rounded-xl gradient-brand flex items-center justify-center mb-5">
+                <div className="w-12 h-12 rounded-xl bg-brand-blue flex items-center justify-center mb-5">
                   <f.icon className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-lg font-bold text-brand-text mb-2">{f.title}</h3>
@@ -220,7 +220,7 @@ export default function LandingPage() {
                 }`}
               >
                 {plan.highlighted && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 gradient-brand text-white text-xs font-bold px-4 py-1 rounded-full">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-blue text-white text-xs font-bold px-4 py-1 rounded-full">
                     MAS POPULAR
                   </div>
                 )}
@@ -242,7 +242,7 @@ export default function LandingPage() {
                   href={plan.href}
                   className={`block text-center py-2.5 rounded-lg font-semibold text-sm transition ${
                     plan.highlighted
-                      ? "gradient-brand text-white hover:opacity-90"
+                      ? "bg-brand-blue text-white hover:opacity-90"
                       : "bg-brand-gray text-brand-text hover:bg-brand-blue/10"
                   }`}
                 >
@@ -255,7 +255,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 gradient-brand">
+      <section className="py-20 bg-brand-blue">
         <div className="max-w-4xl mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Empieza a controlar tus finanzas hoy

@@ -13,7 +13,7 @@ function PlanSelector() {
       <div className="w-full max-w-sm">
         <Link href="/" className="flex items-center gap-2 mb-8">
           <Image src="/logo.png" alt="KUENTAS.EU" width={32} height={32} />
-          <span className="text-xl font-bold text-gradient-brand">KUENTAS.EU</span>
+          <span className="text-xl font-bold text-brand-blue">KUENTAS.EU</span>
         </Link>
 
         <h1 className="text-2xl font-bold text-brand-text mb-2">Crear cuenta</h1>
@@ -124,7 +124,7 @@ function _RegistroPageOriginal() {
         <div className="w-full max-w-md">
           <Link href="/" className="flex items-center gap-2 mb-10">
             <Image src="/logo.png" alt="KUENTAS.EU" width={32} height={32} />
-            <span className="text-xl font-bold text-gradient-brand">KUENTAS.EU</span>
+            <span className="text-xl font-bold text-brand-blue">KUENTAS.EU</span>
           </Link>
 
           {/* Demo Mode Banner */}
@@ -199,7 +199,7 @@ function _RegistroPageOriginal() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full gradient-brand text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition disabled:opacity-60"
+              className="w-full bg-brand-blue text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition disabled:opacity-60"
             >
               {loading ? "Creando cuenta..." : "Crear cuenta"}
             </button>
@@ -231,7 +231,7 @@ function _RegistroPageOriginal() {
         </div>
       </div>
 
-      <div className="hidden lg:flex flex-1 gradient-brand items-center justify-center p-12">
+      <div className="hidden lg:flex flex-1 bg-brand-blue items-center justify-center p-12">
         <div className="max-w-md text-center text-white">
           <h2 className="text-3xl font-bold mb-4">Ahorra hasta 150 EUR/mes</h2>
           <p className="text-white/80 text-lg mb-8">

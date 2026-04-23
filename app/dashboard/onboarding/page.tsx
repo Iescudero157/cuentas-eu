@@ -256,14 +256,14 @@ export default function OnboardingPage() {
         {step < 4 ? (
           <button
             onClick={next}
-            className="flex items-center gap-2 gradient-brand text-white px-6 py-2.5 rounded-lg hover:opacity-90 transition text-sm font-semibold"
+            className="flex items-center gap-2 bg-brand-blue text-white px-6 py-2.5 rounded-lg hover:opacity-90 transition text-sm font-semibold"
           >
             Siguiente <ArrowRight className="w-4 h-4" />
           </button>
         ) : (
           <button
             onClick={handleFinish}
-            className="flex items-center gap-2 gradient-brand text-white px-6 py-2.5 rounded-lg hover:opacity-90 transition text-sm font-semibold"
+            className="flex items-center gap-2 bg-brand-blue text-white px-6 py-2.5 rounded-lg hover:opacity-90 transition text-sm font-semibold"
           >
             Ir al dashboard <ArrowRight className="w-4 h-4" />
           </button>

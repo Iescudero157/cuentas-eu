@@ -256,7 +256,7 @@ export default function NuevaFacturaPage() {
           <div className="flex gap-3 flex-wrap">
             <button
               onClick={handleSave}
-              className="gradient-brand text-white font-semibold px-6 py-2.5 rounded-lg hover:opacity-90 transition text-sm"
+              className="bg-brand-blue text-white font-semibold px-6 py-2.5 rounded-lg hover:opacity-90 transition text-sm"
             >
               Guardar factura
             </button>

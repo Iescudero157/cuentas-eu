@@ -188,7 +188,7 @@ export default function RegistroEmpresaPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 rounded-xl font-semibold text-sm text-white gradient-brand hover:opacity-90 transition disabled:opacity-60"
+              className="w-full py-3 rounded-xl font-semibold text-sm text-white bg-brand-blue hover:opacity-90 transition disabled:opacity-60"
             >
               {loading ? "Enviando solicitud..." : "Crear Cuenta Empresa"}
             </button>
