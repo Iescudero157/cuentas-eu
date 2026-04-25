@@ -61,7 +61,7 @@ export default function GastosPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-brand-text">Gastos</h1>
-        <p className="text-brand-muted text-sm mt-1">Gastos categorizados automaticamente con IA</p>
+        <p className="text-brand-muted text-sm mt-1">Gastos categorizados automáticamente con IA</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

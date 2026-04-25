@@ -23,7 +23,7 @@ export default function CashFlowPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-brand-text">Cash Flow</h1>
-        <p className="text-brand-muted text-sm mt-1">Prediccion de flujo de caja para los proximos 3 meses</p>
+        <p className="text-brand-muted text-sm mt-1">Predicción de flujo de caja para los próximos 3 meses</p>
       </div>
 
       {/* Summary cards */}
@@ -63,7 +63,7 @@ export default function CashFlowPage() {
           <div>
             <p className="font-semibold text-brand-text">Alerta de cash flow</p>
             <p className="text-sm text-brand-muted">
-              Se predice un saldo negativo en los proximos meses. Considera reducir gastos o asegurar nuevos clientes.
+              Se predice un saldo negativo en los próximos meses. Considera reducir gastos o asegurar nuevos clientes.
             </p>
           </div>
         </div>

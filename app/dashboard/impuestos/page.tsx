@@ -19,7 +19,7 @@ export default function ImpuestosPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-brand-text">Impuestos</h1>
-        <p className="text-brand-muted text-sm mt-1">Estimacion de IVA e IRPF para autonomos en Espana</p>
+        <p className="text-brand-muted text-sm mt-1">Estimación de IVA e IRPF para autónomos en España</p>
       </div>
 
       {/* Current quarter highlight */}

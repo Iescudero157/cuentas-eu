@@ -27,7 +27,7 @@ export default function PrivacidadPage() {
             <h2 className="text-xl font-bold mt-8 mb-3">1. Responsable del tratamiento</h2>
             <p>
               El responsable del tratamiento de los datos personales es <strong>MercadonetGlobal</strong>,
-              con domicilio en Espana. Puede contactarnos en{" "}
+              con domicilio en España. Puede contactarnos en{" "}
               <a href="mailto:hola@kuentas.eu" className="text-brand-blue underline">hola@kuentas.eu</a>.
             </p>
           </section>
@@ -142,7 +142,7 @@ export default function PrivacidadPage() {
               <a href="mailto:hola@kuentas.eu" className="text-brand-blue underline">hola@kuentas.eu</a>
             </p>
             <p className="mt-2">
-              MercadonetGlobal - Espana<br />
+              MercadonetGlobal - España<br />
               CIF: Pendiente de registro
             </p>
           </section>

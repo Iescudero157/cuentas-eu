@@ -16,9 +16,9 @@ export default function LoginPage() {
   function validate() {
     const errs: { email?: string; password?: string } = {};
     if (!email) errs.email = "El email es obligatorio";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = "Email no valido";
-    if (!password) errs.password = "La contrasena es obligatoria";
-    else if (password.length < 8) errs.password = "Minimo 8 caracteres";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = "Email no válido";
+    if (!password) errs.password = "La contraseña es obligatoria";
+    else if (password.length < 8) errs.password = "Mínimo 8 caracteres";
     return errs;
   }
 
@@ -59,13 +59,13 @@ export default function LoginPage() {
             <div>
               <p className="text-sm font-semibold text-brand-blue">Modo Demo disponible</p>
               <p className="text-xs text-brand-muted mt-0.5">
-                Puedes explorar la app sin registrarte usando el boton &quot;Probar sin registro&quot;
+                Puedes explorar la app sin registrarte usando el botón &quot;Probar sin registro&quot;
               </p>
             </div>
           </div>
 
           <h1 className="text-2xl font-bold text-brand-text mb-2">Bienvenido de vuelta</h1>
-          <p className="text-brand-muted mb-8">Inicia sesion para gestionar tus finanzas</p>
+          <p className="text-brand-muted mb-8">Inicia sesión para gestionar tus finanzas</p>
 
           <form onSubmit={handleLogin} className="space-y-4" noValidate>
             <div>
@@ -87,14 +87,14 @@ export default function LoginPage() {
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-brand-text mb-1.5">Contrasena</label>
+              <label className="block text-sm font-medium text-brand-text mb-1.5">Contraseña</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-muted" />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors({ ...errors, password: undefined }); }}
-                  placeholder="Tu contrasena"
+                  placeholder="Tu contraseña"
                   className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue ${errors.password ? "border-brand-danger" : "border-brand-border"}`}
                 />
               </div>
@@ -107,9 +107,9 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-brand-blue text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition disabled:opacity-60"
+              className="w-full bg-brand-blue text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
             >
-              {loading ? "Entrando..." : "Iniciar sesion"}
+              {loading ? "Entrando..." : "Iniciar sesión"}
             </button>
           </form>
 
@@ -125,15 +125,15 @@ export default function LoginPage() {
           <button
             onClick={handleDemo}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 border-2 border-brand-blue text-brand-blue font-semibold py-2.5 rounded-lg hover:bg-brand-blue/5 transition disabled:opacity-60"
+            className="w-full flex items-center justify-center gap-2 border-2 border-brand-blue text-brand-blue font-semibold py-2.5 rounded-lg hover:bg-brand-blue/5 transition disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
           >
             Probar sin registro <ArrowRight className="w-4 h-4" />
           </button>
 
           <p className="mt-6 text-center text-sm text-brand-muted">
-            No tienes cuenta?{" "}
+            ¿No tienes cuenta?{" "}
             <Link href="/registro" className="text-brand-blue font-medium hover:underline">
-              Registrate gratis
+              Regístrate gratis
             </Link>
           </p>
         </div>
@@ -147,7 +147,7 @@ export default function LoginPage() {
             Conecta tu banco, categoriza gastos con IA, estima impuestos y factura. Todo en un solo sitio.
           </p>
           <div className="grid grid-cols-2 gap-4 text-left">
-            {["3.4M autonomos", "IA integrada", "IVA + IRPF auto", "Facturas legales"].map((item) => (
+            {["Conexión bancaria", "IA integrada", "IVA + IRPF auto", "Facturas legales"].map((item) => (
               <div key={item} className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
                 <p className="text-sm font-medium">{item}</p>
               </div>

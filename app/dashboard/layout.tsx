@@ -40,8 +40,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const sidebar = (
     <div className="flex flex-col h-full">
       <div className="p-6 flex items-center gap-2">
-        <Image src="/logo.png" alt="CUENTAS.EU" width={32} height={32} />
-        <span className="text-lg font-bold text-brand-blue">CUENTAS.EU</span>
+        <Image src="/logo.png" alt="KUENTAS.EU" width={32} height={32} />
+        <span className="text-lg font-bold text-brand-blue">KUENTAS.EU</span>
       </div>
 
       <nav className="flex-1 px-3 space-y-1">
@@ -77,7 +77,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           className="flex items-center gap-2 text-sm text-brand-muted hover:text-brand-danger transition"
         >
           <LogOut className="w-4 h-4" />
-          Cerrar sesion
+          Cerrar sesión
         </Link>
       </div>
     </div>

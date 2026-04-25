@@ -198,19 +198,19 @@ export default function OnboardingPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-brand-text mb-1.5">Retencion IRPF en facturas</label>
+              <label className="block text-sm font-medium text-brand-text mb-1.5">Retención IRPF en facturas</label>
               <select
                 value={data.retencionIrpf}
                 onChange={(e) => setData({ ...data, retencionIrpf: Number(e.target.value) })}
                 className="w-full px-4 py-2.5 border border-brand-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
               >
-                <option value={15}>15% - General (mas de 3 anos como autonomo)</option>
-                <option value={7}>7% - Reducido (primeros 3 anos de actividad)</option>
+                <option value={15}>15% - General (más de 3 años como autónomo)</option>
+                <option value={7}>7% - Reducido (primeros 3 años de actividad)</option>
               </select>
             </div>
             <div className="bg-brand-blue/5 rounded-xl p-4 text-sm text-brand-muted">
-              <p><strong className="text-brand-text">IRPF 15%:</strong> Si llevas mas de 3 anos como autonomo o ya has facturado antes.</p>
-              <p className="mt-2"><strong className="text-brand-text">IRPF 7%:</strong> Si es tu primer, segundo o tercer ano como autonomo.</p>
+              <p><strong className="text-brand-text">IRPF 15%:</strong> Si llevas más de 3 años como autónomo o ya has facturado antes.</p>
+              <p className="mt-2"><strong className="text-brand-text">IRPF 7%:</strong> Si es tu primer, segundo o tercer año como autónomo.</p>
             </div>
           </div>
         )}
@@ -221,15 +221,15 @@ export default function OnboardingPage() {
               <CheckCircle className="w-10 h-10 text-brand-success" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-brand-text">Todo listo, {data.name.split(" ")[0] || "autonomo"}!</h2>
-              <p className="text-brand-muted mt-2">Tu cuenta esta configurada. Ahora puedes empezar a gestionar tus finanzas.</p>
+              <h2 className="text-2xl font-bold text-brand-text">Todo listo, {data.name.split(" ")[0] || "autónomo"}!</h2>
+              <p className="text-brand-muted mt-2">Tu cuenta está configurada. Ahora puedes empezar a gestionar tus finanzas.</p>
             </div>
             <div className="bg-brand-gray rounded-xl p-5 text-left space-y-3">
-              <p className="text-sm font-semibold text-brand-text">Proximos pasos recomendados:</p>
+              <p className="text-sm font-semibold text-brand-text">Próximos pasos recomendados:</p>
               {[
                 "Importa tus transacciones o conecta tu banco",
                 "Crea tu primera factura a un cliente",
-                "Revisa los proximos plazos fiscales en el dashboard",
+                "Revisa los próximos plazos fiscales en el dashboard",
               ].map((s, i) => (
                 <div key={i} className="flex items-center gap-3 text-sm text-brand-muted">
                   <span className="w-6 h-6 rounded-full bg-brand-blue text-white text-xs flex items-center justify-center font-bold shrink-0">

@@ -91,9 +91,9 @@ function _RegistroPageOriginal() {
     const errs: { name?: string; email?: string; password?: string } = {};
     if (!name || name.trim().length < 2) errs.name = "Introduce tu nombre completo";
     if (!email) errs.email = "El email es obligatorio";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = "Email no valido";
-    if (!password) errs.password = "La contrasena es obligatoria";
-    else if (password.length < 8) errs.password = "Minimo 8 caracteres";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = "Email no válido";
+    if (!password) errs.password = "La contraseña es obligatoria";
+    else if (password.length < 8) errs.password = "Mínimo 8 caracteres";
     return errs;
   }
 
@@ -186,7 +186,7 @@ function _RegistroPageOriginal() {
                   type="password"
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors({ ...errors, password: undefined }); }}
-                  placeholder="Minimo 8 caracteres"
+                  placeholder="Mínimo 8 caracteres"
                   className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue ${errors.password ? "border-brand-danger" : "border-brand-border"}`}
                 />
               </div>
@@ -225,7 +225,7 @@ function _RegistroPageOriginal() {
           <p className="mt-6 text-center text-sm text-brand-muted">
             Ya tienes cuenta?{" "}
             <Link href="/login" className="text-brand-blue font-medium hover:underline">
-              Iniciar sesion
+              Iniciar sesión
             </Link>
           </p>
         </div>
@@ -235,7 +235,7 @@ function _RegistroPageOriginal() {
         <div className="max-w-md text-center text-white">
           <h2 className="text-3xl font-bold mb-4">Ahorra hasta 150 EUR/mes</h2>
           <p className="text-white/80 text-lg mb-8">
-            Gestiona tus finanzas tu mismo con ayuda de IA. Sin gestoria, sin complicaciones.
+            Gestiona tus finanzas tú mismo con ayuda de IA. Sin gestoría, sin complicaciones.
           </p>
           <div className="space-y-3 text-left">
             {[

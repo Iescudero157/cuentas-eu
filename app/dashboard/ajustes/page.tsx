@@ -100,7 +100,7 @@ const defaultData: AjustesData = {
   email: demoUser.email,
   address: demoUser.address,
   activity: demoUser.activity,
-  epigrafe: "831 - Servicios tecnicos",
+  epigrafe: "831 - Servicios técnicos",
   tipoIva: 21,
   retencionIrpf: 15,
   notifFiscales: true,
@@ -184,7 +184,7 @@ export default function AjustesPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-brand-text mb-1">Direccion fiscal</label>
+              <label className="block text-sm font-medium text-brand-text mb-1">Dirección fiscal</label>
               <input
                 type="text"
                 value={data.address}
@@ -216,7 +216,7 @@ export default function AjustesPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-brand-text mb-1">Epigrafe IAE</label>
+              <label className="block text-sm font-medium text-brand-text mb-1">Epígrafe IAE</label>
               <input
                 type="text"
                 value={data.epigrafe}
@@ -238,14 +238,14 @@ export default function AjustesPage() {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-brand-text mb-1">Retencion IRPF facturas</label>
+              <label className="block text-sm font-medium text-brand-text mb-1">Retención IRPF facturas</label>
               <select
                 value={data.retencionIrpf}
                 onChange={(e) => setData({ ...data, retencionIrpf: Number(e.target.value) })}
                 className="w-full px-3 py-2 border border-brand-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
               >
                 <option value={15}>15% (General)</option>
-                <option value={7}>7% (Primeros 3 anos)</option>
+                <option value={7}>7% (Primeros 3 años)</option>
               </select>
             </div>
           </div>
@@ -261,7 +261,7 @@ export default function AjustesPage() {
             </div>
             <div className="space-y-4">
               {[
-                { key: "notifFiscales" as const, label: "Alertas fiscales", desc: "Fechas de presentacion de modelos" },
+                { key: "notifFiscales" as const, label: "Alertas fiscales", desc: "Fechas de presentación de modelos" },
                 { key: "notifFacturas" as const, label: "Facturas pendientes", desc: "Recordatorios de cobro" },
                 { key: "notifResumen" as const, label: "Resumen semanal", desc: "Informe de ingresos y gastos" },
                 { key: "notifTips" as const, label: "Tips de ahorro fiscal", desc: "La IA encuentra deducciones" },
