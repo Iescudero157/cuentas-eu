@@ -3,19 +3,19 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://app.kuentas.eu"),
-  title: "KUENTAS.EU - Gestion Financiera IA para Autonomos",
+  title: "KUENTAS.EU - Gestión Financiera con IA para Autónomos",
   description:
-    "App con IA que unifica todas las finanzas de autonomos, freelancers y creadores. Ingresos, gastos, impuestos, facturacion y cash flow en una sola plataforma.",
-  keywords: "autonomos, freelancers, creadores, gestion financiera, IVA, IRPF, facturacion, Espana",
+    "App con IA que unifica todas las finanzas de autónomos, freelancers y creadores. Ingresos, gastos, impuestos, facturación y cash flow en una sola plataforma.",
+  keywords: "autónomos, freelancers, creadores, gestión financiera, IVA, IRPF, facturación, España",
   alternates: {
     canonical: "https://app.kuentas.eu",
   },
   openGraph: {
     type: "website",
     url: "https://app.kuentas.eu",
-    title: "KUENTAS.EU - Gestion Financiera IA para Autonomos",
+    title: "KUENTAS.EU - Gestión Financiera con IA para Autónomos",
     description:
-      "App con IA que unifica todas las finanzas de autonomos, freelancers y creadores. Ingresos, gastos, impuestos, facturacion y cash flow en una sola plataforma.",
+      "App con IA que unifica todas las finanzas de autónomos, freelancers y creadores. Ingresos, gastos, impuestos, facturación y cash flow en una sola plataforma.",
     siteName: "KUENTAS.EU",
   },
 };
