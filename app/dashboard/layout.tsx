@@ -14,9 +14,12 @@ import {
   LogOut,
   Menu,
   X,
+  Users,
+  Upload,
+  Loader2,
 } from "lucide-react";
 import { useState } from "react";
-import { demoUser } from "@/lib/demo-data";
+import { AuthProvider, useAuth } from "@/lib/hooks/useAuth";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -25,17 +28,40 @@ const navItems = [
   { href: "/dashboard/facturas", label: "Facturas", icon: FileText },
   { href: "/dashboard/impuestos", label: "Impuestos", icon: Calculator },
   { href: "/dashboard/cashflow", label: "Cash Flow", icon: BarChart3 },
+  { href: "/dashboard/clientes", label: "Clientes", icon: Users },
+  { href: "/dashboard/importar", label: "Importar CSV", icon: Upload },
   { href: "/dashboard/ajustes", label: "Ajustes", icon: Settings },
 ];
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+function DashboardContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, profile, isDemo, loading, signOut } = useAuth();
+
+  const displayName = profile?.name || user?.user_metadata?.name || user?.email?.split("@")[0] || "Demo";
+  const displayPlan = profile?.plan || "gratis";
+  const initials = displayName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard";
     return pathname.startsWith(href);
   };
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-brand-gray">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin text-brand-blue mx-auto mb-3" />
+          <p className="text-sm text-brand-muted">Cargando...</p>
+        </div>
+      </div>
+    );
+  }
 
   const sidebar = (
     <div className="flex flex-col h-full">
@@ -65,20 +91,38 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="p-4 border-t border-brand-border">
         <div className="flex items-center gap-3 mb-3">
           <div className="w-9 h-9 rounded-full bg-brand-blue flex items-center justify-center text-white text-sm font-bold">
-            {demoUser.name.split(" ").map((n) => n[0]).join("").slice(0, 2)}
+            {initials}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-brand-text truncate">{demoUser.name}</p>
-            <p className="text-xs text-brand-muted">Plan {demoUser.plan}</p>
+            <p className="text-sm font-medium text-brand-text truncate">{displayName}</p>
+            <p className="text-xs text-brand-muted">Plan {displayPlan}</p>
           </div>
         </div>
-        <Link
-          href="/"
-          className="flex items-center gap-2 text-sm text-brand-muted hover:text-brand-danger transition"
-        >
-          <LogOut className="w-4 h-4" />
-          Cerrar sesión
-        </Link>
+        {isDemo ? (
+          <div className="space-y-2">
+            <Link
+              href="/registro"
+              className="flex items-center justify-center gap-2 text-sm text-white bg-brand-blue py-1.5 rounded-lg hover:opacity-90 transition font-medium"
+            >
+              Crear cuenta
+            </Link>
+            <Link
+              href="/"
+              className="flex items-center gap-2 text-sm text-brand-muted hover:text-brand-text transition"
+            >
+              <LogOut className="w-4 h-4" />
+              Salir del demo
+            </Link>
+          </div>
+        ) : (
+          <button
+            onClick={signOut}
+            className="flex items-center gap-2 text-sm text-brand-muted hover:text-brand-danger transition"
+          >
+            <LogOut className="w-4 h-4" />
+            Cerrar sesion
+          </button>
+        )}
       </div>
     </div>
   );
@@ -115,13 +159,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </button>
           <div className="hidden lg:block">
             <p className="text-sm text-brand-muted">
-              Hola, <span className="font-medium text-brand-text">{demoUser.name.split(" ")[0]}</span>
+              Hola, <span className="font-medium text-brand-text">{displayName.split(" ")[0]}</span>
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-xs bg-brand-blue/10 text-brand-blue px-3 py-1 rounded-full font-medium">
-              DEMO
-            </span>
+            {isDemo && (
+              <span className="text-xs bg-brand-blue/10 text-brand-blue px-3 py-1 rounded-full font-medium">
+                DEMO
+              </span>
+            )}
+            {!isDemo && profile?.plan && profile.plan !== "gratis" && (
+              <span className="text-xs bg-brand-success/10 text-brand-success px-3 py-1 rounded-full font-medium">
+                {profile.plan.toUpperCase()}
+              </span>
+            )}
           </div>
         </header>
 
@@ -129,5 +180,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <main className="flex-1 overflow-auto p-4 lg:p-8">{children}</main>
       </div>
     </div>
+  );
+}
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <AuthProvider>
+      <DashboardContent>{children}</DashboardContent>
+    </AuthProvider>
   );
 }

@@ -1,49 +1,42 @@
 "use client";
 
-import { TrendingDown, Brain } from "lucide-react";
+import { useState } from "react";
+import { Brain, Plus, Search, X, Download } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { demoTransactions } from "@/lib/demo-data";
+import { useTransactions } from "@/lib/hooks/useTransactions";
+import TransactionModal from "@/components/TransactionModal";
 
 const CATEGORY_COLORS: Record<string, string> = {
-  software: "#635bff",
-  hardware: "#2A5AAE",
-  coworking: "#4ECB71",
-  transporte: "#f59e0b",
-  comida: "#ef4444",
-  marketing: "#ec4899",
-  telefono: "#06b6d4",
-  formacion: "#8b5cf6",
-  seguros: "#6b7280",
-  material: "#14b8a6",
-  servicios: "#f97316",
-  otros: "#9ca3af",
+  software: "#635bff", hardware: "#2A5AAE", coworking: "#4ECB71",
+  transporte: "#f59e0b", comida: "#ef4444", marketing: "#ec4899",
+  telefono: "#06b6d4", formacion: "#8b5cf6", seguros: "#6b7280",
+  material: "#14b8a6", servicios: "#f97316", otros: "#9ca3af",
 };
-
 const CATEGORY_LABELS: Record<string, string> = {
-  software: "Software",
-  hardware: "Hardware",
-  coworking: "Coworking",
-  transporte: "Transporte",
-  comida: "Comida",
-  marketing: "Marketing",
-  telefono: "Telefono",
-  formacion: "Formacion",
-  seguros: "Seguros",
-  material: "Material",
-  servicios: "Servicios",
-  otros: "Otros",
+  software: "Software", hardware: "Hardware", coworking: "Coworking",
+  transporte: "Transporte", comida: "Comida", marketing: "Marketing",
+  telefono: "Telefono", formacion: "Formacion", seguros: "Seguros",
+  material: "Material", servicios: "Servicios", otros: "Otros",
 };
 
 export default function GastosPage() {
-  const gastos = demoTransactions
-    .filter((t) => t.type === "gasto")
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const { transactions, addTransaction } = useTransactions({ type: "gasto" });
+  const [search, setSearch] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<string>("");
 
-  const total = gastos.reduce((s, t) => s + t.amount, 0);
-  const aiCategorized = gastos.filter((t) => t.aiCategorized).length;
+  let filtered = transactions.filter((t) =>
+    t.description.toLowerCase().includes(search.toLowerCase())
+  );
+  if (categoryFilter) {
+    filtered = filtered.filter((t) => t.category === categoryFilter);
+  }
 
-  const byCategory = gastos.reduce<Record<string, number>>((acc, t) => {
+  const total = filtered.reduce((s, t) => s + t.amount, 0);
+  const aiCategorized = filtered.filter((t) => t.aiCategorized).length;
+
+  const byCategory = filtered.reduce<Record<string, number>>((acc, t) => {
     const cat = t.category || "otros";
     acc[cat] = (acc[cat] || 0) + t.amount;
     return acc;
@@ -54,21 +47,51 @@ export default function GastosPage() {
       name: CATEGORY_LABELS[cat] || cat,
       value: amount,
       color: CATEGORY_COLORS[cat] || "#999",
+      key: cat,
     }))
     .sort((a, b) => b.value - a.value);
 
+  function exportCSV() {
+    const header = "Fecha,Descripcion,Categoria,Importe,IVA\n";
+    const rows = filtered.map((tx) =>
+      `${tx.date},"${tx.description}",${CATEGORY_LABELS[tx.category || "otros"]},${tx.amount},${tx.iva}`
+    ).join("\n");
+    const blob = new Blob([header + rows], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `gastos_${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+  }
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-brand-text">Gastos</h1>
-        <p className="text-brand-muted text-sm mt-1">Gastos categorizados automáticamente con IA</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-brand-text">Gastos</h1>
+          <p className="text-brand-muted text-sm mt-1">Gastos categorizados con IA</p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={exportCSV}
+            className="border border-brand-border text-brand-muted font-medium px-3 py-2 rounded-lg hover:bg-brand-gray transition flex items-center gap-2 text-sm"
+          >
+            <Download className="w-4 h-4" /> CSV
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-brand-danger text-white font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition flex items-center gap-2 text-sm"
+          >
+            <Plus className="w-4 h-4" /> Nuevo gasto
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-xl p-6 border border-brand-border/50 shadow-sm">
           <p className="text-sm text-brand-muted mb-1">Total gastos</p>
           <p className="text-3xl font-bold text-brand-danger">{formatCurrency(total)}</p>
-          <p className="text-xs text-brand-muted mt-1">{gastos.length} transacciones</p>
+          <p className="text-xs text-brand-muted mt-1">{filtered.length} transacciones</p>
         </div>
         <div className="bg-white rounded-xl p-6 border border-brand-border/50 shadow-sm">
           <p className="text-sm text-brand-muted mb-1">Gastos deducibles</p>
@@ -81,7 +104,7 @@ export default function GastosPage() {
           </div>
           <div>
             <p className="text-sm text-brand-muted">Categorizados por IA</p>
-            <p className="text-2xl font-bold text-brand-text">{aiCategorized}/{gastos.length}</p>
+            <p className="text-2xl font-bold text-brand-text">{aiCategorized}/{filtered.length}</p>
           </div>
         </div>
       </div>
@@ -104,21 +127,45 @@ export default function GastosPage() {
           </div>
           <div className="mt-4 space-y-2">
             {pieData.slice(0, 5).map((d) => (
-              <div key={d.name} className="flex items-center justify-between text-sm">
+              <button
+                key={d.name}
+                onClick={() => setCategoryFilter(categoryFilter === d.key ? "" : d.key)}
+                className={`flex items-center justify-between text-sm w-full hover:bg-brand-gray/50 rounded-lg px-2 py-1 transition ${categoryFilter === d.key ? "bg-brand-blue/5" : ""}`}
+              >
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: d.color }} />
                   <span className="text-brand-muted">{d.name}</span>
                 </div>
                 <span className="font-medium">{formatCurrency(d.value)}</span>
-              </div>
+              </button>
             ))}
+            {categoryFilter && (
+              <button onClick={() => setCategoryFilter("")} className="text-xs text-brand-blue hover:underline w-full text-center mt-2">
+                Quitar filtro
+              </button>
+            )}
           </div>
         </div>
 
         {/* Table */}
         <div className="lg:col-span-2 bg-white rounded-xl border border-brand-border/50 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-brand-border">
+          <div className="p-6 border-b border-brand-border flex items-center justify-between">
             <h3 className="font-semibold text-brand-text">Todos los gastos</h3>
+            <div className="relative w-48">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-muted" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Buscar..."
+                className="w-full pl-8 pr-3 py-1.5 border border-brand-border rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
+              />
+              {search && (
+                <button onClick={() => setSearch("")} className="absolute right-2 top-1/2 -translate-y-1/2">
+                  <X className="w-3 h-3 text-brand-muted" />
+                </button>
+              )}
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -131,7 +178,7 @@ export default function GastosPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-border/50">
-                {gastos.map((tx) => (
+                {filtered.map((tx) => (
                   <tr key={tx.id} className="hover:bg-brand-gray/50">
                     <td className="px-6 py-3 text-brand-muted">{formatDate(tx.date)}</td>
                     <td className="px-6 py-3 font-medium text-brand-text">{tx.description}</td>
@@ -158,11 +205,26 @@ export default function GastosPage() {
                     </td>
                   </tr>
                 ))}
+                {filtered.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-8 text-center text-brand-muted">
+                      {search || categoryFilter ? "No se encontraron gastos" : "Aun no tienes gastos registrados"}
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
         </div>
       </div>
+
+      {showModal && (
+        <TransactionModal
+          type="gasto"
+          onSave={addTransaction}
+          onClose={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
 }

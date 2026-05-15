@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { User, Mail, Phone, ArrowLeft, AlertCircle, CheckCircle } from "lucide-react";
+import { User, Mail, Phone, Lock, ArrowLeft, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 const API = "https://cuentas-eu.vercel.app/api/contact";
 
 export default function RegistroProfesionalPage() {
   const router = useRouter();
-  const [form, setForm] = useState({ name: "", email: "", telefono: "" });
+  const [form, setForm] = useState({ name: "", email: "", password: "", telefono: "" });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -19,7 +20,9 @@ export default function RegistroProfesionalPage() {
     const e: Record<string, string> = {};
     if (!form.name.trim() || form.name.trim().length < 2) e.name = "Introduce tu nombre completo";
     if (!form.email) e.email = "El email es obligatorio";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Email no válido";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Email no valido";
+    if (!form.password) e.password = "La contrasena es obligatoria";
+    else if (form.password.length < 6) e.password = "Minimo 6 caracteres";
     return e;
   }
 
@@ -32,20 +35,37 @@ export default function RegistroProfesionalPage() {
     setApiError("");
 
     try {
-      const res = await fetch(API, {
+      // 1. Create Supabase auth account
+      const supabase = createClient();
+      const { error: authError } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: {
+          data: { name: form.name },
+          emailRedirectTo: `${window.location.origin}/dashboard/onboarding`,
+        },
+      });
+
+      if (authError) {
+        if (authError.message.includes("already registered")) {
+          setApiError("Este email ya tiene una cuenta. Inicia sesion.");
+        } else {
+          setApiError(authError.message);
+        }
+        setLoading(false);
+        return;
+      }
+
+      // 2. Also send to contact API for notifications (non-blocking)
+      fetch(API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, tipo: "profesional", perfil: "autonomo" }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setSuccess(true);
-        setTimeout(() => router.push("/dashboard"), 2500);
-      } else {
-        setApiError(data.error || "Error al registrar. Inténtalo de nuevo.");
-      }
+        body: JSON.stringify({ name: form.name, email: form.email, telefono: form.telefono, tipo: "profesional", perfil: "autonomo" }),
+      }).catch(() => { /* non-fatal */ });
+
+      setSuccess(true);
     } catch {
-      setApiError("Error de conexión. Inténtalo de nuevo.");
+      setApiError("Error de conexion. Intentalo de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -58,8 +78,11 @@ export default function RegistroProfesionalPage() {
           <div className="w-16 h-16 bg-brand-success/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle className="w-8 h-8 text-brand-success" />
           </div>
-          <h2 className="text-xl font-bold text-brand-text mb-2">¡Cuenta creada!</h2>
-          <p className="text-brand-muted text-sm">Revisa tu email — te hemos enviado la bienvenida. Redirigiendo al dashboard...</p>
+          <h2 className="text-xl font-bold text-brand-text mb-2">Cuenta creada</h2>
+          <p className="text-brand-muted text-sm mb-4">Revisa tu email y haz clic en el enlace de verificacion para activar tu cuenta.</p>
+          <Link href="/login" className="inline-block bg-brand-blue text-white font-semibold px-6 py-2.5 rounded-lg hover:opacity-90 transition text-sm">
+            Ir a iniciar sesion
+          </Link>
         </div>
       </div>
     );
@@ -115,6 +138,22 @@ export default function RegistroProfesionalPage() {
                 />
               </div>
               {errors.email && <p className="mt-1 text-xs text-brand-danger flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.email}</p>}
+            </div>
+
+            {/* Password */}
+            <div>
+              <label className="block text-sm font-medium text-brand-text mb-1.5">Contrasena</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-muted" />
+                <input
+                  type="password"
+                  value={form.password}
+                  onChange={e => { setForm({ ...form, password: e.target.value }); setErrors({ ...errors, password: "" }); }}
+                  placeholder="Minimo 6 caracteres"
+                  className={`w-full pl-9 pr-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue ${errors.password ? "border-brand-danger" : "border-brand-border"}`}
+                />
+              </div>
+              {errors.password && <p className="mt-1 text-xs text-brand-danger flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.password}</p>}
             </div>
 
             {/* Phone */}

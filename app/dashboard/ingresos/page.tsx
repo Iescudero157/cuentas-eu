@@ -1,36 +1,33 @@
 "use client";
 
-import { TrendingUp } from "lucide-react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
+import { useState } from "react";
+import { TrendingUp, Plus, Search, X, Download } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { demoTransactions } from "@/lib/demo-data";
+import { useTransactions } from "@/lib/hooks/useTransactions";
+import TransactionModal from "@/components/TransactionModal";
 
 const SOURCE_COLORS: Record<string, string> = {
-  stripe: "#635bff",
-  paypal: "#003087",
-  transferencia: "#2A5AAE",
-  wise: "#9fe870",
-  efectivo: "#6b7280",
-  banco: "#1a1a2e",
+  stripe: "#635bff", paypal: "#003087", transferencia: "#2A5AAE",
+  wise: "#9fe870", efectivo: "#6b7280", banco: "#1a1a2e",
 };
-
 const SOURCE_LABELS: Record<string, string> = {
-  stripe: "Stripe",
-  paypal: "PayPal",
-  transferencia: "Transferencia",
-  wise: "Wise",
-  efectivo: "Efectivo",
-  banco: "Banco",
+  stripe: "Stripe", paypal: "PayPal", transferencia: "Transferencia",
+  wise: "Wise", efectivo: "Efectivo", banco: "Banco",
 };
 
 export default function IngresosPage() {
-  const ingresos = demoTransactions
-    .filter((t) => t.type === "ingreso")
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const { transactions, addTransaction } = useTransactions({ type: "ingreso" });
+  const [search, setSearch] = useState("");
+  const [showModal, setShowModal] = useState(false);
 
-  const total = ingresos.reduce((s, t) => s + t.amount, 0);
+  const filtered = transactions.filter((t) =>
+    `${t.description} ${t.client || ""}`.toLowerCase().includes(search.toLowerCase())
+  );
 
-  const bySource = ingresos.reduce<Record<string, number>>((acc, t) => {
+  const total = filtered.reduce((s, t) => s + t.amount, 0);
+
+  const bySource = filtered.reduce<Record<string, number>>((acc, t) => {
     acc[t.source] = (acc[t.source] || 0) + t.amount;
     return acc;
   }, {});
@@ -41,29 +38,56 @@ export default function IngresosPage() {
     color: SOURCE_COLORS[source] || "#999",
   }));
 
+  function exportCSV() {
+    const header = "Fecha,Descripcion,Cliente,Fuente,Importe,IVA\n";
+    const rows = filtered.map((tx) =>
+      `${tx.date},"${tx.description}","${tx.client || ""}",${SOURCE_LABELS[tx.source]},${tx.amount},${tx.iva}`
+    ).join("\n");
+    const blob = new Blob([header + rows], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `ingresos_${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+  }
+
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-brand-text">Ingresos</h1>
-        <p className="text-brand-muted text-sm mt-1">Tracking de todos tus ingresos por fuente</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-brand-text">Ingresos</h1>
+          <p className="text-brand-muted text-sm mt-1">Tracking de todos tus ingresos por fuente</p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={exportCSV}
+            className="border border-brand-border text-brand-muted font-medium px-3 py-2 rounded-lg hover:bg-brand-gray transition flex items-center gap-2 text-sm"
+          >
+            <Download className="w-4 h-4" /> CSV
+          </button>
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-brand-success text-white font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition flex items-center gap-2 text-sm"
+          >
+            <Plus className="w-4 h-4" /> Nuevo ingreso
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Total */}
         <div className="bg-white rounded-xl p-6 border border-brand-border/50 shadow-sm">
           <p className="text-sm text-brand-muted mb-1">Total ingresos</p>
           <p className="text-3xl font-bold text-brand-success">{formatCurrency(total)}</p>
-          <p className="text-xs text-brand-muted mt-1">{ingresos.length} transacciones</p>
+          <p className="text-xs text-brand-muted mt-1">{filtered.length} transacciones</p>
         </div>
 
-        {/* Pie chart */}
         <div className="lg:col-span-2 bg-white rounded-xl p-6 border border-brand-border/50 shadow-sm">
           <h3 className="font-semibold text-brand-text mb-4">Ingresos por fuente</h3>
           <div className="h-56">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  label={((props: any) => `${props.name} ${((props.percent ?? 0) * 100).toFixed(0)}%`) as any}>
+                <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80}
+                  label={((props: Record<string, unknown>) => `${props.name} ${(((props.percent as number) ?? 0) * 100).toFixed(0)}%`) as unknown as boolean}>
                   {pieData.map((entry, i) => (
                     <Cell key={i} fill={entry.color} />
                   ))}
@@ -73,6 +97,23 @@ export default function IngresosPage() {
             </ResponsiveContainer>
           </div>
         </div>
+      </div>
+
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-muted" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por descripcion o cliente..."
+          className="w-full pl-10 pr-4 py-2.5 border border-brand-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue text-sm bg-white"
+        />
+        {search && (
+          <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-muted hover:text-brand-text">
+            <X className="w-4 h-4" />
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -93,7 +134,7 @@ export default function IngresosPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-border/50">
-              {ingresos.map((tx) => (
+              {filtered.map((tx) => (
                 <tr key={tx.id} className="hover:bg-brand-gray/50">
                   <td className="px-6 py-3 text-brand-muted">{formatDate(tx.date)}</td>
                   <td className="px-6 py-3 font-medium text-brand-text">{tx.description}</td>
@@ -112,10 +153,25 @@ export default function IngresosPage() {
                   <td className="px-6 py-3 text-right text-brand-muted">{formatCurrency(tx.iva)}</td>
                 </tr>
               ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-brand-muted">
+                    {search ? "No se encontraron ingresos" : "Aun no tienes ingresos registrados"}
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </div>
+
+      {showModal && (
+        <TransactionModal
+          type="ingreso"
+          onSave={addTransaction}
+          onClose={() => setShowModal(false)}
+        />
+      )}
     </div>
   );
 }

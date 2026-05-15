@@ -35,21 +35,29 @@ export async function proxy(request: NextRequest) {
     },
   });
 
+  // Refresh session if expired
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
 
-  // Protect dashboard routes
-  if (pathname.startsWith("/dashboard") && !user) {
+  // Check for demo mode (cookie or query param)
+  const isDemoMode =
+    request.nextUrl.searchParams.get("demo") === "1" ||
+    request.cookies.get("kuentas_demo")?.value === "1";
+
+  // Protect dashboard routes (allow demo mode)
+  if (pathname.startsWith("/dashboard") && !user && !isDemoMode) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
+    url.searchParams.set("redirect", pathname);
     return NextResponse.redirect(url);
   }
 
   // Redirect authenticated users away from auth pages
-  if ((pathname === "/login" || pathname === "/registro") && user) {
+  const isAuthRoute = pathname === "/login" || pathname.startsWith("/registro");
+  if (isAuthRoute && user) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

@@ -2,34 +2,38 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { Mail, Lock, ArrowRight, AlertCircle, Info } from "lucide-react";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Mail, Lock, ArrowRight, AlertCircle, Info, Loader2 } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect") || "/dashboard";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
 
   function validate() {
     const errs: { email?: string; password?: string } = {};
     if (!email) errs.email = "El email es obligatorio";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = "Email no válido";
-    if (!password) errs.password = "La contraseña es obligatoria";
-    else if (password.length < 8) errs.password = "Mínimo 8 caracteres";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = "Email no valido";
+    if (!password) errs.password = "La contrasena es obligatoria";
+    else if (password.length < 6) errs.password = "Minimo 6 caracteres";
     return errs;
   }
 
   function handleDemo() {
-    setLoading(true);
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 500);
+    setDemoLoading(true);
+    // Set demo cookie so middleware allows access
+    document.cookie = "kuentas_demo=1; path=/; max-age=86400";
+    router.push("/dashboard?demo=1");
   }
 
-  function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) {
@@ -38,9 +42,55 @@ export default function LoginPage() {
     }
     setErrors({});
     setLoading(true);
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 500);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        if (error.message.includes("Invalid login")) {
+          setErrors({ general: "Email o contrasena incorrectos" });
+        } else if (error.message.includes("Email not confirmed")) {
+          setErrors({ general: "Verifica tu email antes de iniciar sesion. Revisa tu bandeja de entrada." });
+        } else {
+          setErrors({ general: error.message });
+        }
+        return;
+      }
+
+      router.push(redirect);
+      router.refresh();
+    } catch {
+      setErrors({ general: "Error de conexion. Intentalo de nuevo." });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleForgotPassword() {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setErrors({ email: "Introduce tu email para recuperar la contrasena" });
+      return;
+    }
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/login?reset=1`,
+      });
+
+      if (error) {
+        setErrors({ general: error.message });
+      } else {
+        setErrors({ general: "" });
+        alert("Te hemos enviado un email para restablecer tu contrasena. Revisa tu bandeja de entrada.");
+      }
+    } catch {
+      setErrors({ general: "Error enviando email de recuperacion" });
+    }
   }
 
   return (
@@ -59,13 +109,20 @@ export default function LoginPage() {
             <div>
               <p className="text-sm font-semibold text-brand-blue">Modo Demo disponible</p>
               <p className="text-xs text-brand-muted mt-0.5">
-                Puedes explorar la app sin registrarte usando el botón &quot;Probar sin registro&quot;
+                Puedes explorar la app sin registrarte usando el boton &quot;Probar sin registro&quot;
               </p>
             </div>
           </div>
 
           <h1 className="text-2xl font-bold text-brand-text mb-2">Bienvenido de vuelta</h1>
-          <p className="text-brand-muted mb-8">Inicia sesión para gestionar tus finanzas</p>
+          <p className="text-brand-muted mb-8">Inicia sesion para gestionar tus finanzas</p>
+
+          {errors.general && (
+            <div className="mb-4 p-3 bg-brand-danger/10 border border-brand-danger/20 rounded-lg flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-brand-danger shrink-0" />
+              <p className="text-sm text-brand-danger">{errors.general}</p>
+            </div>
+          )}
 
           <form onSubmit={handleLogin} className="space-y-4" noValidate>
             <div>
@@ -87,14 +144,23 @@ export default function LoginPage() {
               )}
             </div>
             <div>
-              <label className="block text-sm font-medium text-brand-text mb-1.5">Contraseña</label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-sm font-medium text-brand-text">Contrasena</label>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-xs text-brand-blue hover:underline"
+                >
+                  He olvidado mi contrasena
+                </button>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-muted" />
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors({ ...errors, password: undefined }); }}
-                  placeholder="Tu contraseña"
+                  placeholder="Tu contrasena"
                   className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue ${errors.password ? "border-brand-danger" : "border-brand-border"}`}
                 />
               </div>
@@ -107,9 +173,9 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-brand-blue text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+              className="w-full bg-brand-blue text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 flex items-center justify-center gap-2"
             >
-              {loading ? "Entrando..." : "Iniciar sesión"}
+              {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Iniciando sesion...</> : "Iniciar sesion"}
             </button>
           </form>
 
@@ -124,16 +190,16 @@ export default function LoginPage() {
 
           <button
             onClick={handleDemo}
-            disabled={loading}
+            disabled={demoLoading}
             className="w-full flex items-center justify-center gap-2 border-2 border-brand-blue text-brand-blue font-semibold py-2.5 rounded-lg hover:bg-brand-blue/5 transition disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
           >
-            Probar sin registro <ArrowRight className="w-4 h-4" />
+            {demoLoading ? <><Loader2 className="w-4 h-4 animate-spin" /> Cargando demo...</> : <>Probar sin registro <ArrowRight className="w-4 h-4" /></>}
           </button>
 
           <p className="mt-6 text-center text-sm text-brand-muted">
-            ¿No tienes cuenta?{" "}
+            No tienes cuenta?{" "}
             <Link href="/registro" className="text-brand-blue font-medium hover:underline">
-              Regístrate gratis
+              Registrate gratis
             </Link>
           </p>
         </div>
@@ -147,7 +213,7 @@ export default function LoginPage() {
             Conecta tu banco, categoriza gastos con IA, estima impuestos y factura. Todo en un solo sitio.
           </p>
           <div className="grid grid-cols-2 gap-4 text-left">
-            {["Conexión bancaria", "IA integrada", "IVA + IRPF auto", "Facturas legales"].map((item) => (
+            {["Conexion bancaria", "IA integrada", "IVA + IRPF auto", "Facturas legales"].map((item) => (
               <div key={item} className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
                 <p className="text-sm font-medium">{item}</p>
               </div>
@@ -156,5 +222,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-brand-blue" /></div>}>
+      <LoginForm />
+    </Suspense>
   );
 }

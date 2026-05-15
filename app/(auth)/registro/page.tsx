@@ -53,7 +53,13 @@ function PlanSelector() {
           </Link>
 
           {/* Demo */}
-          <Link href="/dashboard" className="block bg-brand-gray rounded-2xl border-2 border-dashed border-brand-border hover:border-brand-blue/40 transition p-5 group">
+          <button
+            onClick={() => {
+              document.cookie = "kuentas_demo=1; path=/; max-age=86400";
+              window.location.href = "/dashboard?demo=1";
+            }}
+            className="block w-full text-left bg-brand-gray rounded-2xl border-2 border-dashed border-brand-border hover:border-brand-blue/40 transition p-5 group"
+          >
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shrink-0">
                 <Sparkles className="w-6 h-6 text-brand-muted" />
@@ -63,7 +69,7 @@ function PlanSelector() {
                 <p className="text-sm text-brand-muted mt-0.5">Accede al demo con datos de ejemplo</p>
               </div>
             </div>
-          </Link>
+          </button>
         </div>
 
         <p className="mt-6 text-center text-sm text-brand-muted">
