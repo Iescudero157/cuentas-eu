@@ -204,8 +204,9 @@ const jsonLdSoftware = {
   "@type": "SoftwareApplication",
   name: "KUENTAS.EU",
   applicationCategory: "FinanceApplication",
-  operatingSystem: "Web",
+  operatingSystem: "Web, Android",
   url: "https://app.kuentas.eu",
+  installUrl: "https://play.google.com/store/apps/details?id=eu.kuentas.app",
   description:
     "App con IA para autónomos españoles. Calcula IVA y IRPF en tiempo real, crea facturas legales, conecta tu banco y predice tu cash flow.",
   offers: {
@@ -436,6 +437,210 @@ export default function LandingPage() {
             </div>
           </div>
         </div>
+
+        {/* ── Stats: Datos de autónomos en España ── */}
+        <section className="py-20 bg-white">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-14">
+              <span className="inline-block bg-rose-50 text-rose-600 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-widest mb-4">
+                El problema que resolvemos
+              </span>
+              <h2 className="text-3xl md:text-4xl font-bold text-brand-text">
+                3,3 millones de autónomos en España<br className="hidden md:block" />
+                merecen algo mejor
+              </h2>
+              <p className="mt-4 text-lg text-brand-muted max-w-2xl mx-auto">
+                La burocracia fiscal lastra a los profesionales más dinámicos del país. Hasta ahora.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+              {[
+                {
+                  value: "3,3M",
+                  label: "autónomos activos en España",
+                  emoji: "👥",
+                  accent: "text-brand-blue",
+                  bg: "border-brand-blue/20 bg-brand-blue/[0.03]",
+                },
+                {
+                  value: "180€",
+                  label: "al mes de media en gestorías",
+                  emoji: "💸",
+                  accent: "text-rose-600",
+                  bg: "border-rose-200 bg-rose-50/50",
+                },
+                {
+                  value: "48 h",
+                  label: "anuales perdidas en trámites fiscales",
+                  emoji: "⏰",
+                  accent: "text-amber-600",
+                  bg: "border-amber-200 bg-amber-50/50",
+                },
+                {
+                  value: "2.160€",
+                  label: "ahorrados de media al año con KUENTAS.EU",
+                  emoji: "💡",
+                  accent: "text-emerald-600",
+                  bg: "border-emerald-200 bg-emerald-50/50",
+                },
+              ].map((s) => (
+                <div
+                  key={s.label}
+                  className={`rounded-2xl p-7 border-2 text-center transition hover:-translate-y-1 hover:shadow-md duration-200 ${s.bg}`}
+                >
+                  <div className="text-4xl mb-3">{s.emoji}</div>
+                  <div className={`text-4xl md:text-5xl font-extrabold mb-2 ${s.accent}`}>{s.value}</div>
+                  <p className="text-sm text-brand-muted leading-snug">{s.label}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── App Mobile: Descarga en Google Play ── */}
+        <section id="app" className="relative overflow-hidden py-20 lg:py-28 bg-[#0d1f4e]">
+          {/* Decorative background glows */}
+          <div className="pointer-events-none absolute -top-48 -left-48 w-[700px] h-[700px] rounded-full bg-brand-blue/25 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-36 -right-24 w-[500px] h-[500px] rounded-full bg-emerald-500/10 blur-3xl" />
+          <div className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] rounded-full bg-brand-blue/10 blur-3xl" />
+
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid md:grid-cols-2 gap-12 lg:gap-20 items-center">
+
+              {/* Left: copy + CTA */}
+              <div>
+                <span className="inline-flex items-center gap-2 bg-white/10 text-white/90 text-sm font-semibold px-4 py-2 rounded-full mb-6 border border-white/20">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  Aprobada y disponible en Google Play
+                </span>
+
+                <h2 className="text-3xl md:text-5xl font-extrabold text-white leading-tight mb-5">
+                  Tus cuentas en el bolsillo.{" "}
+                  <span className="text-emerald-400">Donde estés.</span>
+                </h2>
+
+                <p className="text-white/70 text-lg leading-relaxed mb-8 max-w-lg">
+                  Descarga la app oficial de KUENTAS.EU para Android y gestiona tus finanzas de
+                  autónomo desde cualquier lugar: facturas, IVA, alertas fiscales y escáner de tickets.
+                </p>
+
+                <ul className="space-y-3 mb-10">
+                  {[
+                    "Escanea tickets con la cámara (OCR con IA)",
+                    "Crea y envía facturas legales al instante",
+                    "IVA e IRPF calculados en tiempo real",
+                    "Alertas automáticas de vencimientos fiscales",
+                  ].map((feat) => (
+                    <li key={feat} className="flex items-center gap-3 text-white/85 text-sm">
+                      <span className="shrink-0 w-5 h-5 rounded-full bg-emerald-400/20 border border-emerald-400/40 flex items-center justify-center">
+                        <Check className="w-3 h-3 text-emerald-400" />
+                      </span>
+                      {feat}
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+                  <a
+                    href="https://play.google.com/store/apps/details?id=eu.kuentas.app"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-3.5 bg-white text-gray-900 px-5 py-3.5 rounded-2xl hover:bg-gray-50 active:scale-95 transition shadow-2xl shadow-black/40 font-medium"
+                    aria-label="Descargar KUENTAS.EU en Google Play"
+                  >
+                    {/* Google Play icon */}
+                    <svg viewBox="0 0 24 24" className="w-7 h-7 shrink-0" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M1.5 1.2C1.2 1.5 1 2 1 2.6v18.8c0 .6.2 1.1.5 1.4L2 23l10.5-10.5V12L2 1.5l-.5-.3z" fill="#01d0ea"/>
+                      <path d="M16 16l-3.5-3.5V12L16 8.5l.4.2 4.1 2.3c1.2.7 1.2 1.8 0 2.5L16.4 15.8 16 16z" fill="#f9c11b"/>
+                      <path d="M16.4 15.8L12.5 12 2 22.6c.4.4 1 .4 1.7.1l12.7-6.9z" fill="#21d25f"/>
+                      <path d="M2 1.4C1.3 1.1.7 1.1.3 1.5l10.5 10.5L14.2 8.5 3.7 1.5C3.1 1.1 2.4 1.1 2 1.4z" fill="#f93d44"/>
+                    </svg>
+                    <div className="flex flex-col leading-tight">
+                      <span className="text-[9px] text-gray-500 uppercase tracking-widest font-medium">Disponible en</span>
+                      <span className="text-[17px] font-bold text-gray-900">Google Play</span>
+                    </div>
+                  </a>
+                  <p className="text-white/40 text-xs leading-relaxed">
+                    Descarga gratuita<br />
+                    Android 8.0+ · App en español
+                  </p>
+                </div>
+              </div>
+
+              {/* Right: Phone mockup + QR code */}
+              <div className="flex items-center justify-center gap-6 sm:gap-10 flex-col sm:flex-row">
+
+                {/* CSS Phone mockup */}
+                <div className="relative flex-shrink-0">
+                  <div className="absolute inset-0 rounded-[3rem] bg-brand-blue/60 blur-3xl scale-110 opacity-70" />
+                  <div className="relative border-[3px] border-white/20 rounded-[3rem] overflow-hidden w-[172px] bg-white/10 backdrop-blur-sm shadow-2xl p-[5px]">
+                    <div className="rounded-[2.5rem] overflow-hidden bg-[#f8fafc]">
+                      {/* Status bar */}
+                      <div className="bg-brand-blue px-4 pt-3.5 pb-2.5 flex items-center justify-between">
+                        <span className="text-white font-black text-[9px] tracking-tight">KUENTAS.EU</span>
+                        <div className="flex gap-1 items-center">
+                          <span className="block w-1 h-1 rounded-full bg-white/50" />
+                          <span className="block w-1.5 h-1.5 rounded-full bg-white" />
+                        </div>
+                      </div>
+                      {/* App content */}
+                      <div className="p-3 space-y-2 min-h-[280px]">
+                        <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100">
+                          <p className="text-[7px] text-brand-muted font-semibold uppercase tracking-wide">Ingresos · Mayo</p>
+                          <p className="text-[17px] font-extrabold text-brand-text leading-tight">4.850 €</p>
+                          <span className="inline-flex items-center text-[7px] bg-emerald-50 text-emerald-600 px-1.5 py-0.5 rounded-full font-bold mt-1">
+                            ↑ +12% vs abril
+                          </span>
+                        </div>
+                        <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-100">
+                          <p className="text-[7px] text-brand-muted font-semibold uppercase tracking-wide">IVA pendiente</p>
+                          <p className="text-[17px] font-extrabold text-amber-600 leading-tight">730 €</p>
+                          <span className="inline-flex items-center text-[7px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full font-bold mt-1">
+                            Mod. 303 · 20 Jul
+                          </span>
+                        </div>
+                        <div className="bg-brand-blue rounded-xl p-3 text-white">
+                          <p className="text-[7px] font-bold opacity-75 mb-0.5">🔔 Próx. vencimiento</p>
+                          <p className="text-[9px] font-extrabold">Modelo 303 · 20 Jul</p>
+                        </div>
+                        <div className="flex gap-1.5">
+                          <div className="flex-1 bg-white rounded-xl p-2 border border-gray-100 text-center">
+                            <p className="text-[7px] font-bold text-brand-text">+3 facturas</p>
+                            <p className="text-[6px] text-brand-muted">este mes</p>
+                          </div>
+                          <div className="flex-1 bg-emerald-50 rounded-xl p-2 border border-emerald-100 text-center">
+                            <p className="text-[7px] font-bold text-emerald-700">0 alertas</p>
+                            <p className="text-[6px] text-emerald-600">pendientes</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* QR code card */}
+                <div className="flex flex-col items-center">
+                  <div className="bg-white rounded-2xl p-4 shadow-2xl ring-4 ring-white/10">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent("https://play.google.com/store/apps/details?id=eu.kuentas.app")}&bgcolor=ffffff&color=0d1f4e&margin=6&format=png`}
+                      alt="Código QR para descargar KUENTAS.EU en Google Play"
+                      width={160}
+                      height={160}
+                      className="rounded-lg block"
+                    />
+                  </div>
+                  <p className="mt-3 text-white font-semibold text-sm text-center">Escanea para descargar</p>
+                  <p className="mt-1 text-white/50 text-xs text-center">Apunta la cámara al código QR</p>
+                  <div className="mt-3 flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-full border border-white/15">
+                    <span className="text-[10px] text-white/60 font-medium">eu.kuentas.app</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* How it works */}
         <section id="how" className="py-20 bg-white">
@@ -699,6 +904,17 @@ export default function LandingPage() {
                 <li><a href="#features" className="hover:text-white transition">Funcionalidades</a></li>
                 <li><a href="#pricing" className="hover:text-white transition">Precios</a></li>
                 <li><Link href="/dashboard" className="hover:text-white transition">Demo gratis</Link></li>
+                <li>
+                  <a
+                    href="https://play.google.com/store/apps/details?id=eu.kuentas.app"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-white transition inline-flex items-center gap-1.5"
+                  >
+                    App Android
+                    <span className="text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full font-bold">NEW</span>
+                  </a>
+                </li>
               </ul>
             </div>
             <div>

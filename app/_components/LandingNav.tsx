@@ -8,6 +8,7 @@ import { Menu, X } from "lucide-react";
 const navLinks = [
   { label: "Cómo funciona", href: "#how" },
   { label: "Funcionalidades", href: "#features" },
+  { label: "App Android", href: "#app", badge: "NEW" },
   { label: "Precios", href: "#pricing" },
   { label: "Blog", href: "/blog" },
   { label: "Herramientas", href: "/herramientas" },
@@ -29,12 +30,22 @@ export default function LandingNav() {
         <div className="hidden md:flex items-center gap-7 text-sm font-medium text-brand-muted">
           {navLinks.map((l) =>
             l.href.startsWith("#") ? (
-              <a key={l.label} href={l.href} className="hover:text-brand-blue transition">
+              <a key={l.label} href={l.href} className="hover:text-brand-blue transition inline-flex items-center gap-1.5">
                 {l.label}
+                {l.badge && (
+                  <span className="text-[9px] bg-emerald-500/15 text-emerald-600 px-1.5 py-0.5 rounded-full font-bold">
+                    {l.badge}
+                  </span>
+                )}
               </a>
             ) : (
-              <Link key={l.label} href={l.href} className="hover:text-brand-blue transition">
+              <Link key={l.label} href={l.href} className="hover:text-brand-blue transition inline-flex items-center gap-1.5">
                 {l.label}
+                {l.badge && (
+                  <span className="text-[9px] bg-emerald-500/15 text-emerald-600 px-1.5 py-0.5 rounded-full font-bold">
+                    {l.badge}
+                  </span>
+                )}
               </Link>
             )
           )}
@@ -77,18 +88,28 @@ export default function LandingNav() {
                   key={l.label}
                   href={l.href}
                   onClick={() => setOpen(false)}
-                  className="block px-3 py-2.5 rounded-lg text-sm font-medium text-brand-text hover:bg-brand-gray hover:text-brand-blue transition"
+                  className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-brand-text hover:bg-brand-gray hover:text-brand-blue transition"
                 >
                   {l.label}
+                  {l.badge && (
+                    <span className="text-[9px] bg-emerald-500/15 text-emerald-600 px-1.5 py-0.5 rounded-full font-bold">
+                      {l.badge}
+                    </span>
+                  )}
                 </a>
               ) : (
                 <Link
                   key={l.label}
                   href={l.href}
                   onClick={() => setOpen(false)}
-                  className="block px-3 py-2.5 rounded-lg text-sm font-medium text-brand-text hover:bg-brand-gray hover:text-brand-blue transition"
+                  className="flex items-center justify-between px-3 py-2.5 rounded-lg text-sm font-medium text-brand-text hover:bg-brand-gray hover:text-brand-blue transition"
                 >
                   {l.label}
+                  {l.badge && (
+                    <span className="text-[9px] bg-emerald-500/15 text-emerald-600 px-1.5 py-0.5 rounded-full font-bold">
+                      {l.badge}
+                    </span>
+                  )}
                 </Link>
               )
             )}
