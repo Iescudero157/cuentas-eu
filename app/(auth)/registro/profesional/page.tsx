@@ -47,8 +47,10 @@ export default function RegistroProfesionalPage() {
       });
 
       if (authError) {
-        if (authError.message.includes("already registered")) {
+        if (authError.message.includes("already registered") || authError.message.includes("already been registered")) {
           setApiError("Este email ya tiene una cuenta. Inicia sesión.");
+        } else if (authError.message.includes("Failed to fetch") || authError.message.includes("fetch") || authError.message.includes("network")) {
+          setApiError("Error de conexión con el servidor. Inténtalo de nuevo en unos segundos.");
         } else {
           setApiError(authError.message);
         }
