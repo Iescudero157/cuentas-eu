@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const {
       name, email, perfil, message,
-      tipo,       // "profesional" | "empresa" | "lista" (waitlist)
+      tipo,       // "profesional" | "empresa"
       empresa, cif, telefono, sector,
     } = body;
 
@@ -44,7 +44,6 @@ export async function POST(req: NextRequest) {
     const tipoLabel: Record<string, string> = {
       profesional: "Registro Profesional",
       empresa: "Registro Empresa",
-      lista: "Lista de espera",
     };
 
     const perfilLabel: Record<string, string> = {
@@ -54,7 +53,7 @@ export async function POST(req: NextRequest) {
       otro: "Otro",
     };
 
-    const tipoText  = tipoLabel[tipo] ?? "Lista de espera";
+    const tipoText  = tipoLabel[tipo] ?? "Contacto";
     const perfilText = perfilLabel[perfil] || sector || perfil || "No indicado";
     const fecha = new Date().toISOString().slice(0, 19).replace("T", " ");
 
@@ -237,9 +236,7 @@ async function sendWelcomeEmail({
 
   const intro = isEmpresa
     ? `Hemos registrado la solicitud de cuenta empresa para <strong>${empresa || name}</strong>. En breve nos ponemos en contacto para configurar vuestro acceso.`
-    : isProfesional
-    ? `Tu cuenta profesional está en proceso. En breve recibirás los datos de acceso para empezar a gestionar tus finanzas.`
-    : `Gracias por unirte a la lista de espera. Serás de los primeros en acceder — y con el <strong>50% de descuento el primer año</strong>.`;
+    : `Tu cuenta está lista. Accede ahora a <a href="https://app.kuentas.eu/login" style="color:#2A5AAE;">app.kuentas.eu</a> y empieza a gestionar tus finanzas con IA.`;
 
   const html = `<!DOCTYPE html>
 <html lang="es">
