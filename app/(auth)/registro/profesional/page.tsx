@@ -37,7 +37,7 @@ export default function RegistroProfesionalPage() {
     try {
       // 1. Create Supabase auth account
       const supabase = createClient();
-      const { error: authError } = await supabase.auth.signUp({
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
         options: {
@@ -47,13 +47,30 @@ export default function RegistroProfesionalPage() {
       });
 
       if (authError) {
-        if (authError.message.includes("already registered") || authError.message.includes("already been registered")) {
-          setApiError("Este email ya tiene una cuenta. Inicia sesión.");
-        } else if (authError.message.includes("Failed to fetch") || authError.message.includes("fetch") || authError.message.includes("network")) {
+        const code = (authError as { code?: string }).code ?? "";
+        const msg = authError.message?.toLowerCase() ?? "";
+        if (
+          code === "user_already_exists" || code === "email_exists" ||
+          msg.includes("already registered") || msg.includes("already been registered") ||
+          msg.includes("ya registrado") || msg.includes("ya existe")
+        ) {
+          setApiError("Este email ya tiene una cuenta. Inicia sesión o revisa tu bandeja de entrada.");
+        } else if (code === "over_email_send_rate_limit" || msg.includes("rate limit") || msg.includes("demasiados")) {
+          setApiError("Demasiados intentos. Espera unos minutos e inténtalo de nuevo.");
+        } else if (code === "weak_password" || msg.includes("weak_password") || msg.includes("contraseña")) {
+          setApiError("La contraseña es demasiado débil. Usa al menos 8 caracteres con letras y números.");
+        } else if (msg.includes("failed to fetch") || msg.includes("network") || msg.includes("conexión")) {
           setApiError("Error de conexión con el servidor. Inténtalo de nuevo en unos segundos.");
         } else {
-          setApiError(authError.message);
+          setApiError("No se pudo crear la cuenta. Inténtalo de nuevo o contacta con soporte.");
         }
+        setLoading(false);
+        return;
+      }
+
+      // Supabase silently "succeeds" for already-registered emails (identities=[])
+      if (authData?.user?.identities?.length === 0) {
+        setApiError("Este email ya tiene una cuenta. Inicia sesión o revisa tu bandeja de entrada.");
         setLoading(false);
         return;
       }
