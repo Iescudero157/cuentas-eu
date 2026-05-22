@@ -50,7 +50,8 @@ export async function POST(req: NextRequest) {
 
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
-      payment_method_types: ["card"],
+      // Omitting payment_method_types lets Stripe show ALL enabled methods automatically
+      // (card always; Bizum + SEPA Debit appear once activated in the Stripe Dashboard)
       line_items: [{ price: priceId, quantity: 1 }],
       mode: "subscription",
       success_url: `${APP_URL}/dashboard/ajustes?plan_success=1`,

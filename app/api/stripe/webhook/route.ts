@@ -60,7 +60,9 @@ export async function POST(req: NextRequest) {
         break;
       }
 
-      // Subscription updated (plan change, renewal, etc.)
+      // Subscription updated: plan change, renewal, past_due, unpaid → sync plan
+      // planFromSubscription() returns "gratis" for any non-active/trialing status,
+      // so past_due/unpaid after Stripe exhausts retries will automatically downgrade
       case "customer.subscription.updated": {
         const sub = event.data.object as Stripe.Subscription;
         const userId = sub.metadata?.supabase_user_id;
@@ -87,7 +89,7 @@ export async function POST(req: NextRequest) {
         break;
       }
 
-      // Subscription cancelled → downgrade to free
+      // Subscription cancelled → downgrade to free immediately
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
         const userId = sub.metadata?.supabase_user_id;
@@ -108,6 +110,17 @@ export async function POST(req: NextRequest) {
               .update({ plan: "gratis", stripe_subscription_id: null })
               .eq("id", data.id);
           }
+        }
+        break;
+      }
+
+      // Invoice payment failed → Stripe will retry via dunning.
+      // Plan stays active during retry period; subscription.updated handles final downgrade.
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const custId = invoice.customer as string;
+        if (custId) {
+          console.warn(`[stripe/webhook] invoice.payment_failed for customer ${custId} — Stripe will retry`);
         }
         break;
       }
