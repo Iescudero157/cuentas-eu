@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Precios — Planes para Autónomos desde 0€",
   description:
-    "Elige el plan que mejor se adapta a tu negocio. Gratis para siempre, o desbloquea conexión bancaria, IA y más desde 9,99€/mes. Sin permanencia.",
+    "Elige el plan que mejor se adapta a tu negocio. Empieza gratis y desbloquea conexión bancaria, IA y más desde 9,99€/mes. Sin permanencia.",
   alternates: { canonical: "https://app.kuentas.eu/precios" },
   openGraph: {
     title: "Precios KUENTAS.EU — Desde 0€/mes para Autónomos",

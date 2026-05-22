@@ -105,7 +105,7 @@ export default function RegistroProfesionalPage() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-brand-text">Registro Profesional</h1>
-              <p className="text-sm text-brand-muted">Gratis para siempre</p>
+              <p className="text-sm text-brand-muted">Sin tarjeta de crédito · Cancela cuando quieras</p>
             </div>
           </div>
 
