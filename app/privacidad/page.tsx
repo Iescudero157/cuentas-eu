@@ -77,7 +77,7 @@ export default function PrivacidadPage() {
               <li>Proveedores de infraestructura (Vercel, Supabase) para el alojamiento seguro</li>
               <li>Proveedores de Open Banking (con su consentimiento) para la conexión bancaria</li>
               <li>Proveedores de IA (OpenAI) para la categorizacion de gastos (datos anonimizados)</li>
-              <li>Pasarelas de pago (Stripe) para procesar suscripciones</li>
+              <li>TPV Virtual BBVA (Redsys) para el procesamiento seguro de pagos y suscripciones</li>
             </ul>
           </section>
 

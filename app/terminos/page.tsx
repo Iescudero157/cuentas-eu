@@ -61,8 +61,8 @@ export default function TerminosPage() {
               facturacion en curso. No se realizan reembolsos por periodos parciales.
             </p>
             <p className="text-brand-muted leading-relaxed mt-2">
-              Los pagos se procesan de forma segura a traves de Stripe. KUENTAS.EU no almacena datos
-              de tarjetas de credito.
+              Los pagos se procesan de forma segura a través del TPV Virtual BBVA (Redsys), con cifrado
+              SSL 256 bits. KUENTAS.EU no almacena datos de tarjetas de crédito.
             </p>
           </section>
 
