@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import {
@@ -13,6 +14,13 @@ import {
   Star,
 } from "lucide-react";
 import LandingNav from "./_components/LandingNav";
+
+export const metadata: Metadata = {
+  title: "KUENTAS.EU — App Gestión Financiera con IA para Autónomos Españoles",
+  description:
+    "Conecta tu banco, calcula IVA y IRPF en tiempo real, crea facturas legales y predice tu cash flow. La app financiera pensada para autónomos españoles. Prueba gratis.",
+  alternates: { canonical: "https://app.kuentas.eu" },
+};
 
 const features = [
   {
@@ -191,9 +199,113 @@ const faqs = [
   },
 ];
 
+const jsonLdSoftware = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "KUENTAS.EU",
+  applicationCategory: "FinanceApplication",
+  operatingSystem: "Web",
+  url: "https://app.kuentas.eu",
+  description:
+    "App con IA para autónomos españoles. Calcula IVA y IRPF en tiempo real, crea facturas legales, conecta tu banco y predice tu cash flow.",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "EUR",
+    priceSpecification: {
+      "@type": "UnitPriceSpecification",
+      price: "9.99",
+      priceCurrency: "EUR",
+      billingDuration: "P1M",
+    },
+  },
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: "4.8",
+    reviewCount: "47",
+    bestRating: "5",
+  },
+  featureList: [
+    "Conexión bancaria Open Banking PSD2",
+    "Categorización automática con IA",
+    "Cálculo IVA tiempo real (Modelo 303)",
+    "Cálculo IRPF (Modelo 130)",
+    "Facturación legal",
+    "Cash flow forecast 3 meses",
+    "Alertas fiscales automáticas",
+  ],
+};
+
+const jsonLdFaq = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "¿Es seguro conectar mi banco a KUENTAS.EU?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Sí. Utilizamos Open Banking regulado por el Banco de España bajo la directiva PSD2. Nunca almacenamos tus credenciales bancarias. El acceso es de solo lectura.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "¿Necesito saber de contabilidad para usar KUENTAS.EU?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "No. La IA categoriza automáticamente cada gasto e ingreso. Tú solo revisas y confirmas con un clic.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "¿KUENTAS.EU sustituye a mi gestoría?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Para la gestión diaria del negocio, sí. Para la declaración de la Renta anual recomendamos un asesor. KUENTAS.EU exporta todo preparado para que tu gestor tarde minutos, no horas.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "¿Cuánto cuesta KUENTAS.EU?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Hay un plan gratuito para empezar. El plan Autónomo cuesta 9,99€/mes e incluye conexión bancaria, IA de categorización, impuestos en tiempo real y facturas ilimitadas.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "¿Funciona para todo tipo de autónomos?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Sí. Cubre estimación directa simplificada y normal, y módulos. Soporta modelos 303 y 130 tanto en Régimen General como Simplificado.",
+      },
+    },
+  ],
+};
+
+const jsonLdOrganization = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "KUENTAS.EU",
+  url: "https://app.kuentas.eu",
+  logo: "https://app.kuentas.eu/logo.png",
+  contactPoint: {
+    "@type": "ContactPoint",
+    email: "hola@kuentas.eu",
+    contactType: "customer service",
+    availableLanguage: "Spanish",
+  },
+  sameAs: [],
+};
+
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen">
+      {/* JSON-LD Structured Data */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSoftware) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdFaq) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdOrganization) }} />
+
       {/* Skip to content (accessibility) */}
       <a
         href="#main-content"
@@ -586,23 +698,24 @@ export default function LandingPage() {
               <ul className="space-y-2 text-sm">
                 <li><a href="#features" className="hover:text-white transition">Funcionalidades</a></li>
                 <li><a href="#pricing" className="hover:text-white transition">Precios</a></li>
-                <li><a href="#" className="hover:text-white transition">Integraciones</a></li>
+                <li><Link href="/dashboard" className="hover:text-white transition">Demo gratis</Link></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-white font-semibold mb-3 text-sm">Recursos</h4>
+              <ul className="space-y-2 text-sm">
+                <li><Link href="/blog" className="hover:text-white transition">Blog autónomos</Link></li>
+                <li><Link href="/herramientas/calculadora-iva" className="hover:text-white transition">Calculadora IVA</Link></li>
+                <li><Link href="/blog/gastos-deducibles-autonomos-lista-completa" className="hover:text-white transition">Gastos deducibles</Link></li>
+                <li><Link href="/blog/modelo-303-iva-trimestral-guia" className="hover:text-white transition">Guía Modelo 303</Link></li>
               </ul>
             </div>
             <div>
               <h4 className="text-white font-semibold mb-3 text-sm">Legal</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="/privacidad" className="hover:text-white transition">Privacidad</a></li>
-                <li><a href="#" className="hover:text-white transition">Términos</a></li>
-                <li><a href="#" className="hover:text-white transition">Cookies</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-3 text-sm">Contacto</h4>
-              <ul className="space-y-2 text-sm">
+                <li><Link href="/privacidad" className="hover:text-white transition">Privacidad</Link></li>
+                <li><Link href="/terminos" className="hover:text-white transition">Términos</Link></li>
                 <li><a href="mailto:hola@kuentas.eu" className="hover:text-white transition">hola@kuentas.eu</a></li>
-                <li><a href="#" className="hover:text-white transition">Twitter/X</a></li>
-                <li><a href="#" className="hover:text-white transition">LinkedIn</a></li>
               </ul>
             </div>
           </div>

@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { User, Building2, CreditCard, CheckCircle, ArrowRight, ArrowLeft } from "lucide-react";
-import { saveData } from "@/lib/storage";
+import { User, Building2, CreditCard, CheckCircle, ArrowRight, ArrowLeft, Loader2 } from "lucide-react";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 const STEPS = [
   { id: 1, title: "Datos personales", icon: User },
   { id: 2, title: "Tu actividad", icon: Building2 },
-  { id: 3, title: "Configuracion fiscal", icon: CreditCard },
+  { id: 3, title: "Configuración fiscal", icon: CreditCard },
   { id: 4, title: "Listo", icon: CheckCircle },
 ];
 
@@ -25,11 +25,13 @@ interface OnboardingData {
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { user, isDemo } = useAuth();
   const [step, setStep] = useState(1);
+  const [saving, setSaving] = useState(false);
   const [data, setData] = useState<OnboardingData>({
     name: "",
     nif: "",
-    email: "",
+    email: user?.email || "",
     address: "",
     activity: "",
     epigrafe: "",
@@ -45,15 +47,51 @@ export default function OnboardingPage() {
     if (step > 1) setStep(step - 1);
   }
 
-  function handleFinish() {
-    saveData("kuentas_ajustes", {
+  async function handleFinish() {
+    setSaving(true);
+
+    const profileData = {
       ...data,
       notifFiscales: true,
       notifFacturas: true,
       notifResumen: false,
       notifTips: true,
-    });
-    router.push("/dashboard");
+    };
+
+    try {
+      if (!isDemo && user) {
+        // Real user: save to Supabase via API
+        await fetch("/api/profile", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: data.name,
+            nif: data.nif,
+            email: data.email,
+            address: data.address,
+            activity: data.activity,
+            epigrafe: data.epigrafe,
+            tipo_iva: data.tipoIva,
+            retencion_irpf: data.retencionIrpf,
+          }),
+        });
+      }
+
+      // Always save to localStorage as fallback
+      try {
+        localStorage.setItem("kuentas_ajustes", JSON.stringify(profileData));
+        localStorage.setItem("kuentas_onboarding_done", "1");
+      } catch {
+        // ignore
+      }
+
+      router.push("/dashboard");
+    } catch {
+      // Even on error, proceed to dashboard
+      router.push("/dashboard");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -94,7 +132,7 @@ export default function OnboardingPage() {
           <div className="space-y-5">
             <div>
               <h2 className="text-xl font-bold text-brand-text">Cuéntanos sobre ti</h2>
-              <p className="text-brand-muted text-sm mt-1">Esta informacion aparecera en tus facturas</p>
+              <p className="text-brand-muted text-sm mt-1">Esta información aparecerá en tus facturas</p>
             </div>
             <div>
               <label className="block text-sm font-medium text-brand-text mb-1.5">Nombre completo *</label>
@@ -102,7 +140,7 @@ export default function OnboardingPage() {
                 type="text"
                 value={data.name}
                 onChange={(e) => setData({ ...data, name: e.target.value })}
-                placeholder="Carlos Martinez Lopez"
+                placeholder="Carlos Martínez López"
                 className="w-full px-4 py-2.5 border border-brand-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
               />
             </div>
@@ -127,12 +165,12 @@ export default function OnboardingPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-brand-text mb-1.5">Direccion fiscal</label>
+              <label className="block text-sm font-medium text-brand-text mb-1.5">Dirección fiscal</label>
               <input
                 type="text"
                 value={data.address}
                 onChange={(e) => setData({ ...data, address: e.target.value })}
-                placeholder="Calle Gran Via 42, 28013 Madrid"
+                placeholder="Calle Gran Vía 42, 28013 Madrid"
                 className="w-full px-4 py-2.5 border border-brand-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
               />
             </div>
@@ -151,24 +189,24 @@ export default function OnboardingPage() {
                 type="text"
                 value={data.activity}
                 onChange={(e) => setData({ ...data, activity: e.target.value })}
-                placeholder="Desarrollo web y diseno digital"
+                placeholder="Desarrollo web y diseño digital"
                 className="w-full px-4 py-2.5 border border-brand-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-brand-text mb-1.5">Epigrafe IAE (opcional)</label>
+              <label className="block text-sm font-medium text-brand-text mb-1.5">Epígrafe IAE (opcional)</label>
               <input
                 type="text"
                 value={data.epigrafe}
                 onChange={(e) => setData({ ...data, epigrafe: e.target.value })}
-                placeholder="831 - Servicios tecnicos"
+                placeholder="831 - Servicios técnicos"
                 className="w-full px-4 py-2.5 border border-brand-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
               />
             </div>
             <div className="bg-brand-blue/5 rounded-xl p-4">
               <p className="text-sm text-brand-blue font-medium mb-1">Ejemplos de actividades comunes:</p>
               <ul className="text-sm text-brand-muted space-y-1">
-                {["Desarrollo web / software", "Diseño grafico / UX", "Consultoria empresarial", "Creador de contenido", "Fotografia / video", "Marketing digital"].map((a) => (
+                {["Desarrollo web / software", "Diseño gráfico / UX", "Consultoría empresarial", "Creador de contenido", "Fotografía / vídeo", "Marketing digital"].map((a) => (
                   <li key={a} className="cursor-pointer hover:text-brand-blue transition" onClick={() => setData({ ...data, activity: a })}>
                     + {a}
                   </li>
@@ -181,7 +219,7 @@ export default function OnboardingPage() {
         {step === 3 && (
           <div className="space-y-5">
             <div>
-              <h2 className="text-xl font-bold text-brand-text">Configuracion fiscal</h2>
+              <h2 className="text-xl font-bold text-brand-text">Configuración fiscal</h2>
               <p className="text-brand-muted text-sm mt-1">Estos valores se usan en tus facturas e impuestos</p>
             </div>
             <div>
@@ -191,10 +229,10 @@ export default function OnboardingPage() {
                 onChange={(e) => setData({ ...data, tipoIva: Number(e.target.value) })}
                 className="w-full px-4 py-2.5 border border-brand-border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/20"
               >
-                <option value={21}>21% - General (servicios, tecnologia, diseño)</option>
-                <option value={10}>10% - Reducido (alimentacion elaborada, transporte)</option>
+                <option value={21}>21% - General (servicios, tecnología, diseño)</option>
+                <option value={10}>10% - Reducido (alimentación elaborada, transporte)</option>
                 <option value={4}>4% - Superreducido (libros, medicamentos)</option>
-                <option value={0}>0% - Exento (educacion, sanidad, financiero)</option>
+                <option value={0}>0% - Exento (educación, sanidad, financiero)</option>
               </select>
             </div>
             <div>
@@ -221,7 +259,7 @@ export default function OnboardingPage() {
               <CheckCircle className="w-10 h-10 text-brand-success" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-brand-text">Todo listo, {data.name.split(" ")[0] || "autónomo"}!</h2>
+              <h2 className="text-2xl font-bold text-brand-text">¡Todo listo, {data.name.split(" ")[0] || "autónomo"}!</h2>
               <p className="text-brand-muted mt-2">Tu cuenta está configurada. Ahora puedes empezar a gestionar tus finanzas.</p>
             </div>
             <div className="bg-brand-gray rounded-xl p-5 text-left space-y-3">
@@ -263,9 +301,14 @@ export default function OnboardingPage() {
         ) : (
           <button
             onClick={handleFinish}
-            className="flex items-center gap-2 bg-brand-blue text-white px-6 py-2.5 rounded-lg hover:opacity-90 transition text-sm font-semibold"
+            disabled={saving}
+            className="flex items-center gap-2 bg-brand-blue text-white px-6 py-2.5 rounded-lg hover:opacity-90 transition text-sm font-semibold disabled:opacity-60"
           >
-            Ir al dashboard <ArrowRight className="w-4 h-4" />
+            {saving ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Guardando...</>
+            ) : (
+              <>Ir al dashboard <ArrowRight className="w-4 h-4" /></>
+            )}
           </button>
         )}
       </div>

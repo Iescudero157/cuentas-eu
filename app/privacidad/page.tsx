@@ -75,7 +75,7 @@ export default function PrivacidadPage() {
             </p>
             <ul className="list-disc pl-6 space-y-1 mt-2">
               <li>Proveedores de infraestructura (Vercel, Supabase) para el alojamiento seguro</li>
-              <li>Proveedores de Open Banking (con su consentimiento) para la conexion bancaria</li>
+              <li>Proveedores de Open Banking (con su consentimiento) para la conexión bancaria</li>
               <li>Proveedores de IA (OpenAI) para la categorizacion de gastos (datos anonimizados)</li>
               <li>Pasarelas de pago (Stripe) para procesar suscripciones</li>
             </ul>

@@ -20,9 +20,9 @@ function LoginForm() {
   function validate() {
     const errs: { email?: string; password?: string } = {};
     if (!email) errs.email = "El email es obligatorio";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = "Email no valido";
-    if (!password) errs.password = "La contrasena es obligatoria";
-    else if (password.length < 6) errs.password = "Minimo 6 caracteres";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = "Email no válido";
+    if (!password) errs.password = "La contraseña es obligatoria";
+    else if (password.length < 6) errs.password = "Mínimo 6 caracteres";
     return errs;
   }
 
@@ -52,9 +52,9 @@ function LoginForm() {
 
       if (error) {
         if (error.message.includes("Invalid login")) {
-          setErrors({ general: "Email o contrasena incorrectos" });
+          setErrors({ general: "Email o contraseña incorrectos" });
         } else if (error.message.includes("Email not confirmed")) {
-          setErrors({ general: "Verifica tu email antes de iniciar sesion. Revisa tu bandeja de entrada." });
+          setErrors({ general: "Verifica tu email antes de iniciar sesión. Revisa tu bandeja de entrada." });
         } else {
           setErrors({ general: error.message });
         }
@@ -64,7 +64,7 @@ function LoginForm() {
       router.push(redirect);
       router.refresh();
     } catch {
-      setErrors({ general: "Error de conexion. Intentalo de nuevo." });
+      setErrors({ general: "Error de conexión. Inténtalo de nuevo." });
     } finally {
       setLoading(false);
     }
@@ -72,7 +72,7 @@ function LoginForm() {
 
   async function handleForgotPassword() {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setErrors({ email: "Introduce tu email para recuperar la contrasena" });
+      setErrors({ email: "Introduce tu email para recuperar la contraseña" });
       return;
     }
 
@@ -86,10 +86,10 @@ function LoginForm() {
         setErrors({ general: error.message });
       } else {
         setErrors({ general: "" });
-        alert("Te hemos enviado un email para restablecer tu contrasena. Revisa tu bandeja de entrada.");
+        alert("Te hemos enviado un email para restablecer tu contraseña. Revisa tu bandeja de entrada.");
       }
     } catch {
-      setErrors({ general: "Error enviando email de recuperacion" });
+      setErrors({ general: "Error enviando email de recuperación" });
     }
   }
 
@@ -115,7 +115,7 @@ function LoginForm() {
           </div>
 
           <h1 className="text-2xl font-bold text-brand-text mb-2">Bienvenido de vuelta</h1>
-          <p className="text-brand-muted mb-8">Inicia sesion para gestionar tus finanzas</p>
+          <p className="text-brand-muted mb-8">Inicia sesión para gestionar tus finanzas</p>
 
           {errors.general && (
             <div className="mb-4 p-3 bg-brand-danger/10 border border-brand-danger/20 rounded-lg flex items-center gap-2">
@@ -145,13 +145,13 @@ function LoginForm() {
             </div>
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-sm font-medium text-brand-text">Contrasena</label>
+                <label className="block text-sm font-medium text-brand-text">Contraseña</label>
                 <button
                   type="button"
                   onClick={handleForgotPassword}
                   className="text-xs text-brand-blue hover:underline"
                 >
-                  He olvidado mi contrasena
+                  He olvidado mi contraseña
                 </button>
               </div>
               <div className="relative">
@@ -160,7 +160,7 @@ function LoginForm() {
                   type="password"
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors({ ...errors, password: undefined }); }}
-                  placeholder="Tu contrasena"
+                  placeholder="Tu contraseña"
                   className={`w-full pl-10 pr-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue ${errors.password ? "border-brand-danger" : "border-brand-border"}`}
                 />
               </div>
@@ -175,7 +175,7 @@ function LoginForm() {
               disabled={loading}
               className="w-full bg-brand-blue text-white font-semibold py-2.5 rounded-lg hover:opacity-90 transition disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2 flex items-center justify-center gap-2"
             >
-              {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Iniciando sesion...</> : "Iniciar sesion"}
+              {loading ? <><Loader2 className="w-4 h-4 animate-spin" /> Iniciando sesión...</> : "Iniciar sesión"}
             </button>
           </form>
 

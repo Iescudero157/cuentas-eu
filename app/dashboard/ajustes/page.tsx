@@ -1,9 +1,9 @@
 "use client";
 
 import { User, Building2, CreditCard, Bell, Shield, Loader2, ExternalLink, Star } from "lucide-react";
-import { demoUser } from "@/lib/demo-data";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 const PLAN_LABELS: Record<string, { label: string; price: string; color: string }> = {
   gratis: { label: "Plan Gratis", price: "0 EUR/mes", color: "text-brand-muted" },
@@ -14,9 +14,8 @@ const PLAN_LABELS: Record<string, { label: string; price: string; color: string 
 
 function PlanCard() {
   const [loading, setLoading] = useState(false);
-  // In demo mode the plan comes from localStorage (set by Supabase in production)
-  const currentPlan = "gratis"; // will be replaced with real Supabase data
-
+  const { profile } = useAuth();
+  const currentPlan = profile?.plan || "gratis";
   const planInfo = PLAN_LABELS[currentPlan] ?? PLAN_LABELS.gratis;
 
   async function handleManageBilling() {
@@ -95,11 +94,11 @@ interface AjustesData {
 }
 
 const defaultData: AjustesData = {
-  name: demoUser.name,
-  nif: demoUser.nif,
-  email: demoUser.email,
-  address: demoUser.address,
-  activity: demoUser.activity,
+  name: "",
+  nif: "",
+  email: "",
+  address: "",
+  activity: "",
   epigrafe: "831 - Servicios técnicos",
   tipoIva: 21,
   retencionIrpf: 15,
@@ -110,28 +109,78 @@ const defaultData: AjustesData = {
 };
 
 export default function AjustesPage() {
+  const { user, profile, isDemo, refreshProfile } = useAuth();
   const [data, setData] = useState<AjustesData>(defaultData);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
+  // Load data from profile (real user) or localStorage (demo)
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        setData(JSON.parse(stored));
+    if (profile) {
+      setData((prev) => ({
+        ...prev,
+        name: profile.name || "",
+        nif: profile.nif || "",
+        email: profile.email || user?.email || "",
+        address: profile.address || "",
+        activity: profile.activity || "",
+        epigrafe: profile.epigrafe || prev.epigrafe,
+        tipoIva: profile.tipo_iva ?? prev.tipoIva,
+        retencionIrpf: profile.retencion_irpf ?? prev.retencionIrpf,
+      }));
+    } else {
+      // Demo or no profile: try localStorage
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          setData((prev) => ({ ...prev, ...JSON.parse(stored) }));
+        }
+      } catch {
+        // ignore
       }
-    } catch {
-      // ignore
     }
-  }, []);
+  }, [profile, user]);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setSaving(true);
+
     try {
+      if (!isDemo && user) {
+        // Real user: save to Supabase via API
+        const res = await fetch("/api/profile", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: data.name,
+            nif: data.nif,
+            email: data.email,
+            address: data.address,
+            activity: data.activity,
+            epigrafe: data.epigrafe,
+            tipo_iva: data.tipoIva,
+            retencion_irpf: data.retencionIrpf,
+          }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || "Error guardando perfil");
+        }
+
+        // Refresh cached profile in context
+        await refreshProfile();
+      }
+
+      // Always save to localStorage too (notifications + demo fallback)
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
-    } catch {
-      // ignore
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Error guardando cambios");
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -194,9 +243,10 @@ export default function AjustesPage() {
             </div>
             <button
               type="submit"
-              className="bg-brand-blue text-white text-sm font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition"
+              disabled={saving}
+              className="bg-brand-blue text-white text-sm font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition disabled:opacity-60 flex items-center gap-2"
             >
-              Guardar cambios
+              {saving ? <><Loader2 className="w-4 h-4 animate-spin" /> Guardando...</> : "Guardar cambios"}
             </button>
           </div>
 
@@ -233,7 +283,7 @@ export default function AjustesPage() {
               >
                 <option value={21}>21% (General)</option>
                 <option value={10}>10% (Reducido)</option>
-                <option value={4}>4% (Super reducido)</option>
+                <option value={4}>4% (Superreducido)</option>
                 <option value={0}>0% (Exento)</option>
               </select>
             </div>

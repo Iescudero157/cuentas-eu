@@ -20,9 +20,9 @@ export default function RegistroProfesionalPage() {
     const e: Record<string, string> = {};
     if (!form.name.trim() || form.name.trim().length < 2) e.name = "Introduce tu nombre completo";
     if (!form.email) e.email = "El email es obligatorio";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Email no valido";
-    if (!form.password) e.password = "La contrasena es obligatoria";
-    else if (form.password.length < 6) e.password = "Minimo 6 caracteres";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Email no válido";
+    if (!form.password) e.password = "La contraseña es obligatoria";
+    else if (form.password.length < 6) e.password = "Mínimo 6 caracteres";
     return e;
   }
 
@@ -48,7 +48,7 @@ export default function RegistroProfesionalPage() {
 
       if (authError) {
         if (authError.message.includes("already registered")) {
-          setApiError("Este email ya tiene una cuenta. Inicia sesion.");
+          setApiError("Este email ya tiene una cuenta. Inicia sesión.");
         } else {
           setApiError(authError.message);
         }
@@ -65,7 +65,7 @@ export default function RegistroProfesionalPage() {
 
       setSuccess(true);
     } catch {
-      setApiError("Error de conexion. Intentalo de nuevo.");
+      setApiError("Error de conexión. Inténtalo de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -79,9 +79,9 @@ export default function RegistroProfesionalPage() {
             <CheckCircle className="w-8 h-8 text-brand-success" />
           </div>
           <h2 className="text-xl font-bold text-brand-text mb-2">Cuenta creada</h2>
-          <p className="text-brand-muted text-sm mb-4">Revisa tu email y haz clic en el enlace de verificacion para activar tu cuenta.</p>
+          <p className="text-brand-muted text-sm mb-4">Revisa tu email y haz clic en el enlace de verificación para activar tu cuenta.</p>
           <Link href="/login" className="inline-block bg-brand-blue text-white font-semibold px-6 py-2.5 rounded-lg hover:opacity-90 transition text-sm">
-            Ir a iniciar sesion
+            Ir a iniciar sesión
           </Link>
         </div>
       </div>
@@ -142,14 +142,14 @@ export default function RegistroProfesionalPage() {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-brand-text mb-1.5">Contrasena</label>
+              <label className="block text-sm font-medium text-brand-text mb-1.5">Contraseña</label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-muted" />
                 <input
                   type="password"
                   value={form.password}
                   onChange={e => { setForm({ ...form, password: e.target.value }); setErrors({ ...errors, password: "" }); }}
-                  placeholder="Minimo 6 caracteres"
+                  placeholder="Mínimo 6 caracteres"
                   className={`w-full pl-9 pr-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue ${errors.password ? "border-brand-danger" : "border-brand-border"}`}
                 />
               </div>

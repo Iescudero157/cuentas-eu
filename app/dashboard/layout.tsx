@@ -120,7 +120,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
             className="flex items-center gap-2 text-sm text-brand-muted hover:text-brand-danger transition"
           >
             <LogOut className="w-4 h-4" />
-            Cerrar sesion
+            Cerrar sesión
           </button>
         )}
       </div>

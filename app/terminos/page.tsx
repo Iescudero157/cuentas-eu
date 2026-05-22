@@ -33,9 +33,9 @@ export default function TerminosPage() {
           <section>
             <h2 className="text-xl font-bold mt-8 mb-3">2. Descripcion del servicio</h2>
             <p className="text-brand-muted leading-relaxed">
-              KUENTAS.EU es una plataforma de gestion financiera con inteligencia artificial dirigida a autonomos,
-              freelancers y creadores de contenido en Espana. El servicio incluye gestion de ingresos y gastos,
-              estimacion de impuestos, facturacion, y herramientas de cash flow.
+              KUENTAS.EU es una plataforma de gestión financiera con inteligencia artificial dirigida a autónomos,
+              freelancers y creadores de contenido en España. El servicio incluye gestión de ingresos y gastos,
+              estimación de impuestos, facturación, y herramientas de cash flow.
             </p>
             <p className="text-brand-muted leading-relaxed mt-2">
               <strong className="text-brand-text">Importante:</strong> KUENTAS.EU no es una gestoria ni sustituye
@@ -77,9 +77,9 @@ export default function TerminosPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mt-8 mb-3">6. Conexion bancaria</h2>
+            <h2 className="text-xl font-bold mt-8 mb-3">6. Conexión bancaria</h2>
             <p className="text-brand-muted leading-relaxed">
-              La conexion bancaria utiliza Open Banking bajo la normativa PSD2 regulada por el Banco de Espana.
+              La conexión bancaria utiliza Open Banking bajo la normativa PSD2 regulada por el Banco de España.
               El acceso es de solo lectura: podemos consultar movimientos pero nunca realizar operaciones ni mover fondos.
               Las credenciales bancarias nunca se almacenan en nuestros servidores.
             </p>

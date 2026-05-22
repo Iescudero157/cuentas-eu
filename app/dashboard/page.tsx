@@ -1,20 +1,70 @@
 "use client";
 
-import { TrendingUp, TrendingDown, Wallet, Calculator, AlertTriangle, Clock } from "lucide-react";
+import { useMemo } from "react";
+import { TrendingUp, TrendingDown, Wallet, Calculator, AlertTriangle, Clock, Loader2 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { getCurrentMonthStats, getMonthlyData, demoTransactions } from "@/lib/demo-data";
+import { useTransactions } from "@/lib/hooks/useTransactions";
 import { getFiscalAlerts } from "@/lib/tax-calculator";
 
 export default function DashboardPage() {
-  const stats = getCurrentMonthStats();
-  const monthlyData = getMonthlyData();
+  const { transactions, loading } = useTransactions();
   const alerts = getFiscalAlerts();
-  const recentTx = [...demoTransactions]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 8);
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+
+  const stats = useMemo(() => {
+    const monthTx = transactions.filter((tx) => {
+      const d = new Date(tx.date);
+      return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+    });
+    const ingresos = monthTx
+      .filter((t) => t.type === "ingreso")
+      .reduce((s, t) => s + t.amount, 0);
+    const gastos = monthTx
+      .filter((t) => t.type === "gasto")
+      .reduce((s, t) => s + t.amount, 0);
+    const beneficio = ingresos - gastos;
+    const impuestosEstimados = Math.max(0, beneficio * 0.3);
+    return { ingresos, gastos, beneficio, impuestosEstimados };
+  }, [transactions, currentYear, currentMonth]);
+
+  const monthlyData = useMemo(() => {
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(currentYear, currentMonth - i, 1);
+      const yr = d.getFullYear();
+      const mn = d.getMonth();
+      const monthTx = transactions.filter((tx) => {
+        const td = new Date(tx.date);
+        return td.getFullYear() === yr && td.getMonth() === mn;
+      });
+      const ingresos = monthTx
+        .filter((t) => t.type === "ingreso")
+        .reduce((s, t) => s + t.amount, 0);
+      const gastos = monthTx
+        .filter((t) => t.type === "gasto")
+        .reduce((s, t) => s + t.amount, 0);
+      months.push({
+        month: d.toLocaleDateString("es-ES", { month: "short" }),
+        ingresos,
+        gastos,
+      });
+    }
+    return months;
+  }, [transactions, currentYear, currentMonth]);
+
+  const recentTx = useMemo(
+    () =>
+      [...transactions]
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 8),
+    [transactions]
+  );
 
   const kpis = [
     {
@@ -47,6 +97,14 @@ export default function DashboardPage() {
     },
   ];
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-blue" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -69,12 +127,12 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Alerts */}
+      {/* Fiscal alerts */}
       {alerts.length > 0 && (
         <div className="bg-brand-warning/5 border border-brand-warning/20 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-3">
             <AlertTriangle className="w-5 h-5 text-brand-warning" />
-            <h3 className="font-semibold text-brand-text">Proximas obligaciones fiscales</h3>
+            <h3 className="font-semibold text-brand-text">Próximas obligaciones fiscales</h3>
           </div>
           <div className="space-y-2">
             {alerts.slice(0, 3).map((alert) => (
@@ -90,7 +148,7 @@ export default function DashboardPage() {
                   <span className="text-brand-muted">- {alert.description}</span>
                 </div>
                 <span className={`font-medium ${alert.urgent ? "text-brand-danger" : "text-brand-muted"}`}>
-                  {alert.daysLeft === 0 ? "HOY" : `${alert.daysLeft} dias`}
+                  {alert.daysLeft === 0 ? "HOY" : `${alert.daysLeft} días`}
                 </span>
               </div>
             ))}
@@ -125,7 +183,7 @@ export default function DashboardPage() {
           <h3 className="font-semibold text-brand-text mb-4">Guardar para impuestos</h3>
           <div className="space-y-4">
             <div className="text-center p-4 rounded-xl bg-brand-warning/5">
-              <p className="text-sm text-brand-muted mb-1">Deberias reservar</p>
+              <p className="text-sm text-brand-muted mb-1">Deberías reservar</p>
               <p className="text-3xl font-bold text-brand-warning">
                 {formatCurrency(stats.impuestosEstimados)}
               </p>
@@ -148,37 +206,45 @@ export default function DashboardPage() {
       {/* Recent Transactions */}
       <div className="bg-white rounded-xl border border-brand-border/50 shadow-sm">
         <div className="p-6 border-b border-brand-border">
-          <h3 className="font-semibold text-brand-text">Ultimas transacciones</h3>
+          <h3 className="font-semibold text-brand-text">Últimas transacciones</h3>
         </div>
         <div className="divide-y divide-brand-border/50">
-          {recentTx.map((tx) => (
-            <div key={tx.id} className="flex items-center justify-between px-6 py-3.5">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    tx.type === "ingreso" ? "bg-brand-success/10" : "bg-brand-danger/10"
+          {recentTx.length === 0 ? (
+            <p className="px-6 py-8 text-center text-sm text-brand-muted">
+              Aún no hay transacciones. Añade tu primera transacción en Ingresos o Gastos.
+            </p>
+          ) : (
+            recentTx.map((tx) => (
+              <div key={tx.id} className="flex items-center justify-between px-6 py-3.5">
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      tx.type === "ingreso" ? "bg-brand-success/10" : "bg-brand-danger/10"
+                    }`}
+                  >
+                    {tx.type === "ingreso" ? (
+                      <TrendingUp className="w-4 h-4 text-brand-success" />
+                    ) : (
+                      <TrendingDown className="w-4 h-4 text-brand-danger" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-brand-text">{tx.description}</p>
+                    <p className="text-xs text-brand-muted">
+                      {formatDate(tx.date)}{tx.client ? ` - ${tx.client}` : ""}
+                    </p>
+                  </div>
+                </div>
+                <span
+                  className={`text-sm font-semibold ${
+                    tx.type === "ingreso" ? "text-brand-success" : "text-brand-danger"
                   }`}
                 >
-                  {tx.type === "ingreso" ? (
-                    <TrendingUp className="w-4 h-4 text-brand-success" />
-                  ) : (
-                    <TrendingDown className="w-4 h-4 text-brand-danger" />
-                  )}
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-brand-text">{tx.description}</p>
-                  <p className="text-xs text-brand-muted">{formatDate(tx.date)}{tx.client ? ` - ${tx.client}` : ""}</p>
-                </div>
+                  {tx.type === "ingreso" ? "+" : "-"}{formatCurrency(tx.amount)}
+                </span>
               </div>
-              <span
-                className={`text-sm font-semibold ${
-                  tx.type === "ingreso" ? "text-brand-success" : "text-brand-danger"
-                }`}
-              >
-                {tx.type === "ingreso" ? "+" : "-"}{formatCurrency(tx.amount)}
-              </span>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

@@ -5,6 +5,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 
+const navLinks = [
+  { label: "Cómo funciona", href: "#how" },
+  { label: "Funcionalidades", href: "#features" },
+  { label: "Precios", href: "#pricing" },
+  { label: "Blog", href: "/blog" },
+  { label: "Herramientas", href: "/herramientas" },
+];
+
 export default function LandingNav() {
   const [open, setOpen] = useState(false);
 
@@ -18,11 +26,18 @@ export default function LandingNav() {
         </Link>
 
         {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-brand-muted">
-          <a href="#how" className="hover:text-brand-blue transition">Cómo funciona</a>
-          <a href="#features" className="hover:text-brand-blue transition">Funcionalidades</a>
-          <a href="#pricing" className="hover:text-brand-blue transition">Precios</a>
-          <a href="#faq" className="hover:text-brand-blue transition">FAQ</a>
+        <div className="hidden md:flex items-center gap-7 text-sm font-medium text-brand-muted">
+          {navLinks.map((l) =>
+            l.href.startsWith("#") ? (
+              <a key={l.label} href={l.href} className="hover:text-brand-blue transition">
+                {l.label}
+              </a>
+            ) : (
+              <Link key={l.label} href={l.href} className="hover:text-brand-blue transition">
+                {l.label}
+              </Link>
+            )
+          )}
         </div>
 
         {/* Desktop CTAs */}
@@ -56,34 +71,27 @@ export default function LandingNav() {
       {open && (
         <div className="md:hidden border-t border-brand-border bg-white shadow-lg">
           <div className="px-4 py-3 space-y-1">
-            <a
-              href="#how"
-              onClick={() => setOpen(false)}
-              className="block px-3 py-2.5 rounded-lg text-sm font-medium text-brand-text hover:bg-brand-gray hover:text-brand-blue transition"
-            >
-              Cómo funciona
-            </a>
-            <a
-              href="#features"
-              onClick={() => setOpen(false)}
-              className="block px-3 py-2.5 rounded-lg text-sm font-medium text-brand-text hover:bg-brand-gray hover:text-brand-blue transition"
-            >
-              Funcionalidades
-            </a>
-            <a
-              href="#pricing"
-              onClick={() => setOpen(false)}
-              className="block px-3 py-2.5 rounded-lg text-sm font-medium text-brand-text hover:bg-brand-gray hover:text-brand-blue transition"
-            >
-              Precios
-            </a>
-            <a
-              href="#faq"
-              onClick={() => setOpen(false)}
-              className="block px-3 py-2.5 rounded-lg text-sm font-medium text-brand-text hover:bg-brand-gray hover:text-brand-blue transition"
-            >
-              FAQ
-            </a>
+            {navLinks.map((l) =>
+              l.href.startsWith("#") ? (
+                <a
+                  key={l.label}
+                  href={l.href}
+                  onClick={() => setOpen(false)}
+                  className="block px-3 py-2.5 rounded-lg text-sm font-medium text-brand-text hover:bg-brand-gray hover:text-brand-blue transition"
+                >
+                  {l.label}
+                </a>
+              ) : (
+                <Link
+                  key={l.label}
+                  href={l.href}
+                  onClick={() => setOpen(false)}
+                  className="block px-3 py-2.5 rounded-lg text-sm font-medium text-brand-text hover:bg-brand-gray hover:text-brand-blue transition"
+                >
+                  {l.label}
+                </Link>
+              )
+            )}
           </div>
           <div className="px-4 pb-4 pt-2 border-t border-brand-border flex flex-col gap-2">
             <Link

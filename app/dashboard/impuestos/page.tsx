@@ -1,19 +1,32 @@
 "use client";
 
-import { Calculator, CalendarDays, Wallet, AlertTriangle } from "lucide-react";
+import { useMemo } from "react";
+import { Calculator, CalendarDays, AlertTriangle, Loader2 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
-import { demoTransactions } from "@/lib/demo-data";
+import { useTransactions } from "@/lib/hooks/useTransactions";
 import { calculateQuarterlyTax, getCurrentQuarter, getFiscalAlerts } from "@/lib/tax-calculator";
 
 export default function ImpuestosPage() {
+  const { transactions, loading } = useTransactions();
   const year = new Date().getFullYear();
   const currentQ = getCurrentQuarter();
   const alerts = getFiscalAlerts();
 
-  const quarters = [1, 2, 3, 4].map((q) => calculateQuarterlyTax(demoTransactions, q, year));
-  const currentQuarterData = quarters[currentQ - 1];
+  const quarters = useMemo(
+    () => [1, 2, 3, 4].map((q) => calculateQuarterlyTax(transactions, q, year)),
+    [transactions, year]
+  );
 
+  const currentQuarterData = quarters[currentQ - 1];
   const annualTax = quarters.reduce((s, q) => s + q.totalImpuestos, 0);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-blue" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -178,7 +191,7 @@ export default function ImpuestosPage() {
                 </div>
                 <div className="text-right">
                   <p className={`text-sm font-bold ${alert.urgent ? "text-brand-danger" : "text-brand-text"}`}>
-                    {alert.daysLeft === 0 ? "HOY" : `${alert.daysLeft} dias`}
+                    {alert.daysLeft === 0 ? "HOY" : `${alert.daysLeft} días`}
                   </p>
                   <p className="text-xs text-brand-muted">{alert.dueDate}</p>
                 </div>

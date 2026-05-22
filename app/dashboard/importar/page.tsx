@@ -69,7 +69,7 @@ function parseCSV(text: string): ParsedRow[] {
       amount,
       type,
       valid,
-      error: !valid ? "Datos incompletos o formato de fecha no valido" : undefined,
+      error: !valid ? "Datos incompletos o formato de fecha no válido" : undefined,
     };
   });
 }
