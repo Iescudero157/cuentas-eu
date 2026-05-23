@@ -6,6 +6,7 @@ import {
   useEffect,
   useState,
   useCallback,
+  useRef,
   type ReactNode,
 } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -57,7 +58,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const supabase = createClient();
+  // Use a ref so the client is stable across renders — avoids infinite effect loops
+  const supabaseRef = useRef(createClient());
+  const supabase = supabaseRef.current;
 
   const fetchProfile = useCallback(async (userId: string) => {
     try {
@@ -73,7 +76,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // Profile fetch failed, continue without it
     }
-  }, [supabase]);
+  // supabase ref is stable — empty deps is intentional
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const refreshProfile = useCallback(async () => {
     if (user?.id) {
@@ -82,6 +87,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user?.id, fetchProfile]);
 
   useEffect(() => {
+    // Safety: always resolve loading within 8 s even if Supabase hangs
+    // (e.g. project paused on free tier, network timeout)
+    const safetyTimer = setTimeout(() => setLoading(false), 8000);
+
     const initAuth = async () => {
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
@@ -94,6 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch {
         // Auth init failed
       } finally {
+        clearTimeout(safetyTimer);
         setLoading(false);
       }
     };
@@ -118,9 +128,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     return () => {
+      clearTimeout(safetyTimer);
       subscription.unsubscribe();
     };
-  }, [supabase, fetchProfile]);
+  // supabase is stable (useRef) — only fetchProfile matters for re-runs
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchProfile]);
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();

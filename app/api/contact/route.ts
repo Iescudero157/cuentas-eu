@@ -57,29 +57,35 @@ export async function POST(req: NextRequest) {
     const perfilText = perfilLabel[perfil] || sector || perfil || "No indicado";
     const fecha = new Date().toISOString().slice(0, 19).replace("T", " ");
 
-    // ── Get Gmail access token once, reuse for both emails ──────────────
-    const accessToken = await getGmailAccessToken();
-
-    // ── 1. Store in Google Sheets (non-fatal) ────────────────────────────
+    // ── Email + Sheets — completely non-fatal block ──────────────────────
+    // Registration ALWAYS succeeds even if Gmail OAuth is expired/missing.
     try {
-      await storeInGoogleSheets({
-        fecha, name, email,
-        tipo: tipoText,
-        perfil: perfilText,
-        empresa: empresa || "",
-        cif: cif || "",
-        telefono: telefono || "",
-        message: message || "",
-      });
-    } catch (sheetsErr) {
-      console.warn("[contact] Sheets storage failed (non-fatal):", sheetsErr);
+      const accessToken = await getGmailAccessToken();
+
+      // ── 1. Store in Google Sheets (non-fatal) ──────────────────────────
+      try {
+        await storeInGoogleSheets({
+          fecha, name, email,
+          tipo: tipoText,
+          perfil: perfilText,
+          empresa: empresa || "",
+          cif: cif || "",
+          telefono: telefono || "",
+          message: message || "",
+        });
+      } catch (sheetsErr) {
+        console.warn("[contact] Sheets storage failed (non-fatal):", sheetsErr);
+      }
+
+      // ── 2. Welcome email to user ────────────────────────────────────────
+      await sendWelcomeEmail({ name, email, tipo: tipo ?? "lista", perfilText, empresa, accessToken });
+
+      // ── 3. Notification to Ivan ─────────────────────────────────────────
+      await sendNotificationEmail({ name, email, tipoText, perfilText, empresa, cif, telefono, message: message || "", fecha, accessToken });
+    } catch (emailErr) {
+      // Gmail OAuth expired or network issue — log but don't block registration
+      console.warn("[contact] Email/Sheets pipeline failed (non-fatal):", emailErr);
     }
-
-    // ── 2. Welcome email to user ─────────────────────────────────────────
-    await sendWelcomeEmail({ name, email, tipo: tipo ?? "lista", perfilText, empresa, accessToken });
-
-    // ── 3. Notification to Ivan ──────────────────────────────────────────
-    await sendNotificationEmail({ name, email, tipoText, perfilText, empresa, cif, telefono, message: message || "", fecha, accessToken });
 
     return NextResponse.json({ success: true }, { headers: cors });
   } catch (err) {
