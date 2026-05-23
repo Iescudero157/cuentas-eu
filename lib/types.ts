@@ -1,6 +1,7 @@
 export type TransactionType = "ingreso" | "gasto";
 export type TransactionSource = "stripe" | "paypal" | "transferencia" | "efectivo" | "wise" | "banco";
 export type InvoiceStatus = "cobrada" | "pendiente" | "vencida";
+export type PaymentMethod = "transferencia" | "tarjeta" | "efectivo" | "domiciliacion" | "cheque" | "otro";
 export type ExpenseCategory =
   | "software"
   | "hardware"
@@ -31,9 +32,11 @@ export interface Transaction {
 export interface Invoice {
   id: string;
   number: string;
+  clientId?: string;       // FK to clients table
   clientName: string;
   clientNif: string;
   clientAddress: string;
+  clientEmail?: string;    // for email sending
   items: InvoiceItem[];
   subtotal: number;
   iva: number;
@@ -44,6 +47,9 @@ export interface Invoice {
   date: string;
   dueDate: string;
   status: InvoiceStatus;
+  paymentMethod?: PaymentMethod;  // forma de cobro
+  paymentDate?: string;           // fecha real de cobro
+  notes?: string;                 // notas internas
 }
 
 export interface InvoiceItem {

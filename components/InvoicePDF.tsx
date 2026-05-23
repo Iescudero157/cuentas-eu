@@ -248,6 +248,8 @@ interface InvoicePDFButtonProps {
   issuerName?: string;
   issuerNif?: string;
   issuerAddress?: string;
+  /** Renders as a plain menu-item row instead of a standalone button */
+  compact?: boolean;
 }
 
 export default function InvoicePDFButton({
@@ -255,6 +257,7 @@ export default function InvoicePDFButton({
   issuerName = "Autonomo Demo",
   issuerNif = "12345678A",
   issuerAddress = "Madrid, Espana",
+  compact = false,
 }: InvoicePDFButtonProps) {
   return (
     <PDFDownloadLink
@@ -268,15 +271,25 @@ export default function InvoicePDFButton({
       }
       fileName={`${invoice.number}.pdf`}
     >
-      {({ loading: pdfLoading }) => (
-        <button
-          className="flex items-center gap-2 border border-brand-blue text-brand-blue font-semibold px-4 py-2.5 rounded-lg hover:bg-brand-blue/5 transition text-sm disabled:opacity-50"
-          disabled={pdfLoading}
-        >
-          <Download className="w-4 h-4" />
-          {pdfLoading ? "Generando PDF..." : "Descargar PDF"}
-        </button>
-      )}
+      {({ loading: pdfLoading }) =>
+        compact ? (
+          <button
+            className="w-full text-left px-4 py-2 text-sm hover:bg-brand-gray transition flex items-center gap-2 text-brand-text disabled:opacity-50"
+            disabled={pdfLoading}
+          >
+            <Download className="w-4 h-4 text-brand-muted" />
+            {pdfLoading ? "Generando PDF…" : "Descargar PDF"}
+          </button>
+        ) : (
+          <button
+            className="flex items-center gap-2 border border-brand-blue text-brand-blue font-semibold px-4 py-2.5 rounded-lg hover:bg-brand-blue/5 transition text-sm disabled:opacity-50"
+            disabled={pdfLoading}
+          >
+            <Download className="w-4 h-4" />
+            {pdfLoading ? "Generando PDF..." : "Descargar PDF"}
+          </button>
+        )
+      }
     </PDFDownloadLink>
   );
 }

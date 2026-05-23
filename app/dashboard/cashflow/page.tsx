@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo } from "react";
-import { BarChart3, TrendingUp, TrendingDown, AlertTriangle, Loader2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { BarChart3, TrendingUp, TrendingDown, AlertTriangle, Loader2, Info } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
   ReferenceLine,
@@ -9,12 +9,41 @@ import {
 import { formatCurrency } from "@/lib/utils";
 import { useTransactions } from "@/lib/hooks/useTransactions";
 
+type Scenario = "conservador" | "base" | "optimista";
+
+const SCENARIO_CONFIG: Record<Scenario, { label: string; color: string; incomeMultiplier: number; expenseMultiplier: number; description: string }> = {
+  conservador: {
+    label: "Conservador",
+    color: "bg-brand-warning/10 text-brand-warning border-brand-warning/30",
+    incomeMultiplier: 0.80,
+    expenseMultiplier: 1.05,
+    description: "Ingresos −20%, gastos +5%",
+  },
+  base: {
+    label: "Base",
+    color: "bg-brand-blue/10 text-brand-blue border-brand-blue/30",
+    incomeMultiplier: 1.0,
+    expenseMultiplier: 1.0,
+    description: "Tendencia actual",
+  },
+  optimista: {
+    label: "Optimista",
+    color: "bg-brand-success/10 text-brand-success border-brand-success/30",
+    incomeMultiplier: 1.20,
+    expenseMultiplier: 0.90,
+    description: "Ingresos +20%, gastos −10%",
+  },
+};
+
 export default function CashFlowPage() {
   const { transactions, loading } = useTransactions();
+  const [scenario, setScenario] = useState<Scenario>("base");
 
   const now = new Date();
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth();
+
+  const { incomeMultiplier, expenseMultiplier } = SCENARIO_CONFIG[scenario];
 
   const monthlyData = useMemo(() => {
     const months = [];
@@ -26,12 +55,8 @@ export default function CashFlowPage() {
         const td = new Date(tx.date);
         return td.getFullYear() === yr && td.getMonth() === mn;
       });
-      const ingresos = monthTx
-        .filter((t) => t.type === "ingreso")
-        .reduce((s, t) => s + t.amount, 0);
-      const gastos = monthTx
-        .filter((t) => t.type === "gasto")
-        .reduce((s, t) => s + t.amount, 0);
+      const ingresos = monthTx.filter((t) => t.type === "ingreso").reduce((s, t) => s + t.amount, 0);
+      const gastos = monthTx.filter((t) => t.type === "gasto").reduce((s, t) => s + t.amount, 0);
       months.push({
         month: d.toLocaleDateString("es-ES", { month: "short", year: "2-digit" }),
         ingresos,
@@ -44,43 +69,55 @@ export default function CashFlowPage() {
   }, [transactions, currentYear, currentMonth]);
 
   const projection = useMemo(() => {
-    // Average last 3 months for projection
     const last3 = monthlyData.slice(-3);
-    const avgIngresos = last3.length
-      ? last3.reduce((s, m) => s + m.ingresos, 0) / last3.length
-      : 0;
-    const avgGastos = last3.length
-      ? last3.reduce((s, m) => s + m.gastos, 0) / last3.length
-      : 0;
+    const avgIngresos = last3.length ? last3.reduce((s, m) => s + m.ingresos, 0) / last3.length : 0;
+    const avgGastos = last3.length ? last3.reduce((s, m) => s + m.gastos, 0) / last3.length : 0;
+
+    const projIngresos = Math.round(avgIngresos * incomeMultiplier);
+    const projGastos = Math.round(avgGastos * expenseMultiplier);
 
     const projectedMonths = [];
     for (let i = 1; i <= 3; i++) {
       const d = new Date(currentYear, currentMonth + i, 1);
       projectedMonths.push({
         month: d.toLocaleDateString("es-ES", { month: "short", year: "2-digit" }),
-        ingresos: Math.round(avgIngresos),
-        gastos: Math.round(avgGastos),
+        ingresos: projIngresos,
+        gastos: projGastos,
         projected: true,
-        saldo: Math.round(avgIngresos - avgGastos),
+        saldo: projIngresos - projGastos,
       });
     }
 
     return [...monthlyData, ...projectedMonths];
-  }, [monthlyData, currentYear, currentMonth]);
+  }, [monthlyData, currentYear, currentMonth, incomeMultiplier, expenseMultiplier]);
 
-  const avgIngresos =
-    monthlyData.length > 0
-      ? monthlyData.reduce((s, m) => s + m.ingresos, 0) / monthlyData.length
-      : 0;
-  const avgGastos =
-    monthlyData.length > 0
-      ? monthlyData.reduce((s, m) => s + m.gastos, 0) / monthlyData.length
-      : 0;
+  const avgIngresos = monthlyData.length > 0 ? monthlyData.reduce((s, m) => s + m.ingresos, 0) / monthlyData.length : 0;
+  const avgGastos = monthlyData.length > 0 ? monthlyData.reduce((s, m) => s + m.gastos, 0) / monthlyData.length : 0;
   const trend = avgIngresos >= avgGastos ? "positiva" : "negativa";
 
   const futureMonths = projection.filter((p) => p.projected);
   const hasNegative = futureMonths.some((p) => p.saldo < 0);
   const firstProjectedMonth = projection.find((p) => p.projected)?.month;
+
+  // Business scenarios comparison
+  const scenarioResults = useMemo(() => {
+    const last3 = monthlyData.slice(-3);
+    const avgI = last3.length ? last3.reduce((s, m) => s + m.ingresos, 0) / last3.length : 0;
+    const avgG = last3.length ? last3.reduce((s, m) => s + m.gastos, 0) / last3.length : 0;
+    return (["conservador", "base", "optimista"] as Scenario[]).map((s) => {
+      const cfg = SCENARIO_CONFIG[s];
+      const projI = avgI * cfg.incomeMultiplier;
+      const projG = avgG * cfg.expenseMultiplier;
+      return {
+        scenario: s,
+        label: cfg.label,
+        ingresosMensual: projI,
+        gastosMensual: projG,
+        beneficioMensual: projI - projG,
+        beneficioAnual: (projI - projG) * 12,
+      };
+    });
+  }, [monthlyData]);
 
   if (loading) {
     return (
@@ -94,7 +131,7 @@ export default function CashFlowPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold text-brand-text">Cash Flow</h1>
-        <p className="text-brand-muted text-sm mt-1">Predicción de flujo de caja para los próximos 3 meses</p>
+        <p className="text-brand-muted text-sm mt-1">Proyección de flujo de caja y simulación de escenarios de negocio</p>
       </div>
 
       {/* Summary cards */}
@@ -134,17 +171,50 @@ export default function CashFlowPage() {
           <div>
             <p className="font-semibold text-brand-text">Alerta de cash flow</p>
             <p className="text-sm text-brand-muted">
-              Se predice un saldo negativo en los próximos meses. Considera reducir gastos o asegurar nuevos clientes.
+              En el escenario <strong>{SCENARIO_CONFIG[scenario].label}</strong> se predice un saldo negativo en los próximos meses. Considera reducir gastos o asegurar nuevos clientes.
             </p>
           </div>
         </div>
       )}
 
+      {/* Scenario selector */}
+      <div className="bg-white rounded-xl p-5 border border-brand-border/50 shadow-sm">
+        <div className="flex items-center gap-2 mb-4">
+          <BarChart3 className="w-5 h-5 text-brand-blue" />
+          <h3 className="font-semibold text-brand-text">Escenario de proyección</h3>
+          <span className="ml-auto flex items-center gap-1 text-xs text-brand-muted">
+            <Info className="w-3.5 h-3.5" /> Basado en tus últimos 3 meses
+          </span>
+        </div>
+        <div className="grid grid-cols-3 gap-3">
+          {(["conservador", "base", "optimista"] as Scenario[]).map((s) => {
+            const cfg = SCENARIO_CONFIG[s];
+            const active = scenario === s;
+            return (
+              <button
+                key={s}
+                onClick={() => setScenario(s)}
+                className={`p-4 rounded-xl border text-left transition ${
+                  active
+                    ? cfg.color + " shadow-sm font-semibold"
+                    : "border-brand-border hover:bg-brand-gray/50 text-brand-muted"
+                }`}
+              >
+                <p className="text-sm font-semibold">{cfg.label}</p>
+                <p className="text-xs mt-0.5 opacity-80">{cfg.description}</p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Chart */}
       <div className="bg-white rounded-xl p-6 border border-brand-border/50 shadow-sm">
         <div className="flex items-center gap-2 mb-4">
           <BarChart3 className="w-5 h-5 text-brand-blue" />
-          <h3 className="font-semibold text-brand-text">Proyección Cash Flow (6 meses + 3 predicción)</h3>
+          <h3 className="font-semibold text-brand-text">
+            Proyección Cash Flow — escenario {SCENARIO_CONFIG[scenario].label}
+          </h3>
         </div>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
@@ -182,10 +252,57 @@ export default function CashFlowPage() {
         </div>
       </div>
 
-      {/* Projection table */}
+      {/* Business projections comparison */}
       <div className="bg-white rounded-xl border border-brand-border/50 shadow-sm overflow-hidden">
         <div className="p-6 border-b border-brand-border">
-          <h3 className="font-semibold text-brand-text">Detalle de proyección</h3>
+          <h3 className="font-semibold text-brand-text">Proyecciones de negocio — comparativa de escenarios</h3>
+          <p className="text-xs text-brand-muted mt-1">Estimación mensual y anual según distintas hipótesis de crecimiento</p>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-brand-gray">
+              <tr>
+                <th className="text-left px-6 py-3 text-brand-muted font-medium">Escenario</th>
+                <th className="text-right px-6 py-3 text-brand-muted font-medium">Ingresos/mes</th>
+                <th className="text-right px-6 py-3 text-brand-muted font-medium">Gastos/mes</th>
+                <th className="text-right px-6 py-3 text-brand-muted font-medium">Beneficio/mes</th>
+                <th className="text-right px-6 py-3 text-brand-muted font-medium">Beneficio anual</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-brand-border/50">
+              {scenarioResults.map((r) => {
+                const cfg = SCENARIO_CONFIG[r.scenario];
+                return (
+                  <tr
+                    key={r.scenario}
+                    onClick={() => setScenario(r.scenario)}
+                    className={`cursor-pointer transition ${scenario === r.scenario ? "bg-brand-blue/5" : "hover:bg-brand-gray/50"}`}
+                  >
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${cfg.color}`}>
+                        {r.label}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right text-brand-success font-medium">{formatCurrency(r.ingresosMensual)}</td>
+                    <td className="px-6 py-4 text-right text-brand-danger font-medium">{formatCurrency(r.gastosMensual)}</td>
+                    <td className={`px-6 py-4 text-right font-semibold ${r.beneficioMensual >= 0 ? "text-brand-success" : "text-brand-danger"}`}>
+                      {formatCurrency(r.beneficioMensual)}
+                    </td>
+                    <td className={`px-6 py-4 text-right font-bold text-base ${r.beneficioAnual >= 0 ? "text-brand-success" : "text-brand-danger"}`}>
+                      {formatCurrency(r.beneficioAnual)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Projection detail table */}
+      <div className="bg-white rounded-xl border border-brand-border/50 shadow-sm overflow-hidden">
+        <div className="p-6 border-b border-brand-border">
+          <h3 className="font-semibold text-brand-text">Detalle mes a mes — {SCENARIO_CONFIG[scenario].label}</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -204,8 +321,8 @@ export default function CashFlowPage() {
                   <td className="px-6 py-3 font-medium">{p.month}</td>
                   <td className="px-6 py-3 text-right text-brand-success">{formatCurrency(p.ingresos)}</td>
                   <td className="px-6 py-3 text-right text-brand-danger">{formatCurrency(p.gastos)}</td>
-                  <td className={`px-6 py-3 text-right font-semibold ${p.ingresos - p.gastos >= 0 ? "text-brand-success" : "text-brand-danger"}`}>
-                    {formatCurrency(p.ingresos - p.gastos)}
+                  <td className={`px-6 py-3 text-right font-semibold ${p.saldo >= 0 ? "text-brand-success" : "text-brand-danger"}`}>
+                    {formatCurrency(p.saldo)}
                   </td>
                   <td className="px-6 py-3 text-center">
                     {p.projected ? (
@@ -213,9 +330,7 @@ export default function CashFlowPage() {
                         Predicción IA
                       </span>
                     ) : (
-                      <span className="text-xs bg-brand-gray text-brand-muted px-2 py-0.5 rounded-full">
-                        Real
-                      </span>
+                      <span className="text-xs bg-brand-gray text-brand-muted px-2 py-0.5 rounded-full">Real</span>
                     )}
                   </td>
                 </tr>

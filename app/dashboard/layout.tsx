@@ -17,6 +17,7 @@ import {
   Users,
   Upload,
   Loader2,
+  Landmark,
 } from "lucide-react";
 import { useState } from "react";
 import { AuthProvider, useAuth } from "@/lib/hooks/useAuth";
@@ -29,7 +30,8 @@ const navItems = [
   { href: "/dashboard/impuestos", label: "Impuestos", icon: Calculator },
   { href: "/dashboard/cashflow", label: "Cash Flow", icon: BarChart3 },
   { href: "/dashboard/clientes", label: "Clientes", icon: Users },
-  { href: "/dashboard/importar", label: "Importar CSV", icon: Upload },
+  { href: "/dashboard/banco", label: "Banco", icon: Landmark },
+  { href: "/dashboard/importar", label: "Importar / OCR", icon: Upload },
   { href: "/dashboard/ajustes", label: "Ajustes", icon: Settings },
 ];
 
