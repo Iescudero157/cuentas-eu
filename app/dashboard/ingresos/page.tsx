@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { TrendingUp, Plus, Search, X, Download } from "lucide-react";
+import Link from "next/link";
+import { TrendingUp, Plus, Search, X, Download, Upload } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useTransactions } from "@/lib/hooks/useTransactions";
@@ -58,13 +59,19 @@ export default function IngresosPage() {
           <h1 className="text-2xl font-bold text-brand-text">Ingresos</h1>
           <p className="text-brand-muted text-sm mt-1">Tracking de todos tus ingresos por fuente</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <button
             onClick={exportCSV}
             className="border border-brand-border text-brand-muted font-medium px-3 py-2 rounded-lg hover:bg-brand-gray transition flex items-center gap-2 text-sm"
           >
             <Download className="w-4 h-4" /> CSV
           </button>
+          <Link
+            href="/dashboard/importar?tipo=ingreso"
+            className="border border-brand-border text-brand-muted font-medium px-3 py-2 rounded-lg hover:bg-brand-gray transition flex items-center gap-2 text-sm"
+          >
+            <Upload className="w-4 h-4" /> Importar ingresos
+          </Link>
           <button
             onClick={() => setShowModal(true)}
             className="bg-brand-success text-white font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition flex items-center gap-2 text-sm"

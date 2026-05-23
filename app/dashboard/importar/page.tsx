@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Upload,
   FileText,
@@ -14,6 +15,8 @@ import {
   Sparkles,
   Edit3,
   Save,
+  TrendingUp,
+  TrendingDown,
 } from "lucide-react";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { formatCurrency } from "@/lib/utils";
@@ -154,9 +157,21 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
-export default function ImportarPage() {
+function ImportarContent() {
   const { isDemo } = useAuth();
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<"csv" | "scan">("csv");
+
+  // Detect tipo from URL param (?tipo=ingreso|gasto)
+  const [scanType, setScanType] = useState<"ingreso" | "gasto">("gasto");
+  useEffect(() => {
+    const tipo = searchParams.get("tipo");
+    if (tipo === "ingreso" || tipo === "gasto") {
+      setScanType(tipo);
+      // If coming from import link, switch to scan tab automatically
+      setActiveTab("scan");
+    }
+  }, [searchParams]);
 
   // ── CSV state ──
   const [rows, setRows] = useState<ParsedRow[]>([]);
@@ -167,6 +182,7 @@ export default function ImportarPage() {
   // ── Scan state ──
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isPdf, setIsPdf] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState<string | null>(null);
   const [ocrResult, setOcrResult] = useState<OcrResult | null>(null);
@@ -251,8 +267,14 @@ export default function ImportarPage() {
     setEditableOcr({});
     setSaveOcrResult(null);
     setImageFile(file);
-    const url = URL.createObjectURL(file);
-    setImagePreview(url);
+    const pdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    setIsPdf(pdf);
+    if (!pdf) {
+      const url = URL.createObjectURL(file);
+      setImagePreview(url);
+    } else {
+      setImagePreview("__pdf__");
+    }
   }
 
   async function handleScan() {
@@ -300,7 +322,7 @@ export default function ImportarPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          type: editableOcr.type ?? "gasto",
+          type: scanType,
           description:
             editableOcr.description || editableOcr.vendor || "Sin descripción",
           amount,
@@ -329,6 +351,7 @@ export default function ImportarPage() {
   function resetScan() {
     setImageFile(null);
     setImagePreview(null);
+    setIsPdf(false);
     setOcrResult(null);
     setEditableOcr({});
     setScanError(null);
@@ -555,6 +578,36 @@ export default function ImportarPage() {
             </div>
           </div>
 
+          {/* Tipo selector (ingreso / gasto) */}
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-brand-text">Tipo de documento:</span>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setScanType("gasto")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                  scanType === "gasto"
+                    ? "bg-brand-danger text-white"
+                    : "bg-white border border-brand-border text-brand-muted hover:bg-brand-gray"
+                }`}
+              >
+                <TrendingDown className="w-4 h-4" /> Gasto
+              </button>
+              <button
+                onClick={() => setScanType("ingreso")}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                  scanType === "ingreso"
+                    ? "bg-brand-success text-white"
+                    : "bg-white border border-brand-border text-brand-muted hover:bg-brand-gray"
+                }`}
+              >
+                <TrendingUp className="w-4 h-4" /> Ingreso
+              </button>
+            </div>
+            <span className="text-xs text-brand-muted ml-1">
+              {scanType === "gasto" ? "La factura se guardará como gasto" : "La factura se guardará como ingreso"}
+            </span>
+          </div>
+
           {/* Upload area — only shown before image is selected */}
           {!imagePreview && (
             <div className="grid sm:grid-cols-2 gap-4">
@@ -586,14 +639,14 @@ export default function ImportarPage() {
               >
                 <Upload className="w-10 h-10 text-brand-muted" />
                 <div>
-                  <p className="font-semibold text-brand-text">Subir imagen</p>
-                  <p className="text-xs text-brand-muted mt-1">JPEG, PNG o WEBP · máx. 10 MB</p>
+                  <p className="font-semibold text-brand-text">Subir archivo</p>
+                  <p className="text-xs text-brand-muted mt-1">JPEG, PNG, WEBP o PDF · máx. 10 MB</p>
                 </div>
               </button>
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif"
+                accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
                 className="hidden"
                 onChange={(e) => {
                   const f = e.target.files?.[0];
@@ -619,12 +672,20 @@ export default function ImportarPage() {
                     <X className="w-4 h-4" /> Cambiar
                   </button>
                 </div>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={imagePreview}
-                  alt="Documento a analizar"
-                  className="w-full rounded-xl border border-brand-border shadow-sm object-contain max-h-80 bg-brand-gray"
-                />
+                {isPdf ? (
+                  <div className="w-full rounded-xl border border-brand-border shadow-sm bg-brand-gray flex flex-col items-center justify-center py-12 gap-3">
+                    <FileText className="w-16 h-16 text-brand-danger" />
+                    <p className="text-sm font-medium text-brand-text">{imageFile?.name}</p>
+                    <p className="text-xs text-brand-muted">PDF listo para analizar con IA</p>
+                  </div>
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={imagePreview ?? ""}
+                    alt="Documento a analizar"
+                    className="w-full rounded-xl border border-brand-border shadow-sm object-contain max-h-80 bg-brand-gray"
+                  />
+                )}
                 {!ocrResult && (
                   <button
                     onClick={handleScan}
@@ -827,5 +888,13 @@ export default function ImportarPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function ImportarPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-blue" /></div>}>
+      <ImportarContent />
+    </Suspense>
   );
 }

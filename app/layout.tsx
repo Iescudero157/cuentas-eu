@@ -6,6 +6,10 @@ const BASE_URL = "https://app.kuentas.eu";
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
+  icons: {
+    icon: [{ url: "/favicon-large.png", type: "image/png" }],
+    apple: "/favicon-large.png",
+  },
   title: {
     default: "KUENTAS.EU — App Gestión Financiera para Autónomos con IA",
     template: "%s | KUENTAS.EU",

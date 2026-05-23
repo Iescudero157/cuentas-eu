@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Plus, FileText, CheckCircle, Mail, Download, MoreHorizontal, Clock, AlertTriangle, ChevronDown, X, CalendarCheck } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useRef, type MouseEvent } from "react";
 import dynamic from "next/dynamic";
 import { useInvoices } from "@/lib/hooks/useInvoices";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -105,6 +105,7 @@ export default function FacturasPage() {
   const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
   const [emailSentIds, setEmailSentIds] = useState<Set<string>>(new Set());
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
   const [filter, setFilter] = useState<"all" | "pendiente" | "cobrada" | "vencida">("all");
 
   // Payment date modal
@@ -135,12 +136,23 @@ export default function FacturasPage() {
 
   // Close export dropdown on outside click
   useEffect(() => {
-    function handler(e: MouseEvent) {
+    function handler(e: globalThis.MouseEvent) {
       if (exportRef.current && !exportRef.current.contains(e.target as Node)) setShowExport(false);
     }
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
+
+  // Close row menu on outside click
+  useEffect(() => {
+    if (!openMenuId) return;
+    function handler() {
+      setOpenMenuId(null);
+      setMenuPos(null);
+    }
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [openMenuId]);
 
   // ─── Handlers ──────────────────────────────────────────────────────────────
 
@@ -197,9 +209,9 @@ export default function FacturasPage() {
           <div className="relative" ref={exportRef}>
             <button
               onClick={() => setShowExport(!showExport)}
-              className="flex items-center gap-2 border border-brand-border text-brand-muted px-4 py-2 rounded-lg hover:bg-brand-gray transition text-sm font-medium"
+              className="flex items-center gap-2 border border-brand-border text-brand-text px-4 py-2 rounded-lg hover:bg-brand-gray transition text-sm font-medium"
             >
-              <Download className="w-4 h-4" /> Exportar <ChevronDown className="w-3 h-3" />
+              <Download className="w-4 h-4" /> Exportar a contabilidad <ChevronDown className="w-3 h-3" />
             </button>
             {showExport && (
               <div className="absolute right-0 top-10 z-50 bg-white border border-brand-border rounded-xl shadow-lg w-52 py-1">
@@ -340,7 +352,7 @@ export default function FacturasPage() {
                         {formatCurrency(inv.total)}
                       </td>
                       <td className="px-5 py-4">
-                        <div className="flex items-center justify-end gap-1 relative">
+                        <div className="flex items-center justify-end gap-1">
                           {/* Quick mark as paid — opens modal */}
                           {inv.status === "pendiente" && (
                             <button
@@ -378,50 +390,25 @@ export default function FacturasPage() {
                               <CheckCircle className="w-4 h-4 text-brand-success" />
                             </span>
                           )}
-                          {/* More menu */}
-                          <div className="relative">
-                            <button
-                              onClick={() => setOpenMenuId(openMenuId === inv.id ? null : inv.id)}
-                              className="p-1.5 rounded-lg text-brand-muted hover:bg-brand-gray transition"
-                            >
-                              <MoreHorizontal className="w-4 h-4" />
-                            </button>
-                            {openMenuId === inv.id && (
-                              <div className="absolute right-0 top-8 z-50 bg-white border border-brand-border rounded-xl shadow-lg w-44 py-1">
-                                <InvoicePDFButton
-                                  invoice={inv}
-                                  issuerName={issuer.name}
-                                  issuerNif={issuer.nif}
-                                  issuerAddress={issuer.address}
-                                  compact
-                                />
-                                {inv.status !== "cobrada" && (
-                                  <button
-                                    onClick={() => handleMarkCobradaClick(inv)}
-                                    className="w-full text-left px-4 py-2 text-sm hover:bg-brand-gray transition text-brand-success"
-                                  >
-                                    Marcar cobrada
-                                  </button>
-                                )}
-                                {inv.status !== "pendiente" && (
-                                  <button
-                                    onClick={() => handleMarkPendiente(inv)}
-                                    className="w-full text-left px-4 py-2 text-sm hover:bg-brand-gray transition text-brand-muted"
-                                  >
-                                    Marcar pendiente
-                                  </button>
-                                )}
-                                {inv.status !== "vencida" && (
-                                  <button
-                                    onClick={async () => { await updateInvoiceStatus(inv.id, "vencida"); setOpenMenuId(null); }}
-                                    className="w-full text-left px-4 py-2 text-sm hover:bg-brand-gray transition text-brand-danger"
-                                  >
-                                    Marcar vencida
-                                  </button>
-                                )}
-                              </div>
-                            )}
-                          </div>
+                          {/* More menu — button only; dropdown rendered via portal below */}
+                          <button
+                            onClick={(e: MouseEvent<HTMLButtonElement>) => {
+                              if (openMenuId === inv.id) {
+                                setOpenMenuId(null);
+                                setMenuPos(null);
+                              } else {
+                                const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                                setMenuPos({
+                                  top: rect.bottom + window.scrollY + 4,
+                                  right: window.innerWidth - rect.right,
+                                });
+                                setOpenMenuId(inv.id);
+                              }
+                            }}
+                            className="p-1.5 rounded-lg text-brand-muted hover:bg-brand-gray transition"
+                          >
+                            <MoreHorizontal className="w-4 h-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -432,6 +419,56 @@ export default function FacturasPage() {
           </div>
         )}
       </div>
+
+      {/* ── Row action menu (fixed position to avoid overflow-hidden clipping) */}
+      {openMenuId && menuPos && (() => {
+        const inv = filtered.find((i) => i.id === openMenuId);
+        if (!inv) return null;
+        return (
+          <div
+            style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999 }}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <div className="bg-white border border-brand-border rounded-xl shadow-lg w-44 py-1">
+              <InvoicePDFButton
+                invoice={inv}
+                issuerName={issuer.name}
+                issuerNif={issuer.nif}
+                issuerAddress={issuer.address}
+                compact
+              />
+              {inv.status !== "cobrada" && (
+                <button
+                  onClick={() => handleMarkCobradaClick(inv)}
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-brand-gray transition text-brand-success"
+                >
+                  Marcar cobrada
+                </button>
+              )}
+              {inv.status !== "pendiente" && (
+                <button
+                  onClick={() => handleMarkPendiente(inv)}
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-brand-gray transition text-brand-muted"
+                >
+                  Marcar pendiente
+                </button>
+              )}
+              {inv.status !== "vencida" && (
+                <button
+                  onClick={async () => {
+                    await updateInvoiceStatus(inv.id, "vencida");
+                    setOpenMenuId(null);
+                    setMenuPos(null);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-brand-gray transition text-brand-danger"
+                >
+                  Marcar vencida
+                </button>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── Payment date modal ─────────────────────────────────────────────── */}
       {cobradaModal && (

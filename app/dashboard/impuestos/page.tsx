@@ -35,7 +35,7 @@ function buildModelo303HTML(q: ReturnType<typeof calculateQuarterlyTax>, quarter
 </style>
 </head><body>
 <div class="header">
-  <div><h1>Modelo 303 — IVA Trimestral</h1><div class="sub">${quarter} ${year}</div></div>
+  <div><h1>Previsión 303 — IVA Trimestral (orientativo)</h1><div class="sub">${quarter} ${year}</div></div>
   <div style="text-align:right"><div style="font-size:20px;font-weight:900">KUENTAS.EU</div><div class="sub">Gestoría IA</div></div>
 </div>
 <div class="body">
@@ -88,7 +88,7 @@ function buildModelo130HTML(q: ReturnType<typeof calculateQuarterlyTax>, quarter
 </style>
 </head><body>
 <div class="header">
-  <div><h1>Modelo 130 — IRPF Trimestral</h1><div class="sub">${quarter} ${year}</div></div>
+  <div><h1>Previsión 130 — IRPF Trimestral (orientativo)</h1><div class="sub">${quarter} ${year}</div></div>
   <div style="text-align:right"><div style="font-size:20px;font-weight:900">KUENTAS.EU</div><div class="sub">Gestoría IA</div></div>
 </div>
 <div class="body">
@@ -141,7 +141,7 @@ function buildModelo100HTML(annualData: { ingresos: number; gastos: number; bene
 </style>
 </head><body>
 <div class="header">
-  <div><h1>Modelo 100 — Declaración de Renta</h1><div class="sub">Ejercicio ${year} (datos orientativos)</div></div>
+  <div><h1>Previsión 100 — Declaración de Renta</h1><div class="sub">Ejercicio ${year} · datos orientativos, no oficial</div></div>
   <div style="text-align:right"><div style="font-size:20px;font-weight:900">KUENTAS.EU</div><div class="sub">Gestoría IA</div></div>
 </div>
 <div class="body">
@@ -231,21 +231,24 @@ export default function ImpuestosPage() {
         <div className="flex gap-2 flex-wrap">
           <button
             onClick={handleDownload303}
-            className="flex items-center gap-2 border border-brand-border text-brand-muted px-4 py-2 rounded-lg hover:bg-brand-gray text-sm font-medium transition"
+            className="flex flex-col items-start gap-0.5 border border-brand-border text-brand-text px-4 py-2 rounded-lg hover:bg-brand-gray text-sm font-medium transition"
           >
-            <FileDown className="w-4 h-4" /> Modelo 303
+            <span className="flex items-center gap-2"><FileDown className="w-4 h-4" /> Previsión 303</span>
+            <span className="text-[10px] text-brand-muted font-normal pl-6">Datos orientativos · IVA trimestral</span>
           </button>
           <button
             onClick={handleDownload130}
-            className="flex items-center gap-2 border border-brand-border text-brand-muted px-4 py-2 rounded-lg hover:bg-brand-gray text-sm font-medium transition"
+            className="flex flex-col items-start gap-0.5 border border-brand-border text-brand-text px-4 py-2 rounded-lg hover:bg-brand-gray text-sm font-medium transition"
           >
-            <FileDown className="w-4 h-4" /> Modelo 130
+            <span className="flex items-center gap-2"><FileDown className="w-4 h-4" /> Previsión 130</span>
+            <span className="text-[10px] text-brand-muted font-normal pl-6">Datos orientativos · IRPF trimestral</span>
           </button>
           <button
             onClick={handleDownload100}
-            className="flex items-center gap-2 border border-brand-border text-brand-muted px-4 py-2 rounded-lg hover:bg-brand-gray text-sm font-medium transition"
+            className="flex flex-col items-start gap-0.5 border border-brand-border text-brand-text px-4 py-2 rounded-lg hover:bg-brand-gray text-sm font-medium transition"
           >
-            <FileDown className="w-4 h-4" /> Modelo 100
+            <span className="flex items-center gap-2"><FileDown className="w-4 h-4" /> Previsión 100</span>
+            <span className="text-[10px] text-brand-muted font-normal pl-6">Datos orientativos · Renta anual</span>
           </button>
         </div>
       </div>
@@ -302,8 +305,8 @@ export default function ImpuestosPage() {
                 <span className="text-brand-blue font-bold text-sm">303</span>
               </div>
               <div>
-                <h3 className="font-semibold text-brand-text">Modelo 303 — IVA Trimestral</h3>
-                <p className="text-xs text-brand-muted">IVA repercutido − IVA soportado</p>
+                <h3 className="font-semibold text-brand-text">Previsión 303 — IVA Trimestral</h3>
+                <p className="text-xs text-brand-muted">Datos orientativos · IVA repercutido − IVA soportado</p>
               </div>
             </div>
             <button
@@ -338,8 +341,8 @@ export default function ImpuestosPage() {
                 <span className="text-brand-success font-bold text-sm">130</span>
               </div>
               <div>
-                <h3 className="font-semibold text-brand-text">Modelo 130 — IRPF Trimestral</h3>
-                <p className="text-xs text-brand-muted">20% del beneficio neto</p>
+                <h3 className="font-semibold text-brand-text">Previsión 130 — IRPF Trimestral</h3>
+                <p className="text-xs text-brand-muted">Datos orientativos · 20% del beneficio neto</p>
               </div>
             </div>
             <button
@@ -379,7 +382,7 @@ export default function ImpuestosPage() {
             onClick={handleDownload100}
             className="flex items-center gap-2 text-sm text-brand-muted hover:text-brand-text transition"
           >
-            <FileDown className="w-4 h-4" /> Modelo 100 (datos orientativos)
+            <FileDown className="w-4 h-4" /> Previsión 100 (datos orientativos)
           </button>
         </div>
         <div className="overflow-x-auto">

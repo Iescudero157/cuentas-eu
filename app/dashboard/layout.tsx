@@ -68,7 +68,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   const sidebar = (
     <div className="flex flex-col h-full">
       <div className="p-6 flex items-center gap-2">
-        <Image src="/logo.png" alt="KUENTAS.EU" width={32} height={32} />
+        <Image src="/logo.png" alt="KUENTAS.EU" width={36} height={36} />
         <span className="text-lg font-bold text-brand-blue">KUENTAS.EU</span>
       </div>
 

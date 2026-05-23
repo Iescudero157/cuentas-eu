@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { Resend } from "resend";
 import { invoiceEmailTemplate } from "@/lib/email/templates";
+import { generateInvoicePDFBuffer } from "@/lib/pdf/invoice-pdf-server";
 
 // Lazy-initialize so build doesn't fail when RESEND_API_KEY is absent
 function getResend() {
@@ -69,6 +70,33 @@ export async function POST(
 
   const { subject, html } = invoiceEmailTemplate(emailData);
 
+  // Generate PDF attachment
+  let pdfBuffer: Buffer | null = null;
+  try {
+    pdfBuffer = await generateInvoicePDFBuffer({
+      number: invoice.number,
+      clientName: invoice.client_name,
+      clientNif: invoice.client_nif,
+      clientAddress: invoice.client_address,
+      date: invoice.date,
+      dueDate: invoice.due_date,
+      status: invoice.status || "pendiente",
+      items: invoice.items || [],
+      subtotal: Number(invoice.subtotal),
+      iva: Number(invoice.iva),
+      ivaRate: Number(invoice.iva_rate),
+      irpf: Number(invoice.irpf),
+      irpfRate: Number(invoice.irpf_rate),
+      total: Number(invoice.total),
+      issuerName: profile?.name || "KUENTAS.EU",
+      issuerNif: profile?.nif,
+      issuerAddress: profile?.address,
+    });
+  } catch (pdfErr) {
+    console.error("Error generando PDF:", pdfErr);
+    // Continue sending email without attachment if PDF generation fails
+  }
+
   try {
     const resend = getResend();
     const { error: emailError } = await resend.emails.send({
@@ -76,13 +104,23 @@ export async function POST(
       to: [recipientEmail],
       subject,
       html,
+      ...(pdfBuffer
+        ? {
+            attachments: [
+              {
+                filename: `${invoice.number}.pdf`,
+                content: pdfBuffer,
+              },
+            ],
+          }
+        : {}),
     });
 
     if (emailError) {
       return NextResponse.json({ error: emailError.message }, { status: 500 });
     }
 
-    // Mark invoice as sent (update notes)
+    // Mark invoice as sent (update timestamp)
     await supabase
       .from("invoices")
       .update({ updated_at: new Date().toISOString() })

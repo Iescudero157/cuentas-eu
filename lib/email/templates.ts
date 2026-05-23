@@ -105,7 +105,7 @@ export function invoiceEmailTemplate(data: InvoiceEmailData) {
 <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08);">
   <tr><td style="background:linear-gradient(135deg,#2A5AAE 0%,#1a3d7e 100%);padding:36px 40px;text-align:center;">
     <div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-1px;">KUENTAS<span style="color:rgba(255,255,255,.8);">.EU</span></div>
-    <div style="color:rgba(255,255,255,.8);font-size:13px;margin-top:4px;">Factura adjunta para tu revisión</div>
+    <div style="color:rgba(255,255,255,.8);font-size:13px;margin-top:4px;">Factura adjunta</div>
   </td></tr>
   <tr><td style="padding:36px 40px 28px;">
     <p style="margin:0 0 8px;font-size:15px;color:#444;">Hola <strong>${data.clientName}</strong>,</p>
