@@ -253,6 +253,10 @@ function InvoiceDocument({ data }: { data: InvoicePDFServerData }) {
  */
 export async function generateInvoicePDFBuffer(data: InvoicePDFServerData): Promise<Buffer> {
   const instance = pdf(<InvoiceDocument data={data} />);
-  const buffer = await instance.toBuffer();
-  return Buffer.from(buffer);
+  const result = await instance.toBuffer();
+  // react-pdf v4 toBuffer() returns Uint8Array; convert to Buffer via ArrayBuffer overload
+  if (result instanceof Uint8Array) {
+    return Buffer.from(result.buffer, result.byteOffset, result.byteLength);
+  }
+  return result as unknown as Buffer;
 }
