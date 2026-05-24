@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import CookieConsent from "@/components/CookieConsent";
+import GoogleAdsTag from "@/components/GoogleAdsTag";
 
 const BASE_URL = "https://app.kuentas.eu";
 
@@ -86,6 +87,7 @@ export default function RootLayout({
   return (
     <html lang="es" className="h-full antialiased">
       <body className="min-h-full flex flex-col">
+        <GoogleAdsTag />
         {children}
         <CookieConsent />
       </body>

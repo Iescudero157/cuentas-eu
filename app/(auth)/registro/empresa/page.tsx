@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Building2, Mail, User, Hash, Briefcase, Lock, ArrowLeft, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { fireConversion } from "@/lib/gtag";
 
 const SECTORES = [
   "Tecnología / Software", "Consultoría", "Construcción", "Comercio / Retail",
@@ -91,6 +92,7 @@ export default function RegistroEmpresaPage() {
         }),
       }).catch(() => { /* non-fatal */ });
 
+      fireConversion(5.0, "EUR");
       setSuccess(true);
     } catch {
       setApiError("Error de conexión. Inténtalo de nuevo.");

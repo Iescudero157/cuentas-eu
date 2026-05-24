@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { User, Mail, Phone, Lock, ArrowLeft, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { fireConversion } from "@/lib/gtag";
 
 const API = "https://cuentas-eu.vercel.app/api/contact";
 
@@ -82,6 +83,7 @@ export default function RegistroProfesionalPage() {
         body: JSON.stringify({ name: form.name, email: form.email, telefono: form.telefono, tipo: "profesional", perfil: "autonomo" }),
       }).catch(() => { /* non-fatal */ });
 
+      fireConversion(5.0, "EUR");
       setSuccess(true);
     } catch {
       setApiError("Error de conexión. Inténtalo de nuevo.");
