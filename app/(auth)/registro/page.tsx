@@ -2,12 +2,18 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, Lock, User, ArrowRight, AlertCircle, Info, Building2, Sparkles } from "lucide-react";
+import { fireConversion } from "@/lib/gtag";
 
 // ── Plan selector shown before the registration form ────────────────────────
 function PlanSelector() {
+  // Fire Google Ads conversion when user lands on /registro (registration intent)
+  useEffect(() => {
+    fireConversion(5.0, "EUR");
+  }, []);
+
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-brand-gray">
       <div className="w-full max-w-sm">
