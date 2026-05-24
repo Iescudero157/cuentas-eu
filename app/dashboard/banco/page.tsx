@@ -258,8 +258,7 @@ export default function BancoPage() {
               </button>
             </div>
             <p className="text-xs text-center text-brand-muted">
-              La integración bancaria requiere el plan <strong>Autónomo</strong> o superior.{" "}
-              <a href="/precios" className="text-brand-blue hover:underline">Ver planes →</a>
+              Conexión segura mediante Open Banking (PSD2) · Solo lectura
             </p>
           </div>
         </div>

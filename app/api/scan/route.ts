@@ -15,20 +15,25 @@ export async function POST(request: Request) {
   }
 
   // ── Plan check: OCR requires Autónomo plan or higher ─────────────────────
-  const { data: profileData } = await supabase
-    .from("profiles")
-    .select("plan")
-    .eq("id", user.id)
-    .single();
+  const ADMIN_EMAILS = ["iv.escudero.s@gmail.com", "iv.escudero@hotmail.com"];
+  const isAdmin = ADMIN_EMAILS.includes(user.email ?? "");
 
-  const plan = (profileData?.plan as string) ?? "gratis";
-  const paidPlans = ["autonomo", "creator", "business"];
+  if (!isAdmin) {
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("plan")
+      .eq("id", user.id)
+      .single();
 
-  if (!paidPlans.includes(plan)) {
-    return NextResponse.json({
-      error: "plan_required",
-      message: "El escaneo OCR con IA está disponible desde el plan Autónomo. Mejora tu plan para usar esta función.",
-    }, { status: 402 });
+    const plan = (profileData?.plan as string) ?? "gratis";
+    const paidPlans = ["autonomo", "creator", "business"];
+
+    if (!paidPlans.includes(plan)) {
+      return NextResponse.json({
+        error: "plan_required",
+        message: "El escaneo OCR con IA está disponible desde el plan Autónomo. Mejora tu plan para usar esta función.",
+      }, { status: 402 });
+    }
   }
   // ─────────────────────────────────────────────────────────────────────────
 

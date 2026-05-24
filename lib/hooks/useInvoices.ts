@@ -156,7 +156,8 @@ export function useInvoices(): UseInvoicesReturn {
       });
 
       if (!res.ok) {
-        throw new Error("Error actualizando factura");
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || "Error actualizando factura");
       }
 
       // ── Cash Flow sync: when marked cobrada, auto-create the income transaction ──

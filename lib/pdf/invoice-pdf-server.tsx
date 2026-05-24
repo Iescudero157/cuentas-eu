@@ -250,13 +250,21 @@ function InvoiceDocument({ data }: { data: InvoicePDFServerData }) {
 
 /**
  * Generates a PDF buffer for an invoice. Safe to call from Node.js API routes.
+ *
+ * Note: @react-pdf/renderer v4 `toBuffer()` actually returns a NodeJS ReadableStream
+ * (the method will be renamed `toStream()` in the next major version).
+ * We read all chunks and concatenate them into a proper Buffer.
  */
 export async function generateInvoicePDFBuffer(data: InvoicePDFServerData): Promise<Buffer> {
   const instance = pdf(<InvoiceDocument data={data} />);
-  const result = await instance.toBuffer();
-  // react-pdf v4 toBuffer() returns Uint8Array; convert to Buffer via ArrayBuffer overload
-  if (result instanceof Uint8Array) {
-    return Buffer.from(result.buffer, result.byteOffset, result.byteLength);
-  }
-  return result as unknown as Buffer;
+  // toBuffer() returns a ReadableStream in react-pdf v4, despite the name
+  const stream = (await instance.toBuffer()) as unknown as NodeJS.ReadableStream;
+  return new Promise<Buffer>((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    stream.on("data", (chunk: Buffer | Uint8Array) => {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+    });
+    stream.on("end", () => resolve(Buffer.concat(chunks)));
+    stream.on("error", reject);
+  });
 }

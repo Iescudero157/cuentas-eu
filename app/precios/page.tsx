@@ -89,7 +89,7 @@ const plans = [
     ],
     cta: "Contactar ventas",
     highlighted: false,
-    href: "mailto:hola@kuentas.eu?subject=Plan Business KUENTAS.EU",
+    href: "mailto:kuentas@mercadonet.es?subject=Plan Business KUENTAS.EU",
   },
 ];
 
@@ -124,7 +124,8 @@ export default function PreciosPage() {
       setTimeout(() => redsysFormRef.current?.submit(), 100);
     } catch (err) {
       console.error("Checkout error:", err);
-      alert("No se pudo iniciar el pago. Inténtalo de nuevo.");
+      const msg = err instanceof Error ? err.message : "No se pudo iniciar el pago. Inténtalo de nuevo.";
+      alert(msg);
     } finally {
       setLoading(null);
     }
@@ -271,7 +272,7 @@ export default function PreciosPage() {
             Pago procesado por el TPV Virtual BBVA (Redsys) · Cifrado SSL 256 bits · Factura en EUR · IVA incluido
           </p>
           <p className="text-sm text-brand-muted">
-            <a href="mailto:hola@kuentas.eu" className="text-brand-blue hover:underline">
+            <a href="mailto:kuentas@mercadonet.es" className="text-brand-blue hover:underline">
               Contactar soporte
             </a>
             {" · "}

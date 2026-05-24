@@ -97,7 +97,7 @@ function downloadFile(content: string, filename: string, mime: string) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function FacturasPage() {
-  const { invoices, loading, updateInvoiceStatus } = useInvoices();
+  const { invoices, loading, error: invoiceError, updateInvoiceStatus } = useInvoices();
   const { user, isDemo, profile } = useAuth();
   const [markingId, setMarkingId] = useState<string | null>(null);
   const [monthlyInvoiceCount, setMonthlyInvoiceCount] = useState(0);
@@ -198,6 +198,12 @@ export default function FacturasPage() {
 
   return (
     <div className="space-y-6">
+      {/* Error banner */}
+      {invoiceError && (
+        <div className="bg-brand-danger/10 border border-brand-danger/30 text-brand-danger rounded-xl px-4 py-3 text-sm font-medium">
+          ⚠️ {invoiceError}
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
