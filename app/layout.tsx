@@ -90,6 +90,7 @@ export default function RootLayout({
         <GoogleAdsTag />
         {children}
         <CookieConsent />
+        <script src="/iavoz-widget.js" defer></script>
       </body>
     </html>
   );
