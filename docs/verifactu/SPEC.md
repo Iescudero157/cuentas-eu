@@ -138,9 +138,9 @@ Cada línea de desglose (art. 10.1.h-i RRSIF; XSD):
 | Campo | Obl. | Valores |
 |---|---|---|
 | `Impuesto` | Op (defecto 01) | L1: `01` IVA · `02` IPSI · `03` IGIC · `05` otros |
-| `ClaveRegimen` | C (obligatorio si Impuesto 01/03) | Lista L8A (IVA): `01` régimen general · `02` exportación · `03` REBU · `04` oro de inversión · `05` agencias de viajes · `06` grupo de entidades · `07` criterio de caja · `08` operaciones IPSI/IGIC · `09` mediación agencias de viaje · `10` cobros por cuenta de terceros · `11` arrendamiento de local de negocio · `14` IVA pendiente (certificaciones AAPP) · `15` IVA pendiente (tracto sucesivo) · `17` OSS/IOSS · `18` recargo de equivalencia · `19` REAGYP · `20` régimen simplificado. (Lista completa y vigente: XSD L8A/L8B — re-verificar en V05) |
+| `ClaveRegimen` | C (obligatorio si Impuesto 01/03) | Lista L8A (IVA): `01` régimen general · `02` exportación · `03` REBU · `04` oro de inversión · `05` agencias de viajes · `06` grupo de entidades · `07` criterio de caja · `08` operaciones IPSI/IGIC · `09` mediación agencias de viaje · `10` cobros por cuenta de terceros · `11` arrendamiento de local de negocio · `14` IVA pendiente (certificaciones AAPP) · `15` IVA pendiente (tracto sucesivo) · `17` OSS/IOSS · `18` recargo de equivalencia · `19` REAGYP · `20` régimen simplificado · `21` (verificado en V05 contra el XSD descargado: valores 01-11, 14, 15, 17-21) |
 | `CalificacionOperacion` | C (excluyente con OperacionExenta) | `S1` sujeta no exenta sin inversión · `S2` sujeta no exenta con inversión del sujeto pasivo · `N1` no sujeta (arts. 7, 14, otros) · `N2` no sujeta por reglas de localización |
-| `OperacionExenta` | C | `E1` (art. 20 LIVA) · `E2` (art. 21) · `E3` (art. 22) · `E4` (arts. 23-24) · `E5` (art. 25) · `E6` (otras) |
+| `OperacionExenta` | C | `E1` (art. 20 LIVA) · `E2` (art. 21) · `E3` (art. 22) · `E4` (arts. 23-24) · `E5` (art. 25) · `E6` (otras) · `E7`/`E8` (añadidas en el XSD vigente tras la Orden; verificado en V05) |
 | `TipoImpositivo` | C | % (S1; ej. 21, 10, 4, 0) |
 | `BaseImponibleOimporteNoSujeto` | O | Decimal 2 dec. |
 | `BaseImponibleACoste` | C | Grupos de entidades |

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test lib/verifactu/tests/v04-huella.test.mjs"
+    "test": "node --test lib/verifactu/tests/v04-huella.test.mjs lib/verifactu/tests/v05-registro-alta.test.mjs"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.4.0",
@@ -36,6 +36,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "xmllint-wasm": "^5.3.0"
   }
 }
