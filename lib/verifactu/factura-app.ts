@@ -19,6 +19,7 @@ import {
   type TipoFactura,
   esNifValido,
 } from './registro-alta.ts'
+import { type EntradaRegistroAnulacion } from './registro-anulacion.ts'
 
 /** Línea de concepto tal como se guarda en `invoices.items` (JSONB). */
 export interface ItemFacturaApp {
@@ -133,5 +134,26 @@ export function facturaAppARegistroAlta(
     // ImporteTotal del registro = base + cuota de IVA, sin restar la retención.
     cuotaTotalDeclarada: exenta ? 0 : factura.iva,
     importeTotalDeclarado: factura.subtotal + (exenta ? 0 : factura.iva),
+  }
+}
+
+/**
+ * Convierte una factura emitida de la app en la entrada del registro de
+ * ANULACIÓN (D-12: la anulación sustituye al DELETE de facturas emitidas).
+ * En Kuentas v1 el registro lo genera siempre el propio emisor, por lo que
+ * no se rellenan GeneradoPor/Generador (opcionales en el XSD).
+ */
+export function facturaAppARegistroAnulacion(
+  factura: Pick<FacturaApp, 'invoice_number' | 'date'>,
+  emisor: EmisorApp,
+  opciones: { refExterna?: string; sinRegistroPrevio?: 'S' | 'N'; rechazoPrevio?: 'S' | 'N' } = {}
+): EntradaRegistroAnulacion {
+  return {
+    emisor: { nif: emisor.nif },
+    numSerieFacturaAnulada: factura.invoice_number,
+    fechaExpedicionFacturaAnulada: factura.date,
+    refExterna: opciones.refExterna,
+    sinRegistroPrevio: opciones.sinRegistroPrevio,
+    rechazoPrevio: opciones.rechazoPrevio,
   }
 }

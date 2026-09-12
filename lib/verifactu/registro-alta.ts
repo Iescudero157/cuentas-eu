@@ -326,7 +326,7 @@ export function esNifValido(nif: string): boolean {
 }
 
 /** `dd-mm-aaaa` oficial desde `aaaa-mm-dd`, `dd-mm-aaaa` o Date, validando el calendario. */
-function fechaOficial(valor: string | Date, campo: string, errores: string[]): string {
+export function fechaOficial(valor: string | Date, campo: string, errores: string[]): string {
   let ddmmaaaa: string
   try {
     if (typeof valor === 'string' && /^\d{2}-\d{2}-\d{4}$/.test(valor.trim())) {
@@ -376,7 +376,7 @@ function formatearTipo(valor: number): string {
   return formatearImporte(valor)
 }
 
-function validarTexto(
+export function validarTexto(
   valor: string,
   campo: string,
   max: number,
@@ -402,10 +402,10 @@ export function escaparXml(valor: string): string {
 }
 
 /** Árbol mínimo: [nombreSinPrefijo, hijos | valorTexto]. `null` = omitir elemento. */
-type Nodo = [string, NodoContenido] | null
-type NodoContenido = string | Nodo[]
+export type Nodo = [string, NodoContenido] | null
+export type NodoContenido = string | Nodo[]
 
-function serializar(nodos: Nodo[], prefijo: string, nivel: number): string {
+export function serializar(nodos: Nodo[], prefijo: string, nivel: number): string {
   const sangria = '  '.repeat(nivel)
   return nodos
     .filter((n): n is [string, NodoContenido] => n !== null)

@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test lib/verifactu/tests/v04-huella.test.mjs lib/verifactu/tests/v05-registro-alta.test.mjs"
+    "test": "node --test lib/verifactu/tests/v04-huella.test.mjs lib/verifactu/tests/v05-registro-alta.test.mjs lib/verifactu/tests/v06-anulacion-eventos.test.mjs"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.4.0",
