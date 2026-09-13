@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { emitirFactura, ErrorEmision } from "@/lib/verifactu/emision";
+import { ErrorValidacionRegistro } from "@/lib/verifactu/registro-alta";
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -116,6 +118,44 @@ export async function POST(request: Request) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // ── Verifactu (V07): si el módulo está activo para el obligado, la creación
+  // ES la emisión (salvo borrador:true): numeración de servidor + registro de
+  // alta + huella encadenada + outbox, todo atómico (RPC sif_emitir_factura).
+  // Con sif_config ausente o activo=false la app se comporta como hasta ahora.
+  if (body.borrador !== true) {
+    try {
+      const resultado = await emitirFactura(supabase, user.id, data.id);
+      if (resultado.sifActivo) {
+        const { data: emitida } = await supabase
+          .from("invoices")
+          .select("*")
+          .eq("id", data.id)
+          .single();
+        return NextResponse.json(
+          { invoice: emitida ?? data, verifactu: resultado },
+          { status: 201 }
+        );
+      }
+    } catch (e) {
+      // Emisión fallida: la RPC es atómica (no consumió número ni cadena) y la
+      // factura sigue en borrador. La app actual no gestiona borradores, así
+      // que lo retiramos para no dejar restos y devolvemos el motivo.
+      await supabase.from("invoices").delete().eq("id", data.id).eq("user_id", user.id);
+      if (e instanceof ErrorValidacionRegistro) {
+        return NextResponse.json(
+          {
+            error: "verifactu_validacion",
+            message: "La factura no supera las validaciones Verifactu",
+            detalles: e.errores,
+          },
+          { status: 422 }
+        );
+      }
+      const message = e instanceof ErrorEmision ? e.message : "Error emitiendo la factura";
+      return NextResponse.json({ error: "verifactu_emision", message }, { status: 422 });
+    }
   }
 
   return NextResponse.json({ invoice: data }, { status: 201 });

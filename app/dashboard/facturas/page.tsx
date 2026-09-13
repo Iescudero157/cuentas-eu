@@ -335,6 +335,22 @@ export default function FacturasPage() {
                         <div className="flex items-center gap-2">
                           <FileText className="w-4 h-4 text-brand-muted flex-shrink-0" />
                           <span className="font-medium text-brand-blue">{inv.number}</span>
+                          {(inv.verifactuEstado === "emitida" || inv.verifactuEstado === "rectificada") && (
+                            <span
+                              title="Factura emitida bajo VERI*FACTU: su contenido es inmutable (art. 8.2 RD 1007/2023). Para corregirla, emite una rectificativa o anúlala."
+                              className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-brand-blue/10 text-brand-blue whitespace-nowrap"
+                            >
+                              VERI*FACTU
+                            </span>
+                          )}
+                          {inv.verifactuEstado === "anulada" && (
+                            <span
+                              title="Factura anulada mediante registro de anulación Verifactu (art. 11 RD 1007/2023)"
+                              className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-brand-danger/10 text-brand-danger whitespace-nowrap"
+                            >
+                              Anulada
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="px-5 py-4">
@@ -436,6 +452,12 @@ export default function FacturasPage() {
             onMouseDown={(e) => e.stopPropagation()}
           >
             <div className="bg-white border border-brand-border rounded-xl shadow-lg w-44 py-1">
+              {(inv.verifactuEstado === "emitida" || inv.verifactuEstado === "rectificada") && (
+                <p className="px-4 py-2 text-[11px] leading-snug text-brand-muted border-b border-brand-border/50">
+                  Emitida bajo VERI*FACTU: contenido inmutable. Corrección solo por
+                  rectificativa o anulación.
+                </p>
+              )}
               <InvoicePDFButton
                 invoice={inv}
                 issuerName={issuer.name}
