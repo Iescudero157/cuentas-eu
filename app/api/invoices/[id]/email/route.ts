@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { Resend } from "resend";
 import { invoiceEmailTemplate } from "@/lib/email/templates";
 import { generateInvoicePDFBuffer } from "@/lib/pdf/invoice-pdf-server";
+import { invoicePDFDataFromRow } from "@/lib/pdf/invoice-pdf-data";
+import { bloqueQRParaInvoice } from "@/lib/verifactu/qr-factura";
 
 // Lazy-initialize so build doesn't fail when RESEND_API_KEY is absent
 function getResend() {
@@ -70,31 +72,25 @@ export async function POST(
 
   const { subject, html } = invoiceEmailTemplate(emailData);
 
-  // Generate PDF attachment
+  // Generate PDF attachment (con QR tributario + leyenda si la factura está
+  // emitida bajo Verifactu — V08, arts. 20-21 Orden HAC/1177/2024)
   let pdfBuffer: Buffer | null = null;
   try {
-    pdfBuffer = await generateInvoicePDFBuffer({
-      number: invoice.number,
-      clientName: invoice.client_name,
-      clientNif: invoice.client_nif,
-      clientAddress: invoice.client_address,
-      date: invoice.date,
-      dueDate: invoice.due_date,
-      status: invoice.status || "pendiente",
-      items: invoice.items || [],
-      subtotal: Number(invoice.subtotal),
-      iva: Number(invoice.iva),
-      ivaRate: Number(invoice.iva_rate),
-      irpf: Number(invoice.irpf),
-      irpfRate: Number(invoice.irpf_rate),
-      total: Number(invoice.total),
-      issuerName: profile?.name || "KUENTAS.EU",
-      issuerNif: profile?.nif,
-      issuerAddress: profile?.address,
-    });
+    const verifactu = await bloqueQRParaInvoice(supabase, user.id, invoice);
+    pdfBuffer = await generateInvoicePDFBuffer(
+      invoicePDFDataFromRow(invoice, profile, verifactu)
+    );
   } catch (pdfErr) {
     console.error("Error generando PDF:", pdfErr);
-    // Continue sending email without attachment if PDF generation fails
+    if (invoice.verifactu_estado && invoice.verifactu_estado !== "borrador") {
+      // Una factura emitida NO puede enviarse sin su QR (art. 20 Orden):
+      // mejor fallar el envío que entregar un duplicado no conforme.
+      return NextResponse.json(
+        { error: "No se pudo generar el PDF con el QR tributario de la factura emitida" },
+        { status: 500 }
+      );
+    }
+    // Facturas legacy/borrador: continue sending email without attachment
   }
 
   try {

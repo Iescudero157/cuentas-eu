@@ -328,7 +328,9 @@ generado; las transiciones añaden registros nuevos.
 ## 6. QR tributario y leyenda en factura
 
 **Base legal:** arts. 20-21 Orden + arts. 6.5 y 7.5 RD 1619/2012 + doc. sede AEAT
-«Especificaciones técnicas del código QR de las facturas».
+«Detalle de las especificaciones técnicas del código "QR" de la factura…» **v0.5.0
+(10/12/2025)** (verificado V08; implementación en `lib/verifactu/qr.ts` y
+`docs/verifactu/QR-LEYENDA.md`).
 
 - **Todas** las facturas (completas y simplificadas) expedidas por el SIF llevan QR.
 - **Características** (art. 21 Orden): ISO/IEC 18004, corrección de errores **nivel M**,
@@ -350,6 +352,12 @@ Pruebas:    https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?nif=<NIF>&numserie=
     espacios, etc.) · `fecha`: `dd-mm-aaaa` · `importe`: decimal con punto, 2 decimales,
     idéntico a `ImporteTotal` del registro.
   - La **huella NO va en el QR** (FAQ oficial AEAT, sección huella).
+  - Detalles del doc. v0.5.0 (V08): valores solo ASCII imprimible (32-126) y URL-encoding
+    UTF-8; zona en blanco ≥2 mm (recomendada 6 mm) alrededor del QR; texto «**QR
+    tributario:**» SIEMPRE encima del QR; leyenda justo debajo; QR solo en la primera
+    página; parámetros opcionales del servicio `idioma` y `formato=json` — este último
+    **prohibido** dentro del QR (solo cotejo máquina-a-máquina del receptor); modo
+    no-VERI*FACTU usa `ValidarQRNoVerifactu` (mismas bases, sin leyenda).
 - El receptor puede escanear y cotejar; si el emisor es VERI*FACTU la sede confirma que la
   factura está registrada.
 
