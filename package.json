@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test lib/verifactu/tests/v04-huella.test.mjs lib/verifactu/tests/v05-registro-alta.test.mjs lib/verifactu/tests/v06-anulacion-eventos.test.mjs lib/verifactu/tests/v07-emision.test.mjs lib/verifactu/tests/v08-qr.test.mjs lib/verifactu/tests/v09-aeat-cliente.test.mjs lib/verifactu/tests/v10-remision.test.mjs",
-    "test:db": "node supabase/tests/v03-migraciones.test.mjs && node supabase/tests/v07-emision.test.mjs && node supabase/tests/v10-remision.test.mjs"
+    "test": "node --test lib/verifactu/tests/v04-huella.test.mjs lib/verifactu/tests/v05-registro-alta.test.mjs lib/verifactu/tests/v06-anulacion-eventos.test.mjs lib/verifactu/tests/v07-emision.test.mjs lib/verifactu/tests/v08-qr.test.mjs lib/verifactu/tests/v09-aeat-cliente.test.mjs lib/verifactu/tests/v10-remision.test.mjs lib/verifactu/tests/v11-certificados.test.mjs",
+    "test:db": "node supabase/tests/v03-migraciones.test.mjs && node supabase/tests/v07-emision.test.mjs && node supabase/tests/v10-remision.test.mjs && node supabase/tests/v11-certificados.test.mjs"
   },
   "dependencies": {
     "@react-pdf/renderer": "^4.4.0",
@@ -19,6 +19,7 @@
     "date-fns": "^4.1.0",
     "lucide-react": "^0.577.0",
     "next": "16.2.1",
+    "node-forge": "^1.4.0",
     "nodemailer": "^6.10.1",
     "openai": "^6.33.0",
     "qrcode": "^1.5.4",
@@ -33,6 +34,7 @@
     "@electric-sql/pglite": "^0.5.8",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/node-forge": "^1.3.14",
     "@types/nodemailer": "^6.4.23",
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19",

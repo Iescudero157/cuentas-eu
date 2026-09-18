@@ -84,13 +84,26 @@ export interface ResumenObligado {
   tiempoEsperaEnvio?: number
   error?: string
   reintentable?: boolean
+  /** El obligado se OMITIÓ sin tocar su cola (p. ej. sin certificado, V11). */
+  motivo?: string
 }
 
 export interface ResumenRemision {
   obligados: ResumenObligado[]
   totalEnviados: number
   totalErrores: number
+  /** Obligados con trabajo pendiente omitidos por no tener cliente AEAT (V11). */
+  totalOmitidos: number
 }
+
+/**
+ * Resultado de la fábrica de clientes por obligado: el cliente listo, o el
+ * motivo por el que no se puede remitir (sin certificado, caducado, custodia
+ * sin configurar…). Con `null`/motivo la cola del obligado NO se toca: sigue
+ * acumulando y se remitirá con Incidencia=S cuando haya certificado (art. 16
+ * Orden HAC/1177/2024).
+ */
+export type ClienteObligado = ClienteAeat | { motivo: string } | null
 
 export interface OpcionesRemision {
   /** Registros máximos por envío (1..1000, art. 16 Orden). Por defecto 1000. */
@@ -313,12 +326,13 @@ export async function remitirObligado(
  * Un tick del worker: procesa TODOS los obligados con trabajo listo (un lote
  * por obligado y tick: el control de flujo del art. 16 Orden impone ≥60 s
  * entre envíos del mismo obligado). Un fallo en un obligado no detiene a los
- * demás. `crearCliente` permite un cliente por obligado (certificados por
- * empresa en V11; hoy: el certificado global de plataforma).
+ * demás. `crearCliente` da el cliente de CADA obligado (su certificado de
+ * custodia V11, o el global de plataforma como respaldo); si devuelve
+ * null/motivo, ese obligado se omite sin tocar su cola.
  */
 export async function procesarRemision(
   supabase: SupabaseClient,
-  crearCliente: (userId: string) => ClienteAeat,
+  crearCliente: (userId: string) => ClienteObligado | Promise<ClienteObligado>,
   opciones: OpcionesRemision = {}
 ): Promise<ResumenRemision> {
   const pendientes = await rpc<Array<{ user_id: string; pendientes: number }>>(
@@ -330,7 +344,21 @@ export async function procesarRemision(
   const obligados: ResumenObligado[] = []
   for (const p of pendientes ?? []) {
     try {
-      const resumen = await remitirObligado(supabase, crearCliente(p.user_id), p.user_id, opciones)
+      const cliente = await crearCliente(p.user_id)
+      if (!cliente || !(cliente instanceof ClienteAeat)) {
+        obligados.push({
+          userId: p.user_id,
+          lote: null,
+          enviados: 0,
+          aceptados: 0,
+          aceptadosConErrores: 0,
+          rechazados: 0,
+          sinRespuesta: 0,
+          motivo: cliente?.motivo ?? 'cliente AEAT no disponible para el obligado',
+        })
+        continue
+      }
+      const resumen = await remitirObligado(supabase, cliente, p.user_id, opciones)
       if (resumen) obligados.push(resumen)
     } catch (e) {
       // Error inesperado del propio worker (RPC caída, bug): se informa y se
@@ -352,5 +380,6 @@ export async function procesarRemision(
     obligados,
     totalEnviados: obligados.reduce((s, o) => s + o.enviados, 0),
     totalErrores: obligados.filter((o) => o.error).length,
+    totalOmitidos: obligados.filter((o) => o.motivo).length,
   }
 }
