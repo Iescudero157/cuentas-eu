@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test lib/verifactu/tests/v04-huella.test.mjs lib/verifactu/tests/v05-registro-alta.test.mjs lib/verifactu/tests/v06-anulacion-eventos.test.mjs lib/verifactu/tests/v07-emision.test.mjs lib/verifactu/tests/v08-qr.test.mjs",
+    "test": "node --test lib/verifactu/tests/v04-huella.test.mjs lib/verifactu/tests/v05-registro-alta.test.mjs lib/verifactu/tests/v06-anulacion-eventos.test.mjs lib/verifactu/tests/v07-emision.test.mjs lib/verifactu/tests/v08-qr.test.mjs lib/verifactu/tests/v09-aeat-cliente.test.mjs",
     "test:db": "node supabase/tests/v03-migraciones.test.mjs && node supabase/tests/v07-emision.test.mjs"
   },
   "dependencies": {

@@ -282,7 +282,9 @@ AEAT «Especificaciones del servicio web de remisión».
 | **Pruebas** (Portal de Pruebas Externas, sin trascendencia tributaria) | `https://prewww1.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP` | `https://prewww10.aeat.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP` |
 | **Producción** | `https://www1.agenciatributaria.gob.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP` | `https://www10.agenciatributaria.gob.es/wlpl/TIKE-CONT/ws/SistemaFacturacion/VerifactuSOAP` |
 
-(Confirmar contra el WSDL descargado en V09; portal de pruebas: `preportal.aeat.es`.)
+(Confirmado en V09 contra `SistemaFacturacion.wsdl` descargado de la sede — los 4
+endpoints coinciden, más los 4 de `RequerimientoSOAP` para V14; ver
+`docs/verifactu/CLIENTE-AEAT.md`. Portal de pruebas: `preportal.aeat.es`.)
 
 ### 5.3 Cadencia y control de flujo (art. 16 Orden)
 

@@ -23,6 +23,8 @@
 # misc
 .DS_Store
 *.pem
+# excepción: certificados AUTOFIRMADOS de prueba de los tests V09 (no son secretos; ver su README.md)
+!lib/verifactu/tests/fixtures/certs-prueba/*.pem
 
 # debug
 npm-debug.log*
