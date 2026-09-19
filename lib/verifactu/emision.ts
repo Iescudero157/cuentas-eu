@@ -298,7 +298,7 @@ export function reconstruirRegistroAnulacion(
 const COLUMNAS_INVOICE =
   'id, user_id, number, date, client_name, client_nif, items, subtotal, iva, iva_rate, irpf, irpf_rate, total, verifactu_estado, numero_fiscal, tipo_factura, rectifica_invoice_id, tipo_rectificativa'
 
-async function cargarConfig(supabase: SupabaseClient, userId: string): Promise<FilaSifConfig | null> {
+export async function cargarConfig(supabase: SupabaseClient, userId: string): Promise<FilaSifConfig | null> {
   const { data, error } = await supabase
     .from('sif_config')
     .select('user_id, nif_obligado, nombre_razon, numero_instalacion, modalidad, entorno_aeat, activo')
@@ -308,7 +308,7 @@ async function cargarConfig(supabase: SupabaseClient, userId: string): Promise<F
   return (data as FilaSifConfig | null) ?? null
 }
 
-async function cargarInvoice(
+export async function cargarInvoice(
   supabase: SupabaseClient,
   userId: string,
   invoiceId: string
@@ -331,7 +331,7 @@ async function cargarInvoice(
  * problema aquí se devuelve como advertencia (el worker V10 puede regenerar
  * el XML desde `registro`).
  */
-async function fijarXmlVerificado(
+export async function fijarXmlVerificado(
   supabase: SupabaseClient,
   userId: string,
   registroId: string,
