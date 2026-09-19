@@ -80,7 +80,8 @@ facturación generados (art. 16.1 RRSIF). Consecuencias (art. 3.1 Orden):
 
 **Decisión Kuentas (D1 del plan maestro):** `cuentas-app` operará **exclusivamente** como
 VERI*FACTU en v1 (`TipoUsoPosibleSoloVerifactu = S`). El soporte no-VERI*FACTU (firma XAdES +
-eventos) queda descartado salvo re-evaluación en V14.
+eventos) queda **descartado en v1** — evaluación V14 cerrada, ver `DECISIONES.md` (DEC-V14);
+re-evaluación solo en fase F5 (2027) si hay demanda real.
 
 ---
 
@@ -365,10 +366,11 @@ Pruebas:    https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?nif=<NIF>&numserie=
 
 ---
 
-## 7. Registro de eventos (solo no-VERI*FACTU — referencia para V14)
+## 7. Registro de eventos (solo no-VERI*FACTU — no aplica en v1, DEC-V14)
 
 **Base legal:** art. 8.4 RRSIF + art. 9 Orden. **Kuentas v1 está exento** (art. 3 Orden)
-mientras opere solo como VERI*FACTU; se especifica por si V14 activa el modo local:
+mientras opere solo como VERI*FACTU; V14 decidió NO activar el modo local (ver
+`DECISIONES.md`). Se conserva la especificación como referencia futura:
 
 - Eventos obligatorios (art. 9.1 Orden): a) inicio de funcionamiento como no-VERI*FACTU;
   b) fin de dicho funcionamiento; c) lanzamiento de la detección de anomalías sobre registros
@@ -443,7 +445,7 @@ mientras opere solo como VERI*FACTU; se especifica por si V14 activa el modo loc
 - **V07** servicio de emisión: D-01, D-02, D-03, §2.3.
 - **V08** QR+leyenda: §6. **V09** SOAP: §5.1-5.2, §8. **V10** cola: §5.3-5.5.
 - **V11** certificados: §8. **V12** incidencias/subsanación: §5.4-5.5.
-- **V13** UI: estados §5.5. **V14** no-VERI*FACTU: §7. **V16** conservación: art. 8 Orden.
+- **V13** UI: estados §5.5. **V14** no-VERI*FACTU: §7 → cerrado, no se soporta en v1 (`DECISIONES.md`). **V16** conservación: art. 8 Orden.
 - **V17/V18** pruebas AEAT: §5.2 pruebas, doc. validaciones. **V19** declaración: §9.
 
 ---

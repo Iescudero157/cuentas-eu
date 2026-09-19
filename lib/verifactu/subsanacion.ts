@@ -174,7 +174,7 @@ async function configActiva(
   if (!config) return { sifActivo: false, motivo: 'El obligado no tiene configuración Verifactu (sif_config)' }
   if (!config.activo) return { sifActivo: false, motivo: 'Módulo Verifactu desactivado para este obligado' }
   if (config.modalidad !== 'verifactu') {
-    throw new ErrorEmision('modalidad_no_soportada', 'La modalidad no-VERI*FACTU no está soportada en v1 (se evalúa en V14)')
+    throw new ErrorEmision('modalidad_no_soportada', 'La modalidad no-VERI*FACTU no está soportada en v1 (DEC-V14, docs/verifactu/DECISIONES.md)')
   }
   return config
 }
