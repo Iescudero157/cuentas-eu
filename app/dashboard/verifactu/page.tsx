@@ -10,8 +10,10 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import {
   AlertTriangle,
+  Archive,
   CheckCircle,
   Clock,
+  Download,
   FileKey2,
   Link2,
   Loader2,
@@ -158,6 +160,9 @@ export default function VerifactuPage() {
   const [filtro, setFiltro] = useState<EstadoRemision | "all">("all");
   const [pagina, setPagina] = useState(0);
   const [reenviandoId, setReenviandoId] = useState<string | null>(null);
+  const [exportDesde, setExportDesde] = useState("");
+  const [exportHasta, setExportHasta] = useState("");
+  const [exportando, setExportando] = useState(false);
   const [mensaje, setMensaje] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -241,6 +246,55 @@ export default function VerifactuPage() {
     },
     [cargarPanel, cargarRegistros]
   );
+
+  // V16 · Descarga del export de conservación (art. 8 Orden HAC/1177/2024):
+  // ZIP con los lotes XML en formato oficial de remisión, manifiesto con
+  // SHA-256 por fichero y volcado de eventos, verificado en el servidor.
+  const handleExportar = useCallback(async () => {
+    setExportando(true);
+    setMensaje(null);
+    try {
+      const params = new URLSearchParams();
+      if (exportDesde) params.set("desde", exportDesde);
+      if (exportHasta) params.set("hasta", exportHasta);
+      const qs = params.toString();
+      const res = await fetch(`/api/verifactu/export${qs ? `?${qs}` : ""}`);
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setMensaje({
+          tipo: "error",
+          texto:
+            data.error === "sin_registros"
+              ? "No hay registros de facturación en el período seleccionado"
+              : data.message || "No se pudo generar la exportación",
+        });
+        return;
+      }
+      const nombre =
+        /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ??
+        "verifactu-export.zip";
+      const integra = res.headers.get("X-Verifactu-Integra") !== "false";
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const enlace = document.createElement("a");
+      enlace.href = url;
+      enlace.download = nombre;
+      document.body.appendChild(enlace);
+      enlace.click();
+      enlace.remove();
+      URL.revokeObjectURL(url);
+      setMensaje(
+        integra
+          ? { tipo: "ok", texto: `Export ${nombre} descargado y verificado: cadena de huellas íntegra` }
+          : { tipo: "error", texto: `Export ${nombre} descargado, pero la verificación detectó anomalías (ver manifest.json)` }
+      );
+      await cargarEventos(); // la exportación queda anotada como evento
+    } catch {
+      setMensaje({ tipo: "error", texto: "Error de conexión al exportar" });
+    } finally {
+      setExportando(false);
+    }
+  }, [exportDesde, exportHasta, cargarEventos]);
 
   // ─── Modo demo / sin sesión ─────────────────────────────────────────────────
   if (!user || isDemo) {
@@ -700,6 +754,53 @@ export default function VerifactuPage() {
             </table>
           </div>
         )}
+      </div>
+
+      {/* Conservación y exportación (V16) */}
+      <div className="bg-white rounded-xl border border-brand-border/50 shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-brand-border/50 flex items-center gap-2">
+          <Archive className="w-4 h-4 text-brand-muted" />
+          <div>
+            <h2 className="font-semibold text-brand-text">Conservación y exportación</h2>
+            <p className="text-xs text-brand-muted mt-0.5">
+              Copia de tus registros en el formato oficial de remisión, con verificación de la
+              cadena de huellas (art. 8 Orden HAC/1177/2024)
+            </p>
+          </div>
+        </div>
+        <div className="px-5 py-4 flex flex-wrap items-end gap-3">
+          <label className="text-xs text-brand-muted">
+            Desde (fecha de generación)
+            <input
+              type="date"
+              value={exportDesde}
+              onChange={(e) => setExportDesde(e.target.value)}
+              className="mt-1 block border border-brand-border rounded-lg px-3 py-2 text-sm text-brand-text"
+            />
+          </label>
+          <label className="text-xs text-brand-muted">
+            Hasta
+            <input
+              type="date"
+              value={exportHasta}
+              onChange={(e) => setExportHasta(e.target.value)}
+              className="mt-1 block border border-brand-border rounded-lg px-3 py-2 text-sm text-brand-text"
+            />
+          </label>
+          <button
+            onClick={handleExportar}
+            disabled={exportando || (cadena?.correlativo_ultimo ?? 0) === 0}
+            title="ZIP con los registros en XML oficial (SuministroLR.xsd), manifiesto con SHA-256 por fichero y volcado de eventos"
+            className="flex items-center gap-2 bg-brand-blue text-white text-sm font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition disabled:opacity-50"
+          >
+            {exportando ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            {exportando ? "Generando…" : "Descargar export (ZIP)"}
+          </button>
+          <p className="text-xs text-brand-muted basis-full">
+            Sin fechas se exporta la cadena completa. Los registros originales permanecen en
+            Kuentas y se conservan hasta la prescripción fiscal aunque exportes una copia.
+          </p>
+        </div>
       </div>
 
       <p className="text-xs text-brand-muted">

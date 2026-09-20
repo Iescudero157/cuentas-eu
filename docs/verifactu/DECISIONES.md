@@ -110,3 +110,25 @@ con `TipoUsoPosibleSoloVerifactu='N'`, QA de conformidad del modo local.
 (verificados en V02, 08/09/2026); documentación técnica de la sede AEAT (XSD y doc. QR
 descargados en V05/V08, `docs/verifactu/xsd/FUENTES.md`). Detalle normativo ampliado en
 `SPEC.md` §1 y §7.*
+
+---
+
+## DEC-V16 · Conservación: sin purga y retención de 6 años propuesta
+
+**Fecha:** 20/09/2026 · **Ítem:** V16 · **Estado:** decisión técnica adoptada —
+**[REVISIÓN IVAN/ASESOR]** plazo de retención y proceso de baja.
+
+1. **Formato de export = formato de remisión.** El art. 8.5 Orden HAC/1177/2024 exige que
+   lo exportado mantenga la estructura de los arts. 10-11, y el art. 18 fija la remisión a
+   requerimiento con la estructura de VERI*FACTU: cada lote exportado es un mensaje
+   `RegFactuSistemaFacturacion` (SuministroLR.xsd, ≤1000 registros) validado contra los
+   XSD oficiales. Sin formatos propietarios para los registros.
+2. **Sin purga.** Aunque el art. 8.2 Orden permite dejar de conservar en el sistema lo ya
+   exportado, Kuentas conserva SIEMPRE los registros en BD (append-only): el export es una
+   copia, no un traslado. Simplifica la trazabilidad y elimina el riesgo de pérdida.
+3. **Períodos por fecha de generación.** El filtro de export se resuelve a un tramo
+   contiguo de correlativos (la cadena sigue el orden de generación, art. 7 Orden): todo
+   export es verificable por huellas, completo o parcial (anclado).
+4. **Retención propuesta: 6 años** (art. 30 CCom ≥ 4 años LGT), registros supervivientes a
+   la baja del cliente y export de despedida al causar baja — plazos y proceso pendientes
+   de ratificación por Iván/asesor (detalle en CONSERVACION.md §4).
