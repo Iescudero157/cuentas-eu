@@ -931,6 +931,7 @@ export default function LandingPage() {
               <ul className="space-y-2 text-sm">
                 <li><Link href="/privacidad" className="hover:text-white transition">Privacidad</Link></li>
                 <li><Link href="/terminos" className="hover:text-white transition">Términos</Link></li>
+                <li><Link href="/verifactu" className="hover:text-white transition">Declaración responsable Verifactu</Link></li>
                 <li><a href="mailto:hola@kuentas.eu" className="hover:text-white transition">hola@kuentas.eu</a></li>
               </ul>
             </div>

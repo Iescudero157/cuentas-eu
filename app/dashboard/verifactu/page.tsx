@@ -18,6 +18,7 @@ import {
   Link2,
   Loader2,
   RefreshCw,
+  ScrollText,
   Send,
   ShieldAlert,
   ShieldCheck,
@@ -800,6 +801,34 @@ export default function VerifactuPage() {
             Sin fechas se exporta la cadena completa. Los registros originales permanecen en
             Kuentas y se conservan hasta la prescripción fiscal aunque exportes una copia.
           </p>
+        </div>
+      </div>
+
+      {/* Declaración responsable (V19, art. 13 RD 1007/2023: visible dentro del propio sistema) */}
+      <div className="bg-white rounded-xl border border-brand-border/50 shadow-sm overflow-hidden">
+        <div className="px-5 py-4 border-b border-brand-border/50 flex items-center gap-2">
+          <ScrollText className="w-4 h-4 text-brand-muted" />
+          <div>
+            <h2 className="font-semibold text-brand-text">Declaración responsable del sistema</h2>
+            <p className="text-xs text-brand-muted mt-0.5">
+              Certificación del productor de que Kuentas cumple el RD 1007/2023 y la Orden
+              HAC/1177/2024, por sistema y versión (art. 13 RD 1007/2023)
+            </p>
+          </div>
+        </div>
+        <div className="px-5 py-4 flex flex-wrap items-center gap-3">
+          <Link
+            href="/verifactu"
+            className="flex items-center gap-2 bg-brand-blue text-white text-sm font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition"
+          >
+            <ScrollText className="w-4 h-4" /> Ver declaración responsable
+          </Link>
+          <a
+            href="/api/verifactu/declaracion-responsable"
+            className="flex items-center gap-2 border border-brand-border text-brand-text text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-50 transition"
+          >
+            <Download className="w-4 h-4" /> Descargar en PDF
+          </a>
         </div>
       </div>
 
