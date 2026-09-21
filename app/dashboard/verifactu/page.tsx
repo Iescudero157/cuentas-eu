@@ -15,6 +15,7 @@ import {
   Clock,
   Download,
   FileKey2,
+  HelpCircle,
   Link2,
   Loader2,
   RefreshCw,
@@ -314,12 +315,20 @@ export default function VerifactuPage() {
             El panel Verifactu muestra los registros de facturación remitidos a la AEAT, su
             estado y el certificado digital. En modo demo no se generan registros fiscales.
           </p>
-          <Link
-            href="/registro"
-            className="mt-4 inline-block bg-brand-blue text-white text-sm font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition"
-          >
-            Crear cuenta
-          </Link>
+          <div className="mt-4 flex items-center justify-center gap-3">
+            <Link
+              href="/registro"
+              className="inline-block bg-brand-blue text-white text-sm font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition"
+            >
+              Crear cuenta
+            </Link>
+            <Link
+              href="/dashboard/verifactu/ayuda"
+              className="inline-flex items-center gap-1.5 border border-brand-border text-brand-text text-sm font-semibold px-4 py-2 rounded-lg hover:bg-brand-gray transition"
+            >
+              <HelpCircle className="w-4 h-4" /> Qué es Verifactu
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -355,17 +364,25 @@ export default function VerifactuPage() {
             Registros de facturación y remisión a la AEAT (RD 1007/2023)
           </p>
         </div>
-        <button
-          onClick={() => {
-            setLoadingTabla(true);
-            Promise.all([cargarPanel(), cargarRegistros(), cargarEventos()])
-              .catch(() => setMensaje({ tipo: "error", texto: "No se pudo actualizar el panel" }))
-              .finally(() => setLoadingTabla(false));
-          }}
-          className="flex items-center gap-2 border border-brand-border text-brand-text px-4 py-2 rounded-lg hover:bg-brand-gray transition text-sm font-medium"
-        >
-          <RefreshCw className={`w-4 h-4 ${loadingTabla ? "animate-spin" : ""}`} /> Actualizar
-        </button>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/dashboard/verifactu/ayuda"
+            className="flex items-center gap-2 border border-brand-border text-brand-text px-4 py-2 rounded-lg hover:bg-brand-gray transition text-sm font-medium"
+          >
+            <HelpCircle className="w-4 h-4" /> Ayuda
+          </Link>
+          <button
+            onClick={() => {
+              setLoadingTabla(true);
+              Promise.all([cargarPanel(), cargarRegistros(), cargarEventos()])
+                .catch(() => setMensaje({ tipo: "error", texto: "No se pudo actualizar el panel" }))
+                .finally(() => setLoadingTabla(false));
+            }}
+            className="flex items-center gap-2 border border-brand-border text-brand-text px-4 py-2 rounded-lg hover:bg-brand-gray transition text-sm font-medium"
+          >
+            <RefreshCw className={`w-4 h-4 ${loadingTabla ? "animate-spin" : ""}`} /> Actualizar
+          </button>
+        </div>
       </div>
 
       {error && (
