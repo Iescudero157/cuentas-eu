@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test lib/verifactu/tests/v04-huella.test.mjs lib/verifactu/tests/v05-registro-alta.test.mjs lib/verifactu/tests/v06-anulacion-eventos.test.mjs lib/verifactu/tests/v07-emision.test.mjs lib/verifactu/tests/v08-qr.test.mjs lib/verifactu/tests/v09-aeat-cliente.test.mjs lib/verifactu/tests/v10-remision.test.mjs lib/verifactu/tests/v11-certificados.test.mjs lib/verifactu/tests/v12-integridad.test.mjs lib/verifactu/tests/v16-export.test.mjs lib/verifactu/tests/v19-declaracion.test.mjs",
+    "test": "node --test lib/verifactu/tests/v04-huella.test.mjs lib/verifactu/tests/v05-registro-alta.test.mjs lib/verifactu/tests/v06-anulacion-eventos.test.mjs lib/verifactu/tests/v07-emision.test.mjs lib/verifactu/tests/v08-qr.test.mjs lib/verifactu/tests/v09-aeat-cliente.test.mjs lib/verifactu/tests/v10-remision.test.mjs lib/verifactu/tests/v11-certificados.test.mjs lib/verifactu/tests/v12-integridad.test.mjs lib/verifactu/tests/v16-export.test.mjs lib/verifactu/tests/v19-declaracion.test.mjs lib/export-contable/tests/v22-classicconta.test.mjs",
     "test:db": "node supabase/tests/v03-migraciones.test.mjs && node supabase/tests/v07-emision.test.mjs && node supabase/tests/v10-remision.test.mjs && node supabase/tests/v11-certificados.test.mjs && node supabase/tests/v12-incidencias.test.mjs && node supabase/tests/v15-multitenant.test.mjs",
     "verifactu:verificar": "node scripts/verifactu-verificar.mjs",
     "verifactu:exportar": "node scripts/verifactu-exportar.mjs",
