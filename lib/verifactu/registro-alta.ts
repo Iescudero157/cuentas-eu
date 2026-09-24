@@ -376,6 +376,10 @@ function formatearTipo(valor: number): string {
   return formatearImporte(valor)
 }
 
+// V24: caracteres de control prohibidos en XML 1.0 (escaparXml no puede
+// representarlos y la AEAT rechazaría el LOTE entero, no solo este registro).
+const RE_CONTROL_XML = /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/
+
 export function validarTexto(
   valor: string,
   campo: string,
@@ -386,6 +390,7 @@ export function validarTexto(
   const v = valor ?? ''
   if (obligatorio && v.trim() === '') errores.push(`${campo}: obligatorio y vacío`)
   if (v.length > max) errores.push(`${campo}: supera los ${max} caracteres (${v.length})`)
+  if (RE_CONTROL_XML.test(v)) errores.push(`${campo}: contiene caracteres de control no válidos`)
 }
 
 // ---------------------------------------------------------------------------

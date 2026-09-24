@@ -9,6 +9,7 @@ import {
   retirarCertificado,
 } from "@/lib/verifactu/cert-store";
 import { clavesDesdeEnv } from "@/lib/verifactu/cert-cifrado";
+import { cuerpoExcedeLimite, limitarTasa, respuesta429 } from "@/lib/verifactu/seguridad-http";
 
 // V11 · Gestión del certificado de remisión VERI*FACTU del emisor.
 //   GET    → metadatos del certificado activo (nunca material)
@@ -46,6 +47,15 @@ function respuestaError(e: unknown) {
   }
   if (e instanceof ErrorCustodia) {
     const status = e.codigo === "KEK_NO_CONFIGURADA" ? 503 : e.codigo === "BD" ? 500 : 400;
+    if (e.codigo === "BD") {
+      // V24: los errores de BD arrastran el mensaje de Postgres sobre la
+      // tabla más sensible del sistema — al cliente solo el código.
+      console.error("Error de BD en custodia de certificados:", e);
+      return NextResponse.json(
+        { error: "Error interno gestionando el certificado", codigo: e.codigo },
+        { status }
+      );
+    }
     return NextResponse.json({ error: e.message, codigo: e.codigo }, { status });
   }
   // Nunca volcar el error crudo: podría arrastrar contenido del payload
@@ -74,6 +84,21 @@ export async function POST(request: Request) {
   if (!user) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   const servicio = clienteServicio();
   if (!servicio) return NextResponse.json({ error: "Servicio no configurado" }, { status: 500 });
+
+  // V24 · El parseo PKCS#12 (node-forge, KDF) es caro y valida contraseñas:
+  // sin límite sería un oráculo de fuerza bruta y un vector de agotamiento.
+  const tasa = limitarTasa(`certificado:POST:${user.id}`, 5, 15 * 60 * 1000);
+  if (!tasa.permitido) return respuesta429(tasa);
+
+  // Rechazo temprano por Content-Length: el tope de MAX_PFX_BASE64 de más
+  // abajo se comprueba tras bufferizar el JSON; esto corta antes los cuerpos
+  // desproporcionados (margen 2x por el envoltorio JSON).
+  if (cuerpoExcedeLimite(request, MAX_PFX_BASE64 * 2)) {
+    return NextResponse.json(
+      { error: "El fichero es demasiado grande para ser un certificado .p12/.pfx" },
+      { status: 413 }
+    );
+  }
 
   let body: { pfx_base64?: unknown; passphrase?: unknown };
   try {

@@ -8,6 +8,7 @@ import {
 import { materialRemision } from "@/lib/verifactu/cert-store";
 import { clavesDesdeEnv } from "@/lib/verifactu/cert-cifrado";
 import { procesarRemision, type ClienteObligado } from "@/lib/verifactu/remision";
+import { autorizacionCronValida } from "@/lib/verifactu/seguridad-http";
 
 // V10 · Cron de remisión VERI*FACTU: procesa la cola sif_outbox contra la AEAT
 // (art. 16 RRSIF y art. 16 Orden HAC/1177/2024). Programado en vercel.json.
@@ -23,9 +24,9 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export async function GET(request: Request) {
-  // Misma autenticación que el resto de crons (Bearer CRON_SECRET)
-  const authHeader = request.headers.get("authorization");
-  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Misma autenticación que el resto de crons (Bearer CRON_SECRET),
+  // comparación en tiempo constante (V24)
+  if (!autorizacionCronValida(request)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 

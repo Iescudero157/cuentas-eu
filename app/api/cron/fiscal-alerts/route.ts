@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server";
 import { fiscalAlertTemplate } from "@/lib/email/templates";
 import { getFiscalAlerts } from "@/lib/tax-calculator";
+import { autorizacionCronValida } from "@/lib/verifactu/seguridad-http";
 
 export async function GET(request: Request) {
-  // Verify cron secret
-  const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  // Verify cron secret. V24: fail-closed si CRON_SECRET no está definido
+  // (antes `Bearer undefined` pasaba el control) y comparación timing-safe.
+  if (!autorizacionCronValida(request)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 

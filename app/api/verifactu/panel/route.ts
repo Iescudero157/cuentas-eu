@@ -69,8 +69,9 @@ export async function GET() {
   ]);
 
   if (config.error) {
+    console.error("Error consultando sif_config:", config.error);
     return NextResponse.json(
-      { error: `sif_config: ${config.error.message}` },
+      { error: "Error consultando la configuración Verifactu" },
       { status: 500 }
     );
   }

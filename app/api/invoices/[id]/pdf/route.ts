@@ -4,6 +4,7 @@ import { generateInvoicePDFBuffer } from "@/lib/pdf/invoice-pdf-server";
 import { invoicePDFDataFromRow } from "@/lib/pdf/invoice-pdf-data";
 import { bloqueQRParaInvoice } from "@/lib/verifactu/qr-factura";
 import { ErrorQR } from "@/lib/verifactu/qr";
+import { limitarTasa, respuesta429 } from "@/lib/verifactu/seguridad-http";
 
 // V08 (D-08): descarga del PDF de factura generado en SERVIDOR, única fuente
 // de verdad para facturas emitidas bajo Verifactu — incluye el QR tributario
@@ -18,6 +19,10 @@ export async function GET(
   if (authError || !user) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
+
+  // V24: la generación de PDF+QR es trabajo de CPU por petición
+  const tasa = limitarTasa(`invoice-pdf:${user.id}`, 60, 60 * 60 * 1000);
+  if (!tasa.permitido) return respuesta429(tasa);
 
   const { id } = await params;
 
@@ -61,8 +66,9 @@ export async function GET(
         { status: 500 }
       );
     }
+    console.error("Error generando PDF de factura:", err);
     return NextResponse.json(
-      { error: "pdf_error", message: err instanceof Error ? err.message : "Error generando el PDF" },
+      { error: "pdf_error", message: "Error generando el PDF" },
       { status: 500 }
     );
   }

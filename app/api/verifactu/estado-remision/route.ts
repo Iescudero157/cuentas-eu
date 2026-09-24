@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { autorizacionCronValida } from "@/lib/verifactu/seguridad-http";
 
 // V10 · Endpoint INTERNO de estado de la cola de remisión VERI*FACTU:
 // contadores del outbox y de sif_registros, pendiente más antiguo y situación
@@ -10,8 +11,7 @@ import { createClient } from "@supabase/supabase-js";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!autorizacionCronValida(request)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 

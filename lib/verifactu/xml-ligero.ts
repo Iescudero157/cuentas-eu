@@ -33,6 +33,17 @@ const ENTIDADES: Record<string, string> = {
   apos: "'",
 }
 
+// V24: una referencia numérica solo es válida si es un carácter permitido en
+// XML 1.0 (fuera de rango o surrogate suelto, `String.fromCodePoint` lanzaría
+// un RangeError NO tipado; aquí se convierte en ErrorXml).
+function codePointXmlValido(codigo: number): boolean {
+  if (!Number.isInteger(codigo)) return false
+  if (codigo === 0x9 || codigo === 0xa || codigo === 0xd) return true
+  if (codigo >= 0x20 && codigo <= 0xd7ff) return true
+  if (codigo >= 0xe000 && codigo <= 0xfffd) return true
+  return codigo >= 0x10000 && codigo <= 0x10ffff
+}
+
 function decodificarEntidades(texto: string): string {
   // Captura cada entidad `&…;` o, si no la hay, el `&` suelto (mal formado).
   return texto.replace(/&([^;&\s]{1,32});|&/g, (todo, cuerpo?: string) => {
@@ -40,10 +51,10 @@ function decodificarEntidades(texto: string): string {
     if (cuerpo in ENTIDADES) return ENTIDADES[cuerpo]
     if (cuerpo.startsWith('#x') || cuerpo.startsWith('#X')) {
       const codigo = Number.parseInt(cuerpo.slice(2), 16)
-      if (Number.isInteger(codigo) && codigo > 0) return String.fromCodePoint(codigo)
+      if (codePointXmlValido(codigo)) return String.fromCodePoint(codigo)
     } else if (cuerpo.startsWith('#')) {
       const codigo = Number.parseInt(cuerpo.slice(1), 10)
-      if (Number.isInteger(codigo) && codigo > 0) return String.fromCodePoint(codigo)
+      if (codePointXmlValido(codigo)) return String.fromCodePoint(codigo)
     }
     throw new ErrorXml(`entidad no soportada «&${cuerpo};»`)
   })
@@ -63,7 +74,15 @@ const RE_ATRIBUTO = /^([A-Za-z_][\w.:-]*)\s*=\s*("([^"<]*)"|'([^'<]*)')/
  * es libre de elegir los prefijos (`env:`, `soapenv:`, `sfR:`…) y el
  * consumidor solo debe depender de los nombres locales del XSD.
  */
+// V24: topes defensivos. Las respuestas reales de la AEAT son de unos KB;
+// estos límites solo cortan documentos anómalos (agotamiento de memoria).
+const MAX_XML_CHARS = 20 * 1024 * 1024
+const MAX_PROFUNDIDAD = 256
+
 export function parsearXml(xml: string): ElementoXml {
+  if (xml.length > MAX_XML_CHARS) {
+    throw new ErrorXml(`documento de más de ${MAX_XML_CHARS} caracteres rechazado`)
+  }
   let pos = 0
   const fin = xml.length
   const pila: ElementoXml[] = []
@@ -141,6 +160,7 @@ export function parsearXml(xml: string): ElementoXml {
         pos += 2
       } else {
         pos++ // '>'
+        if (pila.length >= MAX_PROFUNDIDAD) fallo(`anidamiento de más de ${MAX_PROFUNDIDAD} niveles`)
         pila.push(el)
       }
     }

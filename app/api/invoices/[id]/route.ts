@@ -13,7 +13,7 @@ export async function PATCH(
   }
 
   const { id } = await params;
-  const body = await request.json();
+  const body = await request.json().catch(() => ({}));
 
   const { data: actual, error: fetchError } = await supabase
     .from("invoices")
@@ -23,7 +23,8 @@ export async function PATCH(
     .maybeSingle();
 
   if (fetchError) {
-    return NextResponse.json({ error: fetchError.message }, { status: 500 });
+    console.error("Error consultando factura:", fetchError);
+    return NextResponse.json({ error: "Error consultando la factura" }, { status: 500 });
   }
   if (!actual) {
     return NextResponse.json({ error: "Factura no encontrada" }, { status: 404 });
@@ -63,7 +64,8 @@ export async function PATCH(
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Error actualizando factura:", error);
+    return NextResponse.json({ error: "Error actualizando la factura" }, { status: 500 });
   }
 
   return NextResponse.json({ invoice: data });
@@ -89,7 +91,8 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     .maybeSingle();
 
   if (fetchError) {
-    return NextResponse.json({ error: fetchError.message }, { status: 500 });
+    console.error("Error consultando factura:", fetchError);
+    return NextResponse.json({ error: "Error consultando la factura" }, { status: 500 });
   }
   if (!actual) {
     return NextResponse.json({ error: "Factura no encontrada" }, { status: 404 });
@@ -112,7 +115,8 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
     .eq("user_id", user.id);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Error borrando factura:", error);
+    return NextResponse.json({ error: "Error borrando la factura" }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });

@@ -51,8 +51,9 @@ export async function GET(request: Request) {
 
   const { data, count, error } = await query;
   if (error) {
+    console.error("Error consultando sif_registros:", error);
     return NextResponse.json(
-      { error: `sif_registros: ${error.message}` },
+      { error: "Error consultando los registros de facturación" },
       { status: 500 }
     );
   }

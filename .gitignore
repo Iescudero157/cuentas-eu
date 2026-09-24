@@ -25,6 +25,10 @@
 *.pem
 # excepción: certificados AUTOFIRMADOS de prueba de los tests V09 (no son secretos; ver su README.md)
 !lib/verifactu/tests/fixtures/certs-prueba/*.pem
+# V24: un .p12/.pfx REAL jamás debe entrar en git (solo el fixture autofirmado de prueba)
+*.pfx
+*.p12
+!lib/verifactu/tests/fixtures/certs-prueba/cliente.pfx
 
 # debug
 npm-debug.log*

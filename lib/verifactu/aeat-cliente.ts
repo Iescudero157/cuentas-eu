@@ -17,6 +17,7 @@
 // ---------------------------------------------------------------------------
 
 import { request as httpsRequest, type RequestOptions } from 'node:https'
+import { rootCertificates as tlsRootCertificates } from 'node:tls'
 
 import { xmlRegFactuSistemaFacturacion, type CabeceraRemision } from './registro-alta.ts'
 import {
@@ -157,14 +158,22 @@ export function configDesdeEnv(env: Record<string, string | undefined> = process
 // Errores tipados
 // ---------------------------------------------------------------------------
 
+// V24: `causa` y `cuerpo` pueden contener la respuesta cruda de la AEAT (XML
+// con NIF e importes) o errores de TLS. Se declaran NO enumerables para que
+// un futuro `console.error(e)`, `JSON.stringify(e)` o captura de telemetría
+// no los vuelque a logs; siguen accesibles explícitamente (e.cuerpo).
+function propiedadNoEnumerable(objeto: object, nombre: string, valor: unknown): void {
+  Object.defineProperty(objeto, nombre, { value: valor, enumerable: false, writable: false })
+}
+
 /** Fallo de red/TLS/timeout: NO llegó respuesta de la AEAT → reintentable. */
 export class ErrorTransporteAeat extends Error {
   readonly reintentable = true
-  readonly causa?: unknown
+  declare readonly causa?: unknown
   constructor(mensaje: string, causa?: unknown) {
     super(`Transporte AEAT: ${mensaje}`)
     this.name = 'ErrorTransporteAeat'
-    this.causa = causa
+    propiedadNoEnumerable(this, 'causa', causa)
   }
 }
 
@@ -172,12 +181,12 @@ export class ErrorTransporteAeat extends Error {
 export class ErrorHttpAeat extends Error {
   readonly reintentable: boolean
   readonly status: number
-  readonly cuerpo: string
+  declare readonly cuerpo: string
   constructor(status: number, cuerpo: string) {
     super(`HTTP ${status} de la AEAT sin respuesta SOAP interpretable`)
     this.name = 'ErrorHttpAeat'
     this.status = status
-    this.cuerpo = cuerpo
+    propiedadNoEnumerable(this, 'cuerpo', cuerpo)
     this.reintentable = status >= 500 || status === 429
   }
 }
@@ -199,11 +208,11 @@ export class ErrorSoapAeat extends Error {
 
 /** El cuerpo devuelto no cumple RespuestaSuministro.xsd. */
 export class ErrorRespuestaAeat extends Error {
-  readonly cuerpo?: string
+  declare readonly cuerpo?: string
   constructor(mensaje: string, cuerpo?: string) {
     super(`Respuesta AEAT inesperada: ${mensaje}`)
     this.name = 'ErrorRespuestaAeat'
-    this.cuerpo = cuerpo
+    propiedadNoEnumerable(this, 'cuerpo', cuerpo)
   }
 }
 
@@ -324,10 +333,18 @@ export interface RespuestaHttp {
 
 export type TransporteHttp = (peticion: PeticionHttp) => Promise<RespuestaHttp>
 
+/** V24: tope del cuerpo de respuesta aceptado (la AEAT responde unos KB por
+ *  lote; 20 MB es un margen enorme que evita agotar la memoria del worker). */
+const MAX_RESPUESTA_BYTES = 20 * 1024 * 1024
+
 /**
  * Transporte por defecto: `node:https` con certificado cliente (mTLS) y
- * TLS ≥ 1.2. `ca` solo añade confianza extra (tests); en producción se usan
- * las CA del sistema y `rejectUnauthorized` queda activo.
+ * TLS ≥ 1.2. OJO (V24): en Node, `ca` SUSTITUYE el almacén de confianza por
+ * defecto — por eso aquí se concatena con `tls.rootCertificates`, de forma
+ * que las CA extra (tests) solo AÑADEN confianza y el certificado real de la
+ * AEAT sigue validando contra las CA del sistema; `rejectUnauthorized` queda
+ * activo. El timeout de socket de Node solo cubre inactividad, así que se
+ * añade un temporizador de petición completa (anti slow-drip).
  */
 export const transporteHttpsNode: TransporteHttp = (p) =>
   new Promise<RespuestaHttp>((resolve, reject) => {
@@ -351,15 +368,34 @@ export const transporteHttpsNode: TransporteHttp = (p) =>
       passphrase: p.certificado.passphrase,
       cert: p.certificado.cert,
       key: p.certificado.key,
-      ca: p.certificado.ca,
+      ca: p.certificado.ca
+        ? [
+            ...tlsRootCertificates,
+            ...(Array.isArray(p.certificado.ca) ? p.certificado.ca : [p.certificado.ca]),
+          ]
+        : undefined,
       timeout: p.timeoutMs,
     }
     const req = httpsRequest(opciones, (res) => {
       const trozos: Buffer[] = []
-      res.on('data', (t: Buffer) => trozos.push(t))
+      let recibido = 0
+      res.on('data', (t: Buffer) => {
+        recibido += t.byteLength
+        if (recibido > MAX_RESPUESTA_BYTES) {
+          req.destroy(new Error(`respuesta de más de ${MAX_RESPUESTA_BYTES} bytes descartada`))
+          return
+        }
+        trozos.push(t)
+      })
       res.on('end', () => resolve({ status: res.statusCode ?? 0, cuerpo: Buffer.concat(trozos).toString('utf8') }))
       res.on('error', (e) => reject(new ErrorTransporteAeat(`error leyendo la respuesta: ${e.message}`, e)))
     })
+    // Temporizador de petición COMPLETA: el `timeout` de las opciones solo
+    // detecta inactividad del socket (1 byte cada N segundos lo mantiene vivo).
+    const temporizador = setTimeout(() => {
+      req.destroy(new Error(`timeout total de ${p.timeoutMs} ms agotado`))
+    }, p.timeoutMs)
+    req.on('close', () => clearTimeout(temporizador))
     req.on('timeout', () => {
       req.destroy(new Error(`timeout de ${p.timeoutMs} ms agotado`))
     })

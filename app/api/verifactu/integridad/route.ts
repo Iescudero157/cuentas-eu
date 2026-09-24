@@ -4,6 +4,7 @@ import {
   verificarIntegridadObligado,
   verificarTodosLosObligados,
 } from "@/lib/verifactu/integridad";
+import { autorizacionCronValida } from "@/lib/verifactu/seguridad-http";
 
 // V12 · Verificador de integridad de las cadenas de registros (arts. 8.2 y 12
 // RD 1007/2023): recorre la cadena de cada obligado, recalcula huellas con la
@@ -16,8 +17,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!autorizacionCronValida(request)) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
@@ -33,6 +33,11 @@ export async function GET(request: Request) {
 
   const params = new URL(request.url).searchParams;
   const userId = params.get("user");
+  // V24: validar el UUID antes de llegar a Postgres (un valor arbitrario
+  // producía un error de BD que se devolvía en la respuesta).
+  if (userId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId)) {
+    return NextResponse.json({ error: "user debe ser un UUID" }, { status: 400 });
+  }
   const opciones = {
     contrastarSql: true,
     registrarEventos: params.get("eventos") === "1",
@@ -47,8 +52,9 @@ export async function GET(request: Request) {
       obligados: informes,
     });
   } catch (e) {
+    console.error("Error verificando integridad Verifactu:", e);
     return NextResponse.json(
-      { error: "verifactu_integridad", message: e instanceof Error ? e.message : String(e) },
+      { error: "verifactu_integridad", message: "Error verificando la integridad" },
       { status: 500 }
     );
   }

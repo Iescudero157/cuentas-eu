@@ -122,13 +122,15 @@ export function fechaOficialDeIso(iso: string): string {
 }
 
 /**
- * XML del registro a remitir: el fijado en la emisión (`sif_registros.xml`) o,
- * si no llegó a fijarse, el regenerado determinista desde el jsonb persistido.
- * Al regenerar se verifica que la huella coincide con la registrada: si no,
- * hay un problema de integridad y el lote NO debe remitirse.
+ * XML del registro a remitir. V24: el XML fijado (`sif_registros.xml`) se
+ * trata como simple CACHÉ — `sif_fijar_xml` es invocable por `authenticated`
+ * y no puede validar en SQL que el texto corresponda al registro, así que
+ * SIEMPRE se regenera el XML determinista desde el jsonb persistido, se
+ * verifica su huella contra la registrada y, si había XML fijado, se exige
+ * que coincida byte a byte con el regenerado. Cualquier divergencia es una
+ * manipulación o un fallo de integridad y el lote NO debe remitirse.
  */
 export function xmlDeFila(fila: FilaLote): string {
-  if (fila.xml) return fila.xml
   const generado =
     fila.tipo_registro === 'alta'
       ? reconstruirRegistroAlta(fila.registro as RegistroAltaPersistido)
@@ -136,6 +138,11 @@ export function xmlDeFila(fila: FilaLote): string {
   if (generado.huella !== fila.huella) {
     throw new Error(
       `Integridad: huella regenerada (${generado.huella}) ≠ huella registrada (${fila.huella}) en el registro ${fila.registro_id}`
+    )
+  }
+  if (fila.xml && fila.xml !== generado.xml) {
+    throw new Error(
+      `Integridad: el XML fijado del registro ${fila.registro_id} no coincide con el regenerado desde el registro persistido (posible manipulación vía sif_fijar_xml)`
     )
   }
   return generado.xml

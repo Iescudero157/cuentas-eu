@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createSupabaseServer } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { ErrorExport, exportarObligado } from "@/lib/verifactu/export";
+import { limitarTasa, respuesta429 } from "@/lib/verifactu/seguridad-http";
 
 // V16 · Exportación de los registros de facturación del usuario autenticado
 // (art. 8 Orden HAC/1177/2024): ZIP con los lotes XML en formato oficial de
@@ -19,6 +20,11 @@ export async function GET(request: Request) {
   if (authError || !user) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
+
+  // V24: el export pagina toda la cadena, genera el ZIP y lo re-verifica
+  // entero — trabajo de CPU proporcional al histórico. Límite por usuario.
+  const tasa = limitarTasa(`verifactu-export:${user.id}`, 3, 10 * 60 * 1000);
+  if (!tasa.permitido) return respuesta429(tasa);
 
   const { searchParams } = new URL(request.url);
   const desde = searchParams.get("desde");
@@ -58,10 +64,20 @@ export async function GET(request: Request) {
         e.codigo === "sin_registros" ? 404 :
         e.codigo === "sin_config" ? 409 :
         e.codigo === "fecha_invalida" ? 400 : 500;
+      if (status === 500) {
+        // V24: los códigos bd_* arrastran el mensaje crudo de Postgres — al
+        // cliente solo el código; el detalle, al log de servidor.
+        console.error("Error de export Verifactu:", e);
+        return NextResponse.json(
+          { error: e.codigo, message: "Error interno generando la exportación" },
+          { status }
+        );
+      }
       return NextResponse.json({ error: e.codigo, message: e.message }, { status });
     }
+    console.error("Error inesperado de export Verifactu:", e);
     return NextResponse.json(
-      { error: "export_error", message: e instanceof Error ? e.message : "Error inesperado" },
+      { error: "export_error", message: "Error inesperado generando la exportación" },
       { status: 500 }
     );
   }

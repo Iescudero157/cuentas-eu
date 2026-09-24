@@ -35,8 +35,9 @@ export async function GET(request: Request) {
     .order("correlativo", { ascending: false })
     .range(offset, offset + limit - 1);
   if (error) {
+    console.error("Error consultando sif_eventos:", error);
     return NextResponse.json(
-      { error: `sif_eventos: ${error.message}` },
+      { error: "Error consultando los eventos del SIF" },
       { status: 500 }
     );
   }

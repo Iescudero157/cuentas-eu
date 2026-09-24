@@ -215,15 +215,15 @@ export function sha256HexDe(contenido: string | Uint8Array): string {
   return createHash('sha256').update(contenido).digest('hex').toUpperCase()
 }
 
-/** `sif_registros.xml` si está fijado; si no, reconstrucción determinista
- *  desde el jsonb. En ambos casos la huella del fragmento debe ser la de la
- *  fila (LÍNEA ROJA: no se exporta un XML cuya huella no case). */
+/** XML del registro a exportar. V24: el XML fijado es solo caché (ver
+ *  remision.ts): se reconstruye SIEMPRE desde el jsonb, se verifica la huella
+ *  y, si hay XML fijado, debe coincidir byte a byte con el reconstruido
+ *  (LÍNEA ROJA: no se exporta un XML cuya huella no case). */
 export function xmlDeFilaRegistro(fila: FilaRegistroExport): string {
-  if (fila.xml && fila.xml.trim() !== '') return fila.xml
   if (!fila.registro) {
     throw new ErrorExport(
       'registro_sin_contenido',
-      `Registro correlativo ${fila.correlativo}: sin XML fijado ni jsonb para reconstruirlo`
+      `Registro correlativo ${fila.correlativo}: sin jsonb persistido para reconstruir el XML`
     )
   }
   const generado =
@@ -234,6 +234,12 @@ export function xmlDeFilaRegistro(fila: FilaRegistroExport): string {
     throw new ErrorExport(
       'huella_divergente',
       `Registro correlativo ${fila.correlativo}: la huella reconstruida (${generado.huella}) no coincide con la almacenada (${fila.huella}); revisar integridad (V12) antes de exportar`
+    )
+  }
+  if (fila.xml && fila.xml.trim() !== '' && fila.xml !== generado.xml) {
+    throw new ErrorExport(
+      'huella_divergente',
+      `Registro correlativo ${fila.correlativo}: el XML fijado no coincide con el reconstruido desde el registro persistido; revisar integridad (V12) antes de exportar`
     )
   }
   return generado.xml

@@ -7,6 +7,7 @@ import {
   ErrorExportCC,
   type FacturaContable,
 } from "@/lib/export-contable/classicconta";
+import { limitarTasa, respuesta429 } from "@/lib/verifactu/seguridad-http";
 
 // V22 · «Exportar a ClassicConta (AIG)» — plan Business (D3 del plan maestro).
 // Genera un ZIP con CC_subcuentas.txt (444 c/registro) y CC_diario.txt
@@ -32,6 +33,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }
 
+  // V24: genera un ZIP sobre todas las facturas del período — límite por usuario
+  const tasa = limitarTasa(`export-cc:${user.id}`, 6, 60 * 60 * 1000);
+  if (!tasa.permitido) return respuesta429(tasa);
+
   // ── Gating de plan: el export contable AIG es una función del plan Business
   const { data: profileData, error: profileError } = await supabase
     .from("profiles")
@@ -39,7 +44,11 @@ export async function GET(request: Request) {
     .eq("id", user.id)
     .single();
   if (profileError) {
-    return NextResponse.json({ error: "perfil_error", message: profileError.message }, { status: 500 });
+    console.error("Error consultando perfil:", profileError);
+    return NextResponse.json(
+      { error: "perfil_error", message: "Error consultando el perfil" },
+      { status: 500 }
+    );
   }
   if ((profileData?.plan as string) !== "business") {
     return NextResponse.json(
@@ -96,7 +105,11 @@ export async function GET(request: Request) {
 
     const { data, error } = await query;
     if (error) {
-      return NextResponse.json({ error: "facturas_error", message: error.message }, { status: 500 });
+      console.error("Error consultando facturas para export CC:", error);
+      return NextResponse.json(
+        { error: "facturas_error", message: "Error consultando las facturas" },
+        { status: 500 }
+      );
     }
     if (!data || data.length === 0) {
       return NextResponse.json(
@@ -140,8 +153,9 @@ export async function GET(request: Request) {
       const status = e.codigo === "sin_facturas" ? 404 : 422;
       return NextResponse.json({ error: e.codigo, message: e.message }, { status });
     }
+    console.error("Error inesperado en export CC:", e);
     return NextResponse.json(
-      { error: "export_error", message: e instanceof Error ? e.message : "Error inesperado" },
+      { error: "export_error", message: "Error inesperado generando la exportación" },
       { status: 500 }
     );
   }
