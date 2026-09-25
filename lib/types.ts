@@ -50,7 +50,12 @@ export interface Invoice {
   paymentMethod?: PaymentMethod;  // forma de cobro
   paymentDate?: string;           // fecha real de cobro
   notes?: string;                 // notas internas
+  // Verifactu (V07): estado fiscal y número asignado por el servidor al emitir
+  verifactuEstado?: VerifactuEstado;
+  numeroFiscal?: string;
 }
+
+export type VerifactuEstado = "borrador" | "emitida" | "rectificada" | "anulada";
 
 export interface InvoiceItem {
   description: string;

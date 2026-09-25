@@ -116,6 +116,16 @@ export default function FacturasPage() {
   const [showExport, setShowExport] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
 
+  // Export ClassicConta (AIG) — V22, plan Business (ZIP de servidor: diario
+  // 869 c/registro + subcuentas 444 según el protocolo Conta6 de AIG)
+  const [ccModal, setCcModal] = useState(false);
+  const [ccDesde, setCcDesde] = useState(`${new Date().getFullYear()}-01-01`);
+  const [ccHasta, setCcHasta] = useState(today());
+  const [ccAsiento, setCcAsiento] = useState("1");
+  const [ccLoading, setCcLoading] = useState(false);
+  const [ccError, setCcError] = useState<string | null>(null);
+  const isBusiness = profile?.plan === "business";
+
   const totalFacturado = invoices.reduce((s, i) => s + i.total, 0);
   const pendiente = invoices.filter((i) => i.status === "pendiente").reduce((s, i) => s + i.total, 0);
   const cobrado = invoices.filter((i) => i.status === "cobrada").reduce((s, i) => s + i.total, 0);
@@ -193,6 +203,36 @@ export default function FacturasPage() {
     setOpenMenuId(null);
   }, []);
 
+  const handleExportClassicConta = useCallback(async () => {
+    setCcError(null);
+    setCcLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (ccDesde) params.set("desde", ccDesde);
+      if (ccHasta) params.set("hasta", ccHasta);
+      params.set("asiento", ccAsiento || "1");
+      const res = await fetch(`/api/invoices/export-classicconta?${params.toString()}`);
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        setCcError(body?.message ?? "No se pudo generar el export");
+        return;
+      }
+      const blob = await res.blob();
+      const nombre =
+        res.headers.get("Content-Disposition")?.match(/filename="([^"]+)"/)?.[1] ??
+        `kuentas-classicconta-${today()}.zip`;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = nombre; a.click();
+      URL.revokeObjectURL(url);
+      setCcModal(false);
+    } catch {
+      setCcError("Error de red generando el export");
+    } finally {
+      setCcLoading(false);
+    }
+  }, [ccDesde, ccHasta, ccAsiento]);
+
   // Issuer profile (simple fallback)
   const issuer = { name: "Tu empresa", nif: "", address: "" };
 
@@ -236,6 +276,15 @@ export default function FacturasPage() {
                     {label}
                   </button>
                 ))}
+                <button
+                  onClick={() => { setShowExport(false); setCcError(null); setCcModal(true); }}
+                  className="w-full text-left px-4 py-2.5 text-sm text-brand-text hover:bg-brand-gray transition border-t border-brand-border/50 flex items-center justify-between gap-2"
+                >
+                  <span>ClassicConta (AIG)</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-brand-blue/10 text-brand-blue">
+                    Business
+                  </span>
+                </button>
               </div>
             )}
           </div>
@@ -335,6 +384,22 @@ export default function FacturasPage() {
                         <div className="flex items-center gap-2">
                           <FileText className="w-4 h-4 text-brand-muted flex-shrink-0" />
                           <span className="font-medium text-brand-blue">{inv.number}</span>
+                          {(inv.verifactuEstado === "emitida" || inv.verifactuEstado === "rectificada") && (
+                            <span
+                              title="Factura emitida bajo VERI*FACTU: su contenido es inmutable (art. 8.2 RD 1007/2023). Para corregirla, emite una rectificativa o anúlala."
+                              className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-brand-blue/10 text-brand-blue whitespace-nowrap"
+                            >
+                              VERI*FACTU
+                            </span>
+                          )}
+                          {inv.verifactuEstado === "anulada" && (
+                            <span
+                              title="Factura anulada mediante registro de anulación Verifactu (art. 11 RD 1007/2023)"
+                              className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-brand-danger/10 text-brand-danger whitespace-nowrap"
+                            >
+                              Anulada
+                            </span>
+                          )}
                         </div>
                       </td>
                       <td className="px-5 py-4">
@@ -436,6 +501,12 @@ export default function FacturasPage() {
             onMouseDown={(e) => e.stopPropagation()}
           >
             <div className="bg-white border border-brand-border rounded-xl shadow-lg w-44 py-1">
+              {(inv.verifactuEstado === "emitida" || inv.verifactuEstado === "rectificada") && (
+                <p className="px-4 py-2 text-[11px] leading-snug text-brand-muted border-b border-brand-border/50">
+                  Emitida bajo VERI*FACTU: contenido inmutable. Corrección solo por
+                  rectificativa o anulación.
+                </p>
+              )}
               <InvoicePDFButton
                 invoice={inv}
                 issuerName={issuer.name}
@@ -475,6 +546,101 @@ export default function FacturasPage() {
           </div>
         );
       })()}
+
+      {/* ── ClassicConta (AIG) export modal ───────────────────────────────── */}
+      {ccModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Download className="w-5 h-5 text-brand-blue" />
+                <h3 className="font-semibold text-brand-text">Exportar a ClassicConta (AIG)</h3>
+              </div>
+              <button onClick={() => setCcModal(false)} className="text-brand-muted hover:text-brand-text">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {isDemo || !isBusiness ? (
+              <>
+                <p className="text-sm text-brand-muted">
+                  {isDemo
+                    ? "El export ClassicConta (AIG) requiere una cuenta real con plan Business."
+                    : "La exportación a ClassicConta (AIG) es una función del plan Business: genera el diario y las subcuentas en el formato oficial del Importador de Asientos de ClassicConta, listos para tu gestoría."}
+                </p>
+                <Link
+                  href="/precios"
+                  className="block text-center bg-brand-blue text-white font-semibold py-2.5 rounded-xl hover:opacity-90 transition text-sm"
+                >
+                  Ver planes
+                </Link>
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-brand-muted">
+                  ZIP con CC_subcuentas.txt y CC_diario.txt (formato oficial AIG/Conta6) e instrucciones
+                  de importación. Importa primero las subcuentas y después el diario.
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-brand-text mb-1">Desde</label>
+                    <input
+                      type="date"
+                      value={ccDesde}
+                      onChange={(e) => setCcDesde(e.target.value)}
+                      className="w-full px-3 py-2.5 border border-brand-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-brand-text mb-1">Hasta</label>
+                    <input
+                      type="date"
+                      value={ccHasta}
+                      onChange={(e) => setCcHasta(e.target.value)}
+                      className="w-full px-3 py-2.5 border border-brand-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-brand-text mb-1">Primer asiento</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={999999}
+                    value={ccAsiento}
+                    onChange={(e) => setCcAsiento(e.target.value)}
+                    className="w-full px-3 py-2.5 border border-brand-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+                  />
+                  <p className="text-xs text-brand-muted mt-1.5">
+                    Número del primer asiento en el ejercicio destino de ClassicConta (numeración correlativa).
+                  </p>
+                </div>
+                {ccError && (
+                  <div className="bg-brand-danger/10 border border-brand-danger/30 text-brand-danger rounded-xl px-3 py-2 text-xs font-medium">
+                    {ccError}
+                  </div>
+                )}
+                <div className="flex gap-3 pt-1">
+                  <button
+                    onClick={handleExportClassicConta}
+                    disabled={ccLoading}
+                    className="flex-1 bg-brand-blue text-white font-semibold py-2.5 rounded-xl hover:opacity-90 transition disabled:opacity-60 flex items-center justify-center gap-2 text-sm"
+                  >
+                    <Download className="w-4 h-4" />
+                    {ccLoading ? "Generando…" : "Descargar ZIP"}
+                  </button>
+                  <button
+                    onClick={() => setCcModal(false)}
+                    className="px-4 py-2.5 rounded-xl border border-brand-border text-brand-muted hover:bg-brand-gray text-sm transition"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── Payment date modal ─────────────────────────────────────────────── */}
       {cobradaModal && (

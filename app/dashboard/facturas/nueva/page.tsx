@@ -247,7 +247,15 @@ export default function NuevaFacturaPage() {
           return;
         }
         if (res.ok && data.invoice) {
-          setSavedInvoice({ ...invoice, id: data.invoice.id });
+          // V08: recoger número fiscal y estado Verifactu del servidor (si el
+          // módulo está activo, el POST emite y asigna número correlativo);
+          // así el botón de PDF usa la ruta de servidor con QR + leyenda.
+          setSavedInvoice({
+            ...invoice,
+            id: data.invoice.id,
+            number: data.invoice.number || invoice.number,
+            verifactuEstado: data.invoice.verifactu_estado || undefined,
+          });
         } else {
           setSavedInvoice(invoice);
         }

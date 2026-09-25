@@ -4,6 +4,7 @@ import { User, Building2, CreditCard, Bell, Shield, Loader2, ExternalLink, Star,
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/hooks/useAuth";
+import CertificadoCard from "./certificado-card";
 
 const PLAN_LABELS: Record<string, { label: string; price: string; color: string }> = {
   gratis: { label: "Plan Gratis", price: "0 EUR/mes", color: "text-brand-muted" },
@@ -314,6 +315,9 @@ export default function AjustesPage() {
 
           {/* Plan */}
           <PlanCard />
+
+          {/* Certificado digital VERI*FACTU (V11) */}
+          <CertificadoCard />
 
           {/* Notifications */}
           <div className="bg-white rounded-xl p-6 border border-brand-border/50 shadow-sm">
