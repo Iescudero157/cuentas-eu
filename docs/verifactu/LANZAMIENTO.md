@@ -23,7 +23,7 @@ Todo verificado con build verde y suites completas: **247/247 `npm test` · 416/
 | V07 | Servicio de emisión: UNA transacción Postgres (`sif_emitir_factura`) con lock de cadena, correlativo, huella SQL≡TS, outbox; APIs `/emitir`, `/anular`; PATCH/DELETE de emitidas → 409. |
 | V08 | QR tributario oficial (doc AEAT v0.5.0) + leyenda en el PDF de servidor (`GET /api/invoices/[id]/pdf`, fuente única); cotejo verificado en vivo. |
 | V09 | Cliente SOAP AEAT con mTLS (`aeat-cliente.ts`), endpoints confirmados contra el WSDL oficial, parseo completo de respuestas y errores tipados. |
-| V10 | Cola de remisión: worker con lotes ≤1000, `TiempoEsperaEnvio`, backoff, circuit breaker, rescate de zombis; cron `GET /api/cron/verifactu-remision` (vercel.json `* * * * *`, CRON_SECRET). |
+| V10 | Cola de remisión: worker con lotes ≤1000, `TiempoEsperaEnvio`, backoff, circuit breaker, rescate de zombis; cron `GET /api/cron/verifactu-remision` (vercel.json, CRON_SECRET; cadencia: §2.4). |
 | V11 | Custodia de certificados PKCS#12 cifrados AES-256-GCM (KEK en env, rotación), subida en Ajustes, cliente AEAT por obligado. |
 | V12 | Subsanación/reenvío (`Subsanacion=S`, `RechazoPrevio=S`), detección de anomalías SQL≡TS, eventos de incidencia, CLI `verifactu:verificar`. |
 | V13 | Panel `/dashboard/verifactu`: config, cadena, cola, registros con filtros/CSV, eventos, botón «Subsanar y reenviar». |
@@ -78,9 +78,19 @@ puede actualizarse después (mientras no se mergee, sigue entrando en la misma r
 - [ ] Subir el PKCS#12 en Ajustes → tarjeta Verifactu del tenant (valida contraseña, NIF y caducidad).
 
 ### 2.4 Cron de remisión
-- [ ] `vercel.json` ya trae `/api/cron/verifactu-remision` a `* * * * *`; cron por minuto
-  **exige Vercel Pro**. Alternativa sin Pro: disparo externo (Programador de Windows/NAS) con
-  `Authorization: Bearer $CRON_SECRET` — decisión de Iván (pendiente V10).
+- **Verificado 25-09-2026**: con el cron a `* * * * *`, el deploy de Vercel **FALLA por completo**
+  en plan Hobby («Hobby accounts are limited to daily cron jobs») — el preview del PR #1 falló con
+  ese error (comentario de vercel[bot] en el PR). No era solo una limitación de cadencia: bloqueaba
+  cualquier despliegue de la rama, incluido el de producción el día del merge.
+- `vercel.json` trae ahora `/api/cron/verifactu-remision` a `0 3 * * *` (diario, válido en Hobby,
+  red de seguridad). La cadencia por minuto que exige la remisión VERI*FACTU se cubre con UNA de:
+  - [ ] **Opción A (Pro)**: contratar Vercel Pro y devolver el schedule a `* * * * *` (decisión de
+    gasto de Iván).
+  - [ ] **Opción B (sin coste)**: disparo externo por minuto con `Authorization: Bearer $CRON_SECRET`
+    desde el Programador de Windows de ARES2 o el NAS — script listo:
+    `scripts/verifactu-cron-externo.ps1` (`-Instalar` registra la tarea `KuentasVerifactu-Remision`;
+    NO instalada aún: el endpoint no está desplegado).
+- [ ] Tras desplegar: `GET /api/verifactu/estado-remision` (Bearer) responde y la cola está a cero.
 - [ ] Tras desplegar: `GET /api/verifactu/estado-remision` (Bearer) responde y la cola está a cero.
 
 ### 2.5 Merge y despliegue de la app

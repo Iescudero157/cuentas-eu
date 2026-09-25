@@ -66,7 +66,9 @@ Vercel. Opciones (decisión de Iván):
 - [ ] Configurar `sif_config` del tenant de prueba: `activo=true`,
       `entorno='pruebas'`, NIF/razón del obligado.
 - [ ] `CRON_SECRET` en el entorno y cron `/api/cron/verifactu-remision`
-      activo (Vercel Pro `* * * * *`, o disparo externo con el Bearer).
+      activo (Vercel Pro `* * * * *`, o disparo externo con el Bearer:
+      `scripts/verifactu-cron-externo.ps1`; en Hobby el vercel.json queda
+      a `0 3 * * *` porque `* * * * *` rompe el deploy).
 - [ ] Emitir facturas desde la app (preview) y comprobar en el panel
       `/dashboard/verifactu`: registros `accepted`, CSV, cadena sin anomalías
       (`npm run verifactu:verificar`).

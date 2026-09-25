@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/verifactu-remision",
-      "schedule": "* * * * *"
+      "schedule": "0 3 * * *"
     }
   ]
 }
