@@ -18,6 +18,7 @@ import {
   Upload,
   Loader2,
   Landmark,
+  ShieldCheck,
 } from "lucide-react";
 import { useState } from "react";
 import { AuthProvider, useAuth } from "@/lib/hooks/useAuth";
@@ -27,6 +28,7 @@ const navItems = [
   { href: "/dashboard/ingresos", label: "Ingresos", icon: TrendingUp },
   { href: "/dashboard/gastos", label: "Gastos", icon: TrendingDown },
   { href: "/dashboard/facturas", label: "Facturas", icon: FileText },
+  { href: "/dashboard/verifactu", label: "Verifactu", icon: ShieldCheck },
   { href: "/dashboard/impuestos", label: "Impuestos", icon: Calculator },
   { href: "/dashboard/cashflow", label: "Cash Flow", icon: BarChart3 },
   { href: "/dashboard/clientes", label: "Clientes", icon: Users },

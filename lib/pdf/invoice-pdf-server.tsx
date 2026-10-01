@@ -3,7 +3,8 @@
  * This module runs in Node.js (API routes) only — do NOT import in client components.
  */
 import React from "react";
-import { Document, Page, Text, View, StyleSheet, pdf } from "@react-pdf/renderer";
+import { Document, Page, Text, View, StyleSheet, Image, pdf } from "@react-pdf/renderer";
+import type { BloqueQRFactura } from "../verifactu/qr.ts";
 
 export interface InvoicePDFServerItem {
   description: string;
@@ -30,7 +31,16 @@ export interface InvoicePDFServerData {
   issuerName: string;
   issuerNif?: string | null;
   issuerAddress?: string | null;
+  /**
+   * Bloque QR tributario + leyenda (V08, arts. 20-21 Orden HAC/1177/2024).
+   * Solo presente en facturas emitidas bajo Verifactu; se construye en el
+   * servidor con `construirBloqueQR` (lib/verifactu/qr.ts).
+   */
+  verifactu?: BloqueQRFactura | null;
 }
+
+// Lado del QR impreso: 35 mm (rango legal 30-40 mm, art. 21 Orden). 1 mm = 72/25.4 pt.
+const QR_LADO_PT = (35 * 72) / 25.4;
 
 const styles = StyleSheet.create({
   page: {
@@ -132,6 +142,30 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   footerText: { fontSize: 8, color: "#aaa" },
+  // QR tributario (V08): al principio de la factura, antes del contenido,
+  // centrado, con zona en blanco alrededor (fondo blanco de la página) y
+  // textos con tamaño ≥ al del resto de datos de la factura (doc. QR AEAT §3).
+  qrBloque: {
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+    paddingVertical: 17, // ≥6 mm de zona en blanco recomendada sobre y bajo el QR
+    marginBottom: 8,
+  },
+  qrTitulo: { fontSize: 10, color: "#1a1a2e", marginBottom: 6 },
+  qrImagen: { width: QR_LADO_PT, height: QR_LADO_PT },
+  qrLeyenda: {
+    fontSize: 10,
+    color: "#1a1a2e",
+    marginTop: 6,
+    textAlign: "center",
+  },
+  qrMarca: {
+    fontSize: 10,
+    fontFamily: "Helvetica-Bold",
+    color: "#1a1a2e",
+    marginTop: 2,
+    textAlign: "center",
+  },
 });
 
 function InvoiceDocument({ data }: { data: InvoicePDFServerData }) {
@@ -141,6 +175,20 @@ function InvoiceDocument({ data }: { data: InvoicePDFServerData }) {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
+        {/* QR tributario + leyenda VERI*FACTU: SIEMPRE antes del contenido de la
+            factura y solo en la primera página (arts. 20-21 Orden HAC/1177/2024) */}
+        {data.verifactu && (
+          <View style={styles.qrBloque}>
+            <Text style={styles.qrTitulo}>{data.verifactu.titulo}</Text>
+            {/* eslint-disable-next-line jsx-a11y/alt-text -- Image de @react-pdf, no acepta alt */}
+            <Image style={styles.qrImagen} src={data.verifactu.qrPngDataUrl} />
+            {data.verifactu.leyenda && (
+              <Text style={styles.qrLeyenda}>{data.verifactu.leyenda}</Text>
+            )}
+            {data.verifactu.marca && <Text style={styles.qrMarca}>{data.verifactu.marca}</Text>}
+          </View>
+        )}
+
         {/* Header */}
         <View style={styles.header}>
           <View>

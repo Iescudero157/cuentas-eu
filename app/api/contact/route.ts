@@ -120,8 +120,10 @@ async function getGmailAccessToken(): Promise<string> {
 
   const json = await res.json();
   if (!json.access_token) {
+    // V24: nunca serializar la respuesta completa del endpoint de token
+    // (podría arrastrar tokens a los logs); solo el código de error OAuth.
     throw new Error(
-      `OAuth2 token error: ${JSON.stringify(json)} | cid_len=${clientId.length} | rt_len=${refreshToken.length}`
+      `OAuth2 token error: ${json.error ?? "sin_codigo"} ${json.error_description ?? ""} | status=${res.status}`
     );
   }
   return json.access_token as string;

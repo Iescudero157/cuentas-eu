@@ -70,6 +70,8 @@ export function useInvoices(): UseInvoicesReturn {
         paymentMethod: (inv.payment_method || undefined) as Invoice["paymentMethod"],
         paymentDate: (inv.payment_date || undefined) as string | undefined,
         notes: (inv.notes || undefined) as string | undefined,
+        verifactuEstado: (inv.verifactu_estado || undefined) as Invoice["verifactuEstado"],
+        numeroFiscal: (inv.numero_fiscal || undefined) as string | undefined,
       }));
 
       setInvoices(mapped);

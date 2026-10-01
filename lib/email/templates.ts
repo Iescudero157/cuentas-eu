@@ -86,12 +86,25 @@ function formatEur(n: number) {
   return new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(n);
 }
 
+// V24 · Todo dato controlado por el usuario (nombres, conceptos, mensaje
+// personalizado) se escapa antes de interpolarse en el HTML del correo:
+// sin esto el endpoint de envío sería un vector de inyección de markup
+// (enlaces de phishing, imágenes de tracking) firmado por el dominio propio.
+function escapeHtml(v: unknown): string {
+  return String(v ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 export function invoiceEmailTemplate(data: InvoiceEmailData) {
   const subject = `Factura ${data.invoiceNumber} de ${data.issuerName}`;
 
   const itemsRows = data.items.map(item => `
     <tr style="border-bottom:1px solid #f0f0f0;">
-      <td style="padding:8px 0;font-size:14px;color:#444;">${item.description}</td>
+      <td style="padding:8px 0;font-size:14px;color:#444;">${escapeHtml(item.description)}</td>
       <td style="padding:8px 0;font-size:14px;color:#444;text-align:center;">${item.quantity}</td>
       <td style="padding:8px 0;font-size:14px;color:#444;text-align:right;">${formatEur(item.unitPrice)}</td>
       <td style="padding:8px 0;font-size:14px;color:#444;text-align:right;font-weight:600;">${formatEur(item.total)}</td>
@@ -108,9 +121,9 @@ export function invoiceEmailTemplate(data: InvoiceEmailData) {
     <div style="color:rgba(255,255,255,.8);font-size:13px;margin-top:4px;">Factura adjunta</div>
   </td></tr>
   <tr><td style="padding:36px 40px 28px;">
-    <p style="margin:0 0 8px;font-size:15px;color:#444;">Hola <strong>${data.clientName}</strong>,</p>
+    <p style="margin:0 0 8px;font-size:15px;color:#444;">Hola <strong>${escapeHtml(data.clientName)}</strong>,</p>
     <p style="margin:0 0 24px;font-size:15px;color:#444;line-height:1.7;">
-      Te enviamos la factura <strong>${data.invoiceNumber}</strong> con fecha ${data.invoiceDate}.<br>
+      Te enviamos la factura <strong>${escapeHtml(data.invoiceNumber)}</strong> con fecha ${escapeHtml(data.invoiceDate)}.<br>
       El vencimiento para el pago es el <strong>${data.dueDate}</strong>.
     </p>
     <table width="100%" cellpadding="0" cellspacing="0" style="border-top:2px solid #2A5AAE;margin-bottom:16px;">
@@ -131,9 +144,9 @@ export function invoiceEmailTemplate(data: InvoiceEmailData) {
       <tr><td style="padding:12px 0 4px;font-size:18px;color:#1a1a2e;font-weight:700;border-top:2px solid #e0e0e0;">TOTAL</td>
           <td style="padding:12px 0 4px;font-size:18px;color:#2A5AAE;font-weight:700;text-align:right;border-top:2px solid #e0e0e0;">${formatEur(data.total)}</td></tr>
     </table>
-    ${data.notes ? `<div style="margin-top:20px;padding:12px 16px;background:#f8f9fb;border-radius:8px;font-size:13px;color:#666;">${data.notes}</div>` : ""}
+    ${data.notes ? `<div style="margin-top:20px;padding:12px 16px;background:#f8f9fb;border-radius:8px;font-size:13px;color:#666;">${escapeHtml(data.notes)}</div>` : ""}
     <p style="margin-top:24px;font-size:13px;color:#888;line-height:1.6;">
-      Para cualquier consulta sobre esta factura, responde a este email o contacta con ${data.issuerName}.
+      Para cualquier consulta sobre esta factura, responde a este email o contacta con ${escapeHtml(data.issuerName)}.
     </p>
   </td></tr>
   <tr><td style="background:#f8f9fb;padding:20px 40px;border-top:1px solid #eee;text-align:center;">

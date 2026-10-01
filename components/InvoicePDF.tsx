@@ -3,6 +3,7 @@
 import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from "@react-pdf/renderer";
 import type { Invoice } from "@/lib/types";
 import { Download } from "lucide-react";
+import { useState } from "react";
 
 const styles = StyleSheet.create({
   page: {
@@ -252,6 +253,63 @@ interface InvoicePDFButtonProps {
   compact?: boolean;
 }
 
+/**
+ * Botón de descarga para facturas REALES (existen en BD): pide el PDF a la
+ * ruta de servidor, única fuente de verdad (D-08). Para facturas emitidas
+ * bajo Verifactu el servidor incluye el QR tributario y la leyenda
+ * VERI*FACTU obligatorios (V08, arts. 20-21 Orden HAC/1177/2024).
+ */
+function ServerPDFButton({ invoice, compact }: { invoice: Invoice; compact: boolean }) {
+  const [downloading, setDownloading] = useState(false);
+  const [error, setError] = useState(false);
+
+  const handleDownload = async () => {
+    setDownloading(true);
+    setError(false);
+    try {
+      const res = await fetch(`/api/invoices/${invoice.id}/pdf`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${invoice.number}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setError(true);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const label = downloading
+    ? "Generando PDF…"
+    : error
+      ? "Error — reintentar"
+      : "Descargar PDF";
+
+  return compact ? (
+    <button
+      onClick={handleDownload}
+      className="w-full text-left px-4 py-2 text-sm hover:bg-brand-gray transition flex items-center gap-2 text-brand-text disabled:opacity-50"
+      disabled={downloading}
+    >
+      <Download className="w-4 h-4 text-brand-muted" />
+      {label}
+    </button>
+  ) : (
+    <button
+      onClick={handleDownload}
+      className="flex items-center gap-2 border border-brand-blue text-brand-blue font-semibold px-4 py-2.5 rounded-lg hover:bg-brand-blue/5 transition text-sm disabled:opacity-50"
+      disabled={downloading}
+    >
+      <Download className="w-4 h-4" />
+      {label}
+    </button>
+  );
+}
+
 export default function InvoicePDFButton({
   invoice,
   issuerName = "Autonomo Demo",
@@ -259,6 +317,12 @@ export default function InvoicePDFButton({
   issuerAddress = "Madrid, Espana",
   compact = false,
 }: InvoicePDFButtonProps) {
+  // Facturas reales (tienen estado fiscal de BD): PDF de servidor con QR.
+  // Facturas demo (localStorage, sin verifactuEstado): plantilla local SIN QR
+  // ni leyenda (D-11: la demo no simula elementos tributarios).
+  if (invoice.verifactuEstado) {
+    return <ServerPDFButton invoice={invoice} compact={compact} />;
+  }
   return (
     <PDFDownloadLink
       document={
