@@ -71,4 +71,7 @@ drop policy if exists "sif_series select own" on public.sif_series;
 create policy "sif_series select own" on public.sif_series
   for select using (auth.uid() = user_id);
 
+-- Grants explícitos (desde 30-oct-2026 Supabase ya no los concede por defecto a tablas nuevas de public).
+grant select on table public.sif_series to authenticated;
+grant all on table public.sif_series to service_role;
 revoke insert, update, delete, truncate on table public.sif_series from anon, authenticated;

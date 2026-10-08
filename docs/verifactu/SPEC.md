@@ -316,7 +316,10 @@ aceptado), `TiempoEsperaEnvio`, `EstadoEnvio` global y una `RespuestaLinea` por 
 
 Errores de duplicado (registro ya remitido) devuelven el estado del registro almacenado; el
 cliente debe tratar el reenvío idempotentemente. Catálogo completo: doc. «Validaciones y
-errores» de la sede AEAT (se incorpora a tests en V18).
+errores» de la sede AEAT — incorporado en V18 como `lib/verifactu/errores-aeat.ts`
+(247 códigos generados del `errores.properties` oficial, con ámbito
+rechazo-envío / rechazo-registro / aceptado-con-errores; fuentes y hashes en
+`docs/verifactu/validaciones/FUENTES.md`).
 
 ### 5.5 Estados internos del registro en Kuentas (máquina de estados, item V07/V10)
 

@@ -149,4 +149,6 @@ create trigger sif_certificados_guard_trunc
 -- metadatos los sirve la API del servidor tras autenticar al usuario.
 -- -----------------------------------------------------------------------------
 alter table public.sif_certificados enable row level security;
+-- Grants explícitos (desde 30-oct-2026 Supabase ya no los concede por defecto a tablas nuevas de public).
+grant all on table public.sif_certificados to service_role;
 revoke all on table public.sif_certificados from anon, authenticated;

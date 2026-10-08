@@ -48,6 +48,9 @@ drop policy if exists "sif_outbox select own" on public.sif_outbox;
 create policy "sif_outbox select own" on public.sif_outbox
   for select using (auth.uid() = user_id);
 
+-- Grants explícitos (desde 30-oct-2026 Supabase ya no los concede por defecto a tablas nuevas de public).
+grant select on table public.sif_outbox to authenticated;
+grant all on table public.sif_outbox to service_role;
 revoke insert, update, delete, truncate on table public.sif_outbox from anon, authenticated;
 
 -- -----------------------------------------------------------------------------
@@ -116,4 +119,7 @@ drop policy if exists "sif_eventos select own" on public.sif_eventos;
 create policy "sif_eventos select own" on public.sif_eventos
   for select using (auth.uid() = user_id);
 
+-- Grants explícitos (desde 30-oct-2026 Supabase ya no los concede por defecto a tablas nuevas de public).
+grant select on table public.sif_eventos to authenticated;
+grant all on table public.sif_eventos to service_role;
 revoke insert, update, delete, truncate on table public.sif_eventos from anon, authenticated;

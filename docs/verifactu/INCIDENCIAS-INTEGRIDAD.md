@@ -105,4 +105,5 @@ HTTP para operación: `GET /api/verifactu/integridad[?user=<uuid>&eventos=1]` (B
 - UI del panel Verifactu para lanzar subsanaciones y ver anomalías (V13).
 - XML firmado de eventos y modo no-VERI\*FACTU (V14).
 - Programar la verificación periódica de integridad (decisión de operación; el endpoint y el
-  script ya existen) y catálogo completo de errores AEAT en tests (V18).
+  script ya existen). El catálogo completo de errores AEAT quedó incorporado en V18
+  (`lib/verifactu/errores-aeat.ts` + test de sincronía con el fichero oficial).

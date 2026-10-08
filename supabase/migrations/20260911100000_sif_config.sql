@@ -73,4 +73,7 @@ create policy "sif_config update own" on public.sif_config
   for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- Sin policy de DELETE: la configuración no se borra desde el cliente.
+-- Grants explícitos (desde 30-oct-2026 Supabase ya no los concede por defecto a tablas nuevas de public).
+grant select, insert, update on table public.sif_config to authenticated;
+grant all on table public.sif_config to service_role;
 revoke delete, truncate on table public.sif_config from anon, authenticated;
