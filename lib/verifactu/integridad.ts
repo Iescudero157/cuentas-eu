@@ -30,6 +30,7 @@ import {
   huellaAlta,
   huellaAnulacion,
 } from './huella.ts'
+import { PRODUCTOR_SIF } from './productor-sif.ts'
 
 // ---------------------------------------------------------------------------
 // Tipos
@@ -387,6 +388,9 @@ export async function registrarEventosDeteccion(
     const { error } = await supabase.rpc('sif_registrar_evento', {
       p_user_id: userId,
       p_tipo_evento: tipo,
+      // NIF del productor desde la fuente única; la BD aborta si está vacío
+      // (SIF_PRODUCTOR_SIN_NIF, migración 20261016100000).
+      p_productor_nif: PRODUCTOR_SIF.nif,
       p_datos: datos,
     })
     if (error) throw new Error(`sif_registrar_evento(${tipo}): ${error.message}`)

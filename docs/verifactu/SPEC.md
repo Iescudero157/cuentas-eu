@@ -170,8 +170,8 @@ Art. 10.1.l RRSIF + art. 15 Orden (los mismos datos de la declaración responsab
 
 | Campo | Valor para Kuentas |
 |---|---|
-| `NombreRazon` (productor) | Mercadonet Global S.L. |
-| `NIF` (productor) | B98407901 |
+| `NombreRazon` (productor) | Milbrotes S.L. (`PRODUCTOR_SIF`, `lib/verifactu/productor-sif.ts`; hasta oct-2026: Mercadonet Global S.L.) |
+| `NIF` (productor) | {{MILBROTES_CIF}} — se rellena el día D en `PRODUCTOR_SIF.nif`; vacío ⇒ no se emite ni se remite nada |
 | `NombreSistemaInformatico` | `Kuentas` |
 | `IdSistemaInformatico` | Código de 2 caracteres asignado por el productor — propuesta: `01` **[REVISIÓN IVAN]** |
 | `Version` | Versión del módulo (semver, p.ej. `1.0.0`); debe coincidir con la declaración responsable |
@@ -408,7 +408,7 @@ mientras opere solo como VERI*FACTU; V14 decidió NO activar el modo local (ver
 ## 9. Declaración responsable (referencia para V19)
 
 **Base legal:** art. 13 RRSIF + art. 15 Orden. Autocertificación del **productor**
-(Mercadonet Global S.L.) por cada sistema y versión — no existe homologación previa AEAT:
+(Milbrotes S.L.; Mercadonet Global S.L. pasa a ser solo cliente) por cada sistema y versión — no existe homologación previa AEAT:
 
 - Contenido mínimo (art. 15 Orden): nombre del SIF, código identificador (`IdSistemaInformatico`),
   versión, componentes hw/sw, si es solo-VERI*FACTU, si soporta múltiples obligados, datos

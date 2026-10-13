@@ -26,6 +26,7 @@ import {
   huellaAlta,
   cadenaEntradaAlta,
 } from './huella.ts'
+import { PRODUCTOR_SIF, exigirProductorSifConfigurado, type ProductorSif } from './productor-sif.ts'
 
 // ---------------------------------------------------------------------------
 // Espacios de nombres oficiales (targetNamespace de los XSD descargados)
@@ -164,11 +165,19 @@ export interface SistemaInformatico {
  * Identificación del SIF Kuentas (datos del productor, SPEC §2.4). El
  * `IdSistemaInformatico` propuesto es `01` [REVISIÓN IVAN: debe coincidir con
  * la declaración responsable de V19]. `numeroInstalacion` es por tenant.
+ *
+ * Productor: Milbrotes S.L. (lib/verifactu/productor-sif.ts, fuente única).
+ * Esta función es pura y NO valida el productor (la usan la declaración en
+ * borrador, el export y los tests con un productor de pruebas); para generar
+ * registros que se persisten o se remiten usar `sistemaInformaticoParaEmitir`.
  */
-export function sistemaInformaticoKuentas(numeroInstalacion: string): SistemaInformatico {
+export function sistemaInformaticoKuentas(
+  numeroInstalacion: string,
+  productor: Readonly<Pick<ProductorSif, 'nombreRazon' | 'nif'>> = PRODUCTOR_SIF
+): SistemaInformatico {
   return {
-    nombreRazon: 'Mercadonet Global S.L.',
-    nif: 'B98407901',
+    nombreRazon: productor.nombreRazon,
+    nif: productor.nif,
     nombreSistemaInformatico: 'Kuentas',
     idSistemaInformatico: '01',
     version: '1.0.0',
@@ -177,6 +186,16 @@ export function sistemaInformaticoKuentas(numeroInstalacion: string): SistemaInf
     tipoUsoPosibleMultiOT: 'S',
     indicadorMultiplesOT: 'S',
   }
+}
+
+/**
+ * Bloque SistemaInformatico para registros REALES (emisión, anulación,
+ * subsanación). Aborta con ErrorProductorSif si PRODUCTOR_SIF no tiene NIF:
+ * nunca se genera ni se remite un registro con el NIF del productor vacío.
+ */
+export function sistemaInformaticoParaEmitir(numeroInstalacion: string): SistemaInformatico {
+  exigirProductorSifConfigurado()
+  return sistemaInformaticoKuentas(numeroInstalacion)
 }
 
 /** Encadenamiento (art. 7 Orden): primer registro de la cadena o puntero al anterior. */

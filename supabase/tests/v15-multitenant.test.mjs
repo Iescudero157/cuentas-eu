@@ -27,6 +27,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
 import { sistemaInformaticoKuentas } from '../../lib/verifactu/registro-alta.ts'
+import { PRODUCTOR_PRUEBAS } from '../../lib/verifactu/tests/helpers/productor-pruebas.mjs'
 import { prepararEntradaAlta, validarEmision } from '../../lib/verifactu/emision.ts'
 import { facturaAppARegistroAnulacion } from '../../lib/verifactu/factura-app.ts'
 import { verificarRegistrosObligado } from '../../lib/verifactu/integridad.ts'
@@ -86,6 +87,7 @@ const files = [
   ['m8 sif_certificados (V11)', `${REPO}/migrations/20260918110000_sif_certificados.sql`],
   ['m9 sif_incidencias (V12)', `${REPO}/migrations/20260919100000_sif_incidencias.sql`],
   ['m10 sif_multitenant (V15)', `${REPO}/migrations/20260919110000_sif_multitenant.sql`],
+  ['m12 sif_productor_milbrotes', `${REPO}/migrations/20261016100000_sif_productor_milbrotes.sql`],
 ]
 for (const [name, path] of files) {
   await expectOk(`aplica ${name}`, readFileSync(path, 'utf8'))
@@ -136,7 +138,7 @@ const cfg = (uid) => ({
   user_id: uid, nif_obligado: TENANTS[uid].nif, nombre_razon: TENANTS[uid].razon,
   numero_instalacion: TENANTS[uid].inst, modalidad: 'verifactu', entorno_aeat: 'pruebas', activo: true,
 })
-const si = (uid) => sistemaInformaticoKuentas(TENANTS[uid].inst)
+const si = (uid) => sistemaInformaticoKuentas(TENANTS[uid].inst, PRODUCTOR_PRUEBAS)
 
 await expectOk('alta de los 4 usuarios + sif_config activos', `
   insert into auth.users (id, email) values

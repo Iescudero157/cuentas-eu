@@ -36,7 +36,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
-import { sistemaInformaticoKuentas, xmlRegFactuSistemaFacturacion } from '../lib/verifactu/registro-alta.ts'
+import { sistemaInformaticoParaEmitir, xmlRegFactuSistemaFacturacion } from '../lib/verifactu/registro-alta.ts'
 import { prepararEntradaAlta, validarEmision, reconstruirRegistroAlta } from '../lib/verifactu/emision.ts'
 import { xmlDeFila, resolverLineas, fechaOficialDeIso } from '../lib/verifactu/remision.ts'
 import { envolverSoap, parsearRespuestaSoap, ENDPOINTS_VERIFACTU } from '../lib/verifactu/aeat-cliente.ts'
@@ -148,6 +148,7 @@ async function aplicarEsquema(db) {
     'migrations/20260919100000_sif_incidencias.sql',
     'migrations/20260919110000_sif_multitenant.sql',
     'migrations/20260924100000_sif_hardening.sql',
+    'migrations/20261016100000_sif_productor_milbrotes.sql',
   ]
   for (const f of ficheros) {
     await db.exec(readFileSync(join(SUPABASE_DIR, f), 'utf8'))
@@ -216,7 +217,7 @@ async function preparar(dir) {
     entorno_aeat: 'pruebas',
     activo: true,
   }
-  const si = sistemaInformaticoKuentas(MERCADONET.numeroInstalacion)
+  const si = sistemaInformaticoParaEmitir(MERCADONET.numeroInstalacion) // aborta si PRODUCTOR_SIF.nif está vacío
   const serie = serieDePrueba()
 
   // 2. Dos facturas de PRUEBA (F2 simplificadas, importe mínimo) y emisión.

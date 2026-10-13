@@ -19,6 +19,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
 import { sistemaInformaticoKuentas } from '../../lib/verifactu/registro-alta.ts'
+import { PRODUCTOR_PRUEBAS } from '../../lib/verifactu/tests/helpers/productor-pruebas.mjs'
 import {
   prepararEntradaAlta,
   reconstruirRegistroAlta,
@@ -90,6 +91,9 @@ for (const [name, path] of files) {
 }
 await expectOk('re-aplica m9 sif_incidencias (idempotente)',
   readFileSync(`${REPO}/migrations/20260919100000_sif_incidencias.sql`, 'utf8'))
+// m12: productor Milbrotes (sif_registrar_evento recibe el NIF del productor)
+await expectOk('aplica m12 sif_productor_milbrotes', readFileSync(`${REPO}/migrations/20261016100000_sif_productor_milbrotes.sql`, 'utf8'))
+await expectOk('re-aplica m12 sif_productor_milbrotes (idempotente)', readFileSync(`${REPO}/migrations/20261016100000_sif_productor_milbrotes.sql`, 'utf8'))
 
 // ---------- 2. Datos semilla + emisiones (mismo camino que V07/V10) ----------
 const A = '11111111-1111-1111-1111-111111111111'
@@ -132,7 +136,7 @@ async function filaInvoice(invoiceId) {
 
 async function emitir(invoiceId, userId) {
   const config = CONFIGS[userId]
-  const si = sistemaInformaticoKuentas(config.numero_instalacion)
+  const si = sistemaInformaticoKuentas(config.numero_instalacion, PRODUCTOR_PRUEBAS)
   const inv = await filaInvoice(invoiceId)
   const entrada = prepararEntradaAlta(inv, config, {}, null)
   const dry = validarEmision(entrada, si)
@@ -171,7 +175,7 @@ await expectOk('respuestas AEAT simuladas (awe / rejected / accepted)', `
 // ---------- 3. Subsanación de un alta aceptado con errores ----------
 async function subsanar(userId, invoiceId, registroPrevId, estadoPrev) {
   const config = CONFIGS[userId]
-  const si = sistemaInformaticoKuentas(config.numero_instalacion)
+  const si = sistemaInformaticoKuentas(config.numero_instalacion, PRODUCTOR_PRUEBAS)
   const inv = await filaInvoice(invoiceId)
   const prev = await registro(registroPrevId)
   const entrada = prepararEntradaSubsanacion(inv, config, {
@@ -249,7 +253,7 @@ await expectErr('multi-tenant: B no puede subsanar un registro de A', () => db.q
 {
   // Entrada sin subsanacion=S → la RPC la rechaza (defensa aunque el TS valide)
   const config = CONFIGS[B]
-  const si = sistemaInformaticoKuentas(config.numero_instalacion)
+  const si = sistemaInformaticoKuentas(config.numero_instalacion, PRODUCTOR_PRUEBAS)
   await db.query(`update sif_registros set estado_remision = 'accepted_with_errors' where id = '${regB.registro_id}'`)
   const inv = await filaInvoice(INV_B)
   const entrada = prepararEntradaAlta(inv, config, {}, null)
@@ -273,7 +277,7 @@ await expectErr('multi-tenant: B no puede subsanar un registro de A', () => db.q
 // ---------- 6. Reenvío de una anulación rechazada ----------
 {
   const config = CONFIGS[A]
-  const si = sistemaInformaticoKuentas(config.numero_instalacion)
+  const si = sistemaInformaticoKuentas(config.numero_instalacion, PRODUCTOR_PRUEBAS)
   // Emitir y anular la 4ª factura de A
   const alta = await emitir(INVS_A[3], A)
   await db.query(`update sif_registros set estado_remision = 'accepted' where id = '${alta.registro_id}'`)
@@ -388,20 +392,20 @@ await expectOk('se fabrica una cadena corrupta para C (hueco, huella falsa, json
 // ---------- 10. sif_registrar_evento: cadena propia con huella oficial ----------
 {
   const e1 = (await db.query(
-    `select * from public.sif_registrar_evento($1, 'deteccion_anomalias_registros', $2)`,
-    [A, JSON.stringify({ procesoIntegridadHuellas: 'S', anomaliasDetectadas: 0 })])).rows[0]
+    `select * from public.sif_registrar_evento($1, 'deteccion_anomalias_registros', $3, $2)`,
+    [A, JSON.stringify({ procesoIntegridadHuellas: 'S', anomaliasDetectadas: 0 }), PRODUCTOR_PRUEBAS.nif])).rows[0]
   check('evento 1: primer evento de la cadena (huella_anterior null)',
     e1.primer_evento === true && e1.huella_anterior === null, JSON.stringify(e1))
 
   const e2 = (await db.query(
-    `select * from public.sif_registrar_evento($1, 'anomalia_registro', $2)`,
-    [A, JSON.stringify({ tipoAnomalia: '01', detalle: 'prueba' })])).rows[0]
+    `select * from public.sif_registrar_evento($1, 'anomalia_registro', $3, $2)`,
+    [A, JSON.stringify({ tipoAnomalia: '01', detalle: 'prueba' }), PRODUCTOR_PRUEBAS.nif])).rows[0]
   check('evento 2: encadena con el evento 1',
     Number(e2.correlativo) === 2 && e2.huella_anterior === e1.huella, JSON.stringify(e2))
 
   // Huella SQL ≡ huella TS (cadenaEntradaEvento de huella.ts, doc. AEAT §3.c)
   const huellaTs = huellaEvento({
-    NIFSistemaInformatico: 'B98407901',
+    NIFSistemaInformatico: PRODUCTOR_PRUEBAS.nif,
     ID: '',
     IdSistemaInformatico: '01',
     Version: '1.0.0',
@@ -416,15 +420,22 @@ await expectOk('se fabrica una cadena corrupta para C (hueco, huella falsa, json
   const fila = (await db.query(
     `select tipo_evento, datos from sif_eventos where user_id = '${A}' and correlativo = 2`)).rows[0]
   check('el evento persiste tipo interno + TipoEvento oficial en datos',
-    fila.tipo_evento === 'anomalia_registro' && fila.datos.tipoEventoOficial === '04',
+    fila.tipo_evento === 'anomalia_registro' && fila.datos.tipoEventoOficial === '04' &&
+      fila.datos.nifProductor === PRODUCTOR_PRUEBAS.nif,
     JSON.stringify(fila))
 
   await expectErr('tipo de evento desconocido → error', () => db.query(
-    `select * from public.sif_registrar_evento($1, 'tipo_inventado', '{}')`, [A]), 'SIF_TIPO_EVENTO')
+    `select * from public.sif_registrar_evento($1, 'tipo_inventado', $2, '{}')`, [A, PRODUCTOR_PRUEBAS.nif]), 'SIF_TIPO_EVENTO')
+
+  // Productor del SIF sin NIF (Milbrotes antes del día D) → la BD aborta
+  await expectErr('productor sin NIF → SIF_PRODUCTOR_SIN_NIF', () => db.query(
+    `select * from public.sif_registrar_evento($1, 'anomalia_registro', '', '{}')`, [A]), 'SIF_PRODUCTOR_SIN_NIF')
+  await expectErr('productor con marcador → SIF_PRODUCTOR_SIN_NIF', () => db.query(
+    `select * from public.sif_registrar_evento($1, 'anomalia_registro', '{{MILBROTES_CIF}}', '{}')`, [A]), 'SIF_PRODUCTOR_SIN_NIF')
 
   await db.exec(`select set_config('request.jwt.claim.sub', '${A}', false)`)
   await expectErr('un usuario autenticado no registra eventos (solo servicio)', () => db.query(
-    `select * from public.sif_registrar_evento($1, 'anomalia_registro', '{}')`, [A]), 'SIF_SOLO_SERVICIO')
+    `select * from public.sif_registrar_evento($1, 'anomalia_registro', $2, '{}')`, [A, PRODUCTOR_PRUEBAS.nif]), 'SIF_SOLO_SERVICIO')
   await db.exec(`select set_config('request.jwt.claim.sub', '', false)`)
 
   // sif_eventos sigue siendo append-only (guard V03)

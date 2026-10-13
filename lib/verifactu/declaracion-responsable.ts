@@ -11,6 +11,12 @@
 // Server-only (la cadena de imports llega a node:crypto vía registro-alta).
 
 import { sistemaInformaticoKuentas } from './registro-alta.ts'
+import {
+  MARCADOR_CIF_PRODUCTOR,
+  MARCADOR_REGISTRO_PRODUCTOR,
+  PRODUCTOR_SIF,
+  productorSifConfigurado,
+} from './productor-sif.ts'
 
 /** true mientras el texto no haya sido ratificado por Iván y el asesor. */
 export const DECLARACION_ES_BORRADOR = true
@@ -53,7 +59,7 @@ export interface DeclaracionResponsable {
 const PLACEHOLDER_FECHA_LUGAR =
   '[LUGAR Y FECHA DE SUSCRIPCIÓN — se fijarán al firmar la versión definitiva · REVISIÓN IVAN/ASESOR]'
 const PLACEHOLDER_FIRMANTE =
-  '[NOMBRE Y CARGO DEL FIRMANTE en representación de Mercadonet Global S.L. — REVISIÓN IVAN/ASESOR]'
+  '[NOMBRE Y CARGO DEL FIRMANTE en representación de Milbrotes S.L. — REVISIÓN IVAN/ASESOR]'
 
 /**
  * Construye la declaración responsable de la versión actual del SIF. Los datos
@@ -75,12 +81,14 @@ export function declaracionResponsableKuentas(): DeclaracionResponsable {
     multiplesObligados: si.tipoUsoPosibleMultiOT === 'S',
   }
 
+  // Productor: Milbrotes S.L. (lib/verifactu/productor-sif.ts). Mientras no
+  // haya NIF/inscripción, el borrador muestra los marcadores del día D.
+  const productorListo = productorSifConfigurado()
   const productor = {
     razonSocial: si.nombreRazon,
-    nif: si.nif,
-    domicilio: 'Ptda. Cortixelles 98, 46900 Torrent (Valencia), España',
-    registroMercantil:
-      'Registro Mercantil de Valencia, Tomo 9.414, Folio 76, Hoja V-149644',
+    nif: si.nif.trim() || MARCADOR_CIF_PRODUCTOR,
+    domicilio: PRODUCTOR_SIF.domicilio,
+    registroMercantil: PRODUCTOR_SIF.registroMercantil.trim() || MARCADOR_REGISTRO_PRODUCTOR,
   }
 
   const apartados: ApartadoDeclaracion[] = [
@@ -206,6 +214,9 @@ export function declaracionResponsableKuentas(): DeclaracionResponsable {
     productor,
     apartados,
     pendientes: [
+      ...(productorListo && !productor.registroMercantil.includes('{{')
+        ? []
+        : ['NIF e inscripción registral de Milbrotes S.L. (productor): rellenar PRODUCTOR_SIF en lib/verifactu/productor-sif.ts el día D.']),
       'Código identificador del sistema (IdSistemaInformatico «01»): confirmación de Iván.',
       'Dirección postal de contacto del productor: confirmación de Iván.',
       'Texto completo: revisión jurídica del asesor (es un borrador técnico, no asesoría).',

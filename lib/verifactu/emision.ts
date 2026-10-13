@@ -22,7 +22,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 import {
   construirRegistroAlta,
-  sistemaInformaticoKuentas,
+  sistemaInformaticoParaEmitir,
   type Encadenamiento,
   type EntradaRegistroAlta,
   type FacturaRelacionada,
@@ -415,7 +415,7 @@ export async function emitirFactura(
     rectificada = await cargarInvoice(supabase, userId, invoice.rectifica_invoice_id)
   }
 
-  const sistemaInformatico = sistemaInformaticoKuentas(config.numero_instalacion)
+  const sistemaInformatico = sistemaInformaticoParaEmitir(config.numero_instalacion)
   const entrada = prepararEntradaAlta(invoice, config, opciones, rectificada)
   const dryRun = validarEmision(entrada, sistemaInformatico) // lanza ErrorValidacionRegistro si no es conforme
 
@@ -475,7 +475,7 @@ export async function anularFactura(
     )
   }
 
-  const sistemaInformatico = sistemaInformaticoKuentas(config.numero_instalacion)
+  const sistemaInformatico = sistemaInformaticoParaEmitir(config.numero_instalacion)
   const entrada = facturaAppARegistroAnulacion(
     { invoice_number: invoice.numero_fiscal, date: invoice.date },
     { nif: config.nif_obligado, nombreRazon: config.nombre_razon },

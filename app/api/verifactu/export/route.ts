@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createSupabaseServer } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import { ErrorExport, exportarObligado } from "@/lib/verifactu/export";
+import { PRODUCTOR_SIF } from "@/lib/verifactu/productor-sif";
 import { limitarTasa, respuesta429 } from "@/lib/verifactu/seguridad-http";
 
 // V16 · Exportación de los registros de facturación del usuario autenticado
@@ -95,12 +96,14 @@ async function registrarEventosExport(
     await servicio.rpc("sif_registrar_evento", {
       p_user_id: userId,
       p_tipo_evento: "export_registros",
+      p_productor_nif: PRODUCTOR_SIF.nif,
       p_datos: datos,
     });
     if ((datos.eventos as number) > 0) {
       await servicio.rpc("sif_registrar_evento", {
         p_user_id: userId,
         p_tipo_evento: "export_eventos",
+        p_productor_nif: PRODUCTOR_SIF.nif,
         p_datos: { fichero: datos.fichero, eventos: datos.eventos },
       });
     }

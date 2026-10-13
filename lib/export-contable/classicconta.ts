@@ -566,7 +566,7 @@ function textoLeeme(facturas: FacturaContable[], apuntes: number, subcuentas: nu
       ? ['AVISOS', ...avisos.map((a) => `  - ${a}`), ''].join('\n')
       : 'Sin avisos: todos los asientos cuadran con los totales almacenados.',
     '',
-    'Generado por Kuentas (kuentas.eu) - Mercadonet Global S.L.',
+    'Generado por Kuentas (kuentas.eu) - Milbrotes S.L.',
   ].join('\n')
 }
 

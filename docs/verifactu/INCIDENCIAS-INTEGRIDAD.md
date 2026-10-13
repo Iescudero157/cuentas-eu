@@ -85,7 +85,10 @@ HTTP para operación: `GET /api/verifactu/integridad[?user=<uuid>&eventos=1]` (B
 - Cadena de huellas **propia** por obligado (doc. AEAT huella §3.c, 9 pares `Campo=valor`),
   serializada con advisory lock; misma fórmula que `cadenaEntradaEvento()` de `huella.ts`
   (verificado SQL ≡ TS en tests). Constantes del bloque SistemaInformatico idénticas a
-  `sistemaInformaticoKuentas()` (NIF productor B98407901, Id `01`, versión `1.0.0`).
+  `sistemaInformaticoKuentas()` (Id `01`, versión `1.0.0`). Desde la migración
+  `20261016100000_sif_productor_milbrotes.sql` el NIF del productor ya no está fijado en el SQL
+  (era B98407901, Mercadonet): lo pasa el servidor desde `PRODUCTOR_SIF` (Milbrotes S.L.) en
+  `p_productor_nif` y la función aborta con `SIF_PRODUCTOR_SIN_NIF` si llega vacío.
 - El verificador anota un evento `deteccion_anomalias_registros` (tipo oficial 03) por
   ejecución con `--eventos`, y un `anomalia_registro` (04) por anomalía (tope 50 por
   ejecución), con el detalle interno y el TipoAnomalia oficial en `datos`.

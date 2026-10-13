@@ -16,6 +16,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
 import { sistemaInformaticoKuentas } from '../../lib/verifactu/registro-alta.ts'
+import { PRODUCTOR_PRUEBAS } from '../../lib/verifactu/tests/helpers/productor-pruebas.mjs'
 import { prepararEntradaAlta, validarEmision } from '../../lib/verifactu/emision.ts'
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -111,7 +112,7 @@ const CONFIGS = {
 
 async function emitir(invoiceId, userId) {
   const config = CONFIGS[userId]
-  const si = sistemaInformaticoKuentas(config.numero_instalacion)
+  const si = sistemaInformaticoKuentas(config.numero_instalacion, PRODUCTOR_PRUEBAS)
   const r0 = await db.query(`
     select id, user_id, number, date::text as date, client_name, client_nif, items,
            subtotal::float8 as subtotal, iva::float8 as iva, iva_rate, irpf::float8 as irpf,

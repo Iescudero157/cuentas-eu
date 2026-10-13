@@ -71,6 +71,13 @@ puede actualizarse después (mientras no se mergee, sigue entrando en la misma r
 | `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` | Ya existen | Sin cambios. |
 | `RESEND_API_KEY` | Ya existe | Email de facturas (PDF con QR adjunto). |
 
+### 2.2bis Productor del SIF: Milbrotes S.L. (día D)
+- [ ] Rellenar `PRODUCTOR_SIF.nif` ({{MILBROTES_CIF}}) y `registroMercantil` ({{MILBROTES_REGISTRO}})
+  en `lib/verifactu/productor-sif.ts`. Sin NIF, la emisión y el envío real a la AEAT abortan.
+- [ ] Aplicar la migración `20261016100000_sif_productor_milbrotes.sql` (sif_registrar_evento
+  recibe el NIF del productor) junto con el despliegue del código que la usa.
+- [ ] Firmar la declaración responsable con Milbrotes S.L. como productor.
+
 ### 2.3 Certificado digital (decisión + material de Iván)
 - [ ] PFX **exportable** del certificado FNMT de representante de Mercadonet (el del equipo
   ARES2 tiene clave NO exportable: solo vale para pruebas locales) **o** sello de entidad FNMT.

@@ -74,6 +74,7 @@ const files = [
   ['m9 sif_incidencias (V12)', `${REPO}/migrations/20260919100000_sif_incidencias.sql`],
   ['m10 sif_multitenant (V15)', `${REPO}/migrations/20260919110000_sif_multitenant.sql`],
   ['m11 sif_hardening (V24)', `${REPO}/migrations/20260924100000_sif_hardening.sql`],
+  ['m12 sif_productor_milbrotes', `${REPO}/migrations/20261016100000_sif_productor_milbrotes.sql`],
 ]
 for (const [name, path] of files) {
   await expectOk(`aplica ${name}`, readFileSync(path, 'utf8'))

@@ -24,7 +24,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 import {
-  sistemaInformaticoKuentas,
+  sistemaInformaticoParaEmitir,
   type Destinatario,
   type EntradaRegistroAlta,
   type OperacionExenta,
@@ -220,7 +220,7 @@ export async function subsanarFactura(
     rectificada = await cargarInvoice(supabase, userId, invoice.rectifica_invoice_id)
   }
 
-  const sistemaInformatico = sistemaInformaticoKuentas(config.numero_instalacion)
+  const sistemaInformatico = sistemaInformaticoParaEmitir(config.numero_instalacion)
   const entrada = prepararEntradaSubsanacion(invoice, config, previo, opciones, rectificada)
   const dryRun = validarEmision(entrada, sistemaInformatico) // lanza ErrorValidacionRegistro
 
@@ -289,7 +289,7 @@ export async function reenviarAnulacion(
     )
   }
 
-  const sistemaInformatico = sistemaInformaticoKuentas(config.numero_instalacion)
+  const sistemaInformatico = sistemaInformaticoParaEmitir(config.numero_instalacion)
   const entrada = facturaAppARegistroAnulacion(
     { invoice_number: previo.num_serie_factura, date: previo.fecha_expedicion },
     { nif: config.nif_obligado, nombreRazon: config.nombre_razon },

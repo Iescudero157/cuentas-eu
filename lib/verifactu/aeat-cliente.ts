@@ -20,6 +20,7 @@ import { request as httpsRequest, type RequestOptions } from 'node:https'
 import { rootCertificates as tlsRootCertificates } from 'node:tls'
 
 import { xmlRegFactuSistemaFacturacion, type CabeceraRemision } from './registro-alta.ts'
+import { exigirProductorSifConfigurado } from './productor-sif.ts'
 import {
   parsearXml,
   type ElementoXml,
@@ -552,6 +553,16 @@ export function parsearRespuestaSoap(xml: string): RespuestaRegFactu {
 // Cliente
 // ---------------------------------------------------------------------------
 
+/** true si la URL apunta a loopback (servidores de prueba locales, nunca la AEAT). */
+function esDestinoLoopback(url: string): boolean {
+  try {
+    const host = new URL(url).hostname.replace(/^\[|\]$/g, '').toLowerCase()
+    return host === 'localhost' || host === '127.0.0.1' || host === '::1' || host.endsWith('.localhost')
+  } catch {
+    return false
+  }
+}
+
 export class ClienteAeat {
   private readonly config: ConfigClienteAeat
   private readonly transporte: TransporteHttp
@@ -583,6 +594,13 @@ export class ClienteAeat {
 
   /** Remite un mensaje `RegFactuSistemaFacturacion` ya construido. */
   async enviarCuerpoXml(cuerpoXml: string): Promise<RespuestaRegFactu> {
+    // Envío REAL (transporte HTTPS hacia un host no local: AEAT o pasarela):
+    // nunca con el NIF del productor vacío o con marcador
+    // (lib/verifactu/productor-sif.ts). Los transportes inyectados y los
+    // servidores de prueba en loopback no llegan a la AEAT y no se bloquean.
+    if (this.transporte === transporteHttpsNode && !esDestinoLoopback(this.urlRemision())) {
+      exigirProductorSifConfigurado()
+    }
     const respuesta = await this.transporte({
       url: this.urlRemision(),
       cuerpo: envolverSoap(cuerpoXml),

@@ -37,7 +37,7 @@ import { join } from 'node:path'
 import {
   construirRegistroAlta,
   xmlRegFactuSistemaFacturacion,
-  sistemaInformaticoKuentas,
+  sistemaInformaticoParaEmitir,
 } from '../lib/verifactu/registro-alta.ts'
 import { construirRegistroAnulacion } from '../lib/verifactu/registro-anulacion.ts'
 import {
@@ -93,7 +93,7 @@ function reemplazarUnico(xml, buscar, reemplazo, caso) {
 function construirPlan(dir) {
   const ts = marcaDeTiempo()
   const fechaHoy = fechaHoyOficial()
-  const sistema = sistemaInformaticoKuentas(NUMERO_INSTALACION)
+  const sistema = sistemaInformaticoParaEmitir(NUMERO_INSTALACION) // aborta si PRODUCTOR_SIF.nif está vacío
   const serieA = `PRUEBA-V18A-${ts}` // cadena principal
   const serieB = `PRUEBA-V18B-${ts}` // cadena de casos de error
   const serieC = `PRUEBA-V18C-${ts}` // envío inválido a nivel XSD (nunca se registra)

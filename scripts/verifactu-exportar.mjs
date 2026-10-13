@@ -25,6 +25,7 @@ import { fileURLToPath } from 'node:url'
 import { createClient } from '@supabase/supabase-js'
 
 import { exportarObligado, verificarZipExport } from '../lib/verifactu/export.ts'
+import { PRODUCTOR_SIF } from '../lib/verifactu/productor-sif.ts'
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -129,6 +130,7 @@ async function main() {
     const { error } = await supabase.rpc('sif_registrar_evento', {
       p_user_id: args.user,
       p_tipo_evento: 'export_registros',
+      p_productor_nif: PRODUCTOR_SIF.nif,
       p_datos: datos,
     })
     if (error) console.error(`No se pudo anotar el evento de exportación: ${error.message}`)
@@ -136,6 +138,7 @@ async function main() {
       const { error: e2 } = await supabase.rpc('sif_registrar_evento', {
         p_user_id: args.user,
         p_tipo_evento: 'export_eventos',
+        p_productor_nif: PRODUCTOR_SIF.nif,
         p_datos: { origen: 'cli', fichero: resultado.nombreFichero, eventos: datos.eventos },
       })
       if (e2) console.error(`No se pudo anotar el evento de exportación de eventos: ${e2.message}`)

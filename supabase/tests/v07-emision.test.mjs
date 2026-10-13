@@ -17,6 +17,7 @@ import { dirname, join } from 'node:path'
 
 import { huellaAlta, huellaAnulacion, formatearImporte, fechaHoraHusoGenRegistro } from '../../lib/verifactu/huella.ts'
 import { sistemaInformaticoKuentas } from '../../lib/verifactu/registro-alta.ts'
+import { PRODUCTOR_PRUEBAS } from '../../lib/verifactu/tests/helpers/productor-pruebas.mjs'
 import {
   prepararEntradaAlta,
   validarEmision,
@@ -129,7 +130,7 @@ await expectOk('facturas borrador de A', `
 `)
 
 // ---------- 4. Helper de emisión (mismo camino que lib/verifactu/emision.ts) ----------
-const SI_A = sistemaInformaticoKuentas('KU-TESTA')
+const SI_A = sistemaInformaticoKuentas('KU-TESTA', PRODUCTOR_PRUEBAS)
 const CONFIG_A = {
   user_id: A, nif_obligado: NIF_A, nombre_razon: 'Empresa A SL',
   numero_instalacion: 'KU-TESTA', modalidad: 'verifactu', entorno_aeat: 'pruebas', activo: true,
@@ -342,7 +343,7 @@ await expectOk('factura borrador de B', `
   values ('${INVB}', '${B}', 'PROV-B1', 'Cliente B', '${ITEMS}', 100, 21, 21, 0, 0, 121, '2026-09-13');
 `)
 const CONFIG_B = { ...CONFIG_A, user_id: B, nif_obligado: NIF_B, nombre_razon: 'Empresa B SA', numero_instalacion: 'KU-TESTB' }
-const SI_B = sistemaInformaticoKuentas('KU-TESTB')
+const SI_B = sistemaInformaticoKuentas('KU-TESTB', PRODUCTOR_PRUEBAS)
 
 await expectErr('B sin sif_config → SIF_NO_CONFIGURADO',
   () => emitir(INVB, { config: CONFIG_B, si: SI_B }), 'SIF_NO_CONFIGURADO')
