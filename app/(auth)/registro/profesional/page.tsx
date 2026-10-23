@@ -186,7 +186,7 @@ export default function RegistroProfesionalPage() {
                   type="tel"
                   value={form.telefono}
                   onChange={e => setForm({ ...form, telefono: e.target.value })}
-                  placeholder="+34 628 201 218"
+                  placeholder="+34 600 000 000"
                   className="w-full pl-9 pr-4 py-2.5 border border-brand-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
                 />
               </div>
