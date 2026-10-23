@@ -1,6 +1,6 @@
 "use client";
 
-import { User, Building2, CreditCard, Bell, Shield, Loader2, ExternalLink, Star, Smartphone } from "lucide-react";
+import { User, Building2, CreditCard, Bell, Shield, Loader2, ExternalLink, Star } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -91,10 +91,6 @@ interface AjustesData {
   notifFacturas: boolean;
   notifResumen: boolean;
   notifTips: boolean;
-  // SMS / mobile
-  telefono: string;
-  notifSmsVencimiento: boolean;
-  notifSmsFactura: boolean;
 }
 
 const defaultData: AjustesData = {
@@ -110,9 +106,6 @@ const defaultData: AjustesData = {
   notifFacturas: true,
   notifResumen: false,
   notifTips: true,
-  telefono: "",
-  notifSmsVencimiento: false,
-  notifSmsFactura: false,
 };
 
 export default function AjustesPage() {
@@ -339,44 +332,6 @@ export default function AjustesPage() {
             </div>
           </div>
 
-          {/* SMS / Mobile alerts */}
-          <div className="bg-white rounded-xl p-6 border border-brand-border/50 shadow-sm space-y-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Smartphone className="w-5 h-5 text-brand-blue" />
-              <h3 className="font-semibold text-brand-text">Alertas SMS</h3>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-brand-text mb-1">Número de móvil</label>
-              <input
-                type="tel"
-                value={data.telefono}
-                onChange={(e) => setData({ ...data, telefono: e.target.value })}
-                placeholder="+34 600 000 000"
-                className="w-full px-3 py-2 border border-brand-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
-              />
-              <p className="text-xs text-brand-muted mt-1">Introduce tu móvil para recibir alertas por SMS</p>
-            </div>
-            <div className="space-y-3 pt-1">
-              {[
-                { key: "notifSmsVencimiento" as const, label: "SMS vencimientos fiscales", desc: "Aviso 7 días antes de cada modelo (303, 130…)" },
-                { key: "notifSmsFactura" as const, label: "SMS factura vencida", desc: "Cuando una factura supera su fecha de vencimiento" },
-              ].map((n) => (
-                <label key={n.key} className="flex items-center justify-between cursor-pointer">
-                  <div>
-                    <p className="text-sm font-medium text-brand-text">{n.label}</p>
-                    <p className="text-xs text-brand-muted">{n.desc}</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={data[n.key]}
-                    onChange={(e) => setData({ ...data, [n.key]: e.target.checked })}
-                    className="w-5 h-5 rounded accent-brand-blue"
-                    disabled={!data.telefono}
-                  />
-                </label>
-              ))}
-            </div>
-          </div>
         </div>
       </form>
     </div>
