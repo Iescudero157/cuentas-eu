@@ -79,8 +79,8 @@ function InlineCTA() {
       <p className="text-xs font-semibold uppercase tracking-wider text-white/60 mb-2">KUENTAS.EU</p>
       <h3 className="text-xl font-bold mb-3">¿Y si el Modelo 303 se calculara solo?</h3>
       <p className="text-white/80 text-sm leading-relaxed mb-5">
-        Conecta tu banco, categoriza cada movimiento con IA y ten el IVA del trimestre preparado
-        sin buscar facturas a último momento. Prueba gratis, sin tarjeta.
+        Importa tus movimientos, categoriza cada uno con IA y ten el IVA del trimestre preparado
+        sin buscar facturas a último momento. Plan gratuito, sin tarjeta.
       </p>
       <Link
         href="https://app.kuentas.eu/registro"
@@ -432,7 +432,7 @@ export default function Modelo303GuiaCompletaPage() {
             que revisar y presentar.
           </p>
           <p className="text-gray-600 leading-relaxed mb-4">
-            KUENTAS.EU conecta tu banco y categoriza cada movimiento con IA. El IVA repercutido y el
+            KUENTAS.EU importa los movimientos de tu banco (CSV) y los categoriza con IA. El IVA repercutido y el
             soportado se calculan en tiempo real. Cada trimestre tienes un resumen listo antes de
             que ni pienses en la AEAT.
           </p>

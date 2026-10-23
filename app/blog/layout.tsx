@@ -32,7 +32,7 @@ export default function BlogLayout({ children }: { children: React.ReactNode }) 
               href="/registro"
               className="bg-[#2A5AAE] text-white text-sm font-semibold px-4 py-2 rounded-lg hover:opacity-90 transition"
             >
-              Prueba gratis
+              Empezar gratis
             </Link>
           </div>
         </div>
@@ -47,7 +47,7 @@ export default function BlogLayout({ children }: { children: React.ReactNode }) 
             Deja de calcular IVA a mano
           </h2>
           <p className="text-white/80 mb-6">
-            KUENTAS.EU lo hace automáticamente. Conecta tu banco, categoriza gastos con IA y sabe
+            KUENTAS.EU lo hace automáticamente. Importa tus movimientos, categoriza gastos con IA y sabe
             cada día cuánto guardar para Hacienda.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">

@@ -20,7 +20,7 @@ export default function PrivacidadPage() {
 
       <main className="max-w-4xl mx-auto px-4 py-12">
         <h1 className="text-3xl font-bold text-brand-text mb-2">Politica de Privacidad</h1>
-        <p className="text-brand-muted mb-8">Ultima actualizacion: 22 de marzo de 2026</p>
+        <p className="text-brand-muted mb-8">Ultima actualizacion: 23 de octubre de 2026</p>
 
         <div className="prose prose-slate max-w-none space-y-6 text-brand-text text-sm leading-relaxed">
           <section>
@@ -39,7 +39,7 @@ export default function PrivacidadPage() {
               <li>Nombre completo y NIF/CIF (para facturacion)</li>
               <li>Direccion de correo electronico</li>
               <li>Direccion fiscal</li>
-              <li>Datos financieros: transacciones bancarias (via Open Banking con su consentimiento explicito), ingresos, gastos y facturas</li>
+              <li>Datos financieros: movimientos que el usuario importa (CSV), escanea o registra manualmente, ingresos, gastos y facturas</li>
               <li>Datos de uso de la aplicacion (analytics anonimizados)</li>
             </ul>
           </section>
@@ -75,7 +75,6 @@ export default function PrivacidadPage() {
             </p>
             <ul className="list-disc pl-6 space-y-1 mt-2">
               <li>Proveedores de infraestructura (Vercel, Supabase) para el alojamiento seguro</li>
-              <li>Proveedores de Open Banking (con su consentimiento) para la conexión bancaria</li>
               <li>Proveedores de IA (OpenAI) para la categorizacion de gastos (datos anonimizados)</li>
               <li>TPV Virtual BBVA (Redsys) para el procesamiento seguro de pagos y suscripciones</li>
             </ul>

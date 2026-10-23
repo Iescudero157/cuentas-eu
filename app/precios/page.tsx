@@ -84,7 +84,6 @@ const plans = [
       "📁 P&L desglosado por proyecto",
       "🔌 Acceso API REST completa",
       "📤 Export nativo a A3, ContaPlus, Sage",
-      "🏦 Conciliación bancaria automática",
       "Account manager dedicado",
     ],
     cta: "Contactar ventas",

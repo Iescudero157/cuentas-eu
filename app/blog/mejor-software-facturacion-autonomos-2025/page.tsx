@@ -102,16 +102,16 @@ const softwares: Software[] = [
     nombre: "Kuentas.eu",
     precio: "Desde 9,99 €/mes",
     descripcion:
-      "Diseñado exclusivamente para autónomos españoles. Conecta el banco, categoriza gastos con IA, calcula el IVA e IRPF en tiempo real y avisa antes de cada declaración trimestral.",
+      "Diseñado exclusivamente para autónomos españoles. Importa los movimientos del banco por CSV, categoriza gastos con IA, calcula el IVA e IRPF en tiempo real y avisa antes de cada declaración trimestral.",
     ventaja: "IA integrada para categorización y alertas fiscales automáticas. El más centrado en autónomos unipersonales.",
-    desventaja: "No tiene módulo de nóminas ni contabilidad avanzada para empresas.",
+    desventaja: "No tiene conexión bancaria automática (los movimientos se importan por CSV) ni módulo de nóminas ni contabilidad avanzada para empresas.",
     paraquien: "Autónomos personas físicas que quieren control financiero sin tocar hojas de Excel.",
     puntuacion: 4.8,
     features: {
       facturacion: true,
       iva_automatico: true,
       irpf_automatico: true,
-      conexion_banco: true,
+      conexion_banco: false,
       ia_categorizacion: true,
       alertas_fiscales: true,
       app_movil: true,
@@ -493,10 +493,10 @@ export default function MejorSoftwarePage() {
               },
               {
                 situacion:
-                  "Quiero conectar el banco y tener todo automatizado sin tocar nada",
+                  "Quiero que los gastos se clasifiquen solos y que me avisen de cada plazo",
                 recomendacion: "Kuentas.eu",
                 razon:
-                  "Es el único de esta lista diseñado específicamente para autónomos con IA de categorización de gastos, conexión bancaria real y alertas automáticas antes de cada trimestre.",
+                  "Es el único de esta lista diseñado específicamente para autónomos con IA de categorización de gastos y alertas automáticas antes de cada trimestre. Los movimientos del banco se importan por CSV: no hay conexión bancaria automática.",
               },
             ].map((item) => (
               <div key={item.situacion} className="border border-gray-100 rounded-xl p-5">
@@ -529,8 +529,8 @@ export default function MejorSoftwarePage() {
             trimestre, sumas y rezas.
           </p>
           <p className="text-gray-600 leading-relaxed mb-4">
-            Kuentas funciona al revés: conecta el banco desde el primer día y sabe en tiempo real
-            cuánto debes a Hacienda. Antes de que llegue el día 20, ya sabes el número. Antes de
+            Kuentas funciona al revés: registra cada movimiento (importado del banco por CSV, escaneado
+            o a mano) y sabe en tiempo real cuánto debes a Hacienda. Antes de que llegue el día 20, ya sabes el número. Antes de
             presentar el 303, ya tienes el resumen preparado. No hay sorpresas.
           </p>
 
@@ -543,7 +543,7 @@ export default function MejorSoftwarePage() {
               },
               {
                 titulo: "IA que categoriza",
-                desc: "Cada movimiento bancario queda clasificado automáticamente como ingreso, gasto deducible o personal.",
+                desc: "Cada movimiento que importas queda clasificado automáticamente como ingreso, gasto deducible o personal.",
                 icono: "🤖",
               },
               {
@@ -566,18 +566,18 @@ export default function MejorSoftwarePage() {
           <div className="text-center">
             <p className="text-sm font-semibold text-white/70 mb-2">KUENTAS.EU</p>
             <h3 className="text-2xl font-bold mb-3">
-              Pruébalo sin compromiso
+              Empieza sin compromiso
             </h3>
             <p className="text-white/80 text-sm leading-relaxed mb-6 max-w-md mx-auto">
-              Catorce días gratis, sin tarjeta de crédito. Conecta el banco, crea tu primera
-              factura y mira cómo el IVA se calcula solo. Si no te convence, no pagas nada.
+              Plan gratuito con hasta 5 facturas al mes, sin tarjeta de crédito. Importa tus movimientos,
+              crea tu primera factura y mira cómo el IVA se calcula solo. Si no te convence, no pagas nada.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href="https://app.kuentas.eu/registro"
                 className="inline-flex items-center justify-center gap-2 bg-[#4ECB71] text-gray-900 font-bold px-6 py-3 rounded-xl hover:opacity-90 transition"
               >
-                Empezar prueba gratuita <ArrowRight className="w-5 h-5" />
+                Empezar gratis <ArrowRight className="w-5 h-5" />
               </Link>
               <Link
                 href="/dashboard"

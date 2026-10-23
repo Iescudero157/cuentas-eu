@@ -1,6 +1,6 @@
 "use client";
 
-import { User, Building2, CreditCard, Bell, Shield, Loader2, ExternalLink, Star, Smartphone, Landmark } from "lucide-react";
+import { User, Building2, CreditCard, Bell, Shield, Loader2, ExternalLink, Star, Smartphone } from "lucide-react";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -95,9 +95,6 @@ interface AjustesData {
   telefono: string;
   notifSmsVencimiento: boolean;
   notifSmsFactura: boolean;
-  // Bank
-  bancoAutoSync: boolean;
-  bancoAutoConciliar: boolean;
 }
 
 const defaultData: AjustesData = {
@@ -116,8 +113,6 @@ const defaultData: AjustesData = {
   telefono: "",
   notifSmsVencimiento: false,
   notifSmsFactura: false,
-  bancoAutoSync: false,
-  bancoAutoConciliar: false,
 };
 
 export default function AjustesPage() {
@@ -377,38 +372,6 @@ export default function AjustesPage() {
                     onChange={(e) => setData({ ...data, [n.key]: e.target.checked })}
                     className="w-5 h-5 rounded accent-brand-blue"
                     disabled={!data.telefono}
-                  />
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Bank settings */}
-          <div className="bg-white rounded-xl p-6 border border-brand-border/50 shadow-sm space-y-4">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <Landmark className="w-5 h-5 text-brand-blue" />
-                <h3 className="font-semibold text-brand-text">Banco</h3>
-              </div>
-              <a href="/dashboard/banco" className="text-xs text-brand-blue hover:underline font-medium">
-                Gestionar conexión →
-              </a>
-            </div>
-            <div className="space-y-3">
-              {[
-                { key: "bancoAutoSync" as const, label: "Sincronización automática", desc: "Importar nuevos movimientos bancarios cada 24h" },
-                { key: "bancoAutoConciliar" as const, label: "Conciliación automática", desc: "Cruzar movimientos con facturas cobradas automáticamente" },
-              ].map((n) => (
-                <label key={n.key} className="flex items-center justify-between cursor-pointer">
-                  <div>
-                    <p className="text-sm font-medium text-brand-text">{n.label}</p>
-                    <p className="text-xs text-brand-muted">{n.desc}</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={data[n.key]}
-                    onChange={(e) => setData({ ...data, [n.key]: e.target.checked })}
-                    className="w-5 h-5 rounded accent-brand-blue"
                   />
                 </label>
               ))}

@@ -5,7 +5,7 @@ import { CheckCircle, ArrowRight, Calendar, AlertTriangle, Shield, HeadphonesIco
 export const metadata: Metadata = {
   title: "Modelo 130 Automático para Autónomos — Declaraciones sin Gestor | KUENTAS.EU",
   description:
-    "Kuentas genera el Modelo 130 de IRPF y el Modelo 303 de IVA automáticamente. Declara en Hacienda sin gestor, sin errores y sin multas. Prueba gratis.",
+    "Kuentas genera el Modelo 130 de IRPF y el Modelo 303 de IVA automáticamente. Declara en Hacienda sin gestor, sin errores y sin multas. Plan gratuito disponible.",
   keywords: [
     "declaraciones hacienda autonomo",
     "modelo 130 autonomo",
@@ -81,7 +81,7 @@ export default function DeclaracionesHaciendaPage() {
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <Link href="/" className="text-lg font-extrabold text-brand-blue tracking-tight">KUENTAS.EU</Link>
           <Link href="/registro" className="bg-brand-blue text-white text-sm font-bold px-5 py-2 rounded-lg hover:opacity-90 transition">
-            Prueba gratis
+            Empezar gratis
           </Link>
         </div>
       </header>

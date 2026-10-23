@@ -258,7 +258,7 @@ export default function Modelo303Page() {
             deben pagar. El motivo es simple: no llevan las cuentas al día.
           </p>
           <p className="text-gray-600 leading-relaxed mb-4">
-            La solución es conectar el banco a una herramienta que calcule el IVA de forma
+            La solución es llevar los movimientos a una herramienta que calcule el IVA de forma
             automática. Así sabes en todo momento cuánto tienes que pagar antes de que llegue el
             plazo, y puedes reservar el dinero con antelación.
           </p>
@@ -266,7 +266,7 @@ export default function Modelo303Page() {
           <div className="rounded-2xl bg-[#2A5AAE]/5 border border-[#2A5AAE]/10 p-6">
             <p className="text-sm font-semibold text-[#2A5AAE] mb-2">KUENTAS.EU calcula tu IVA en tiempo real</p>
             <p className="text-sm text-gray-600 mb-4">
-              Conecta tu banco y cada movimiento queda categorizado automáticamente. El Modelo 303
+              Importa los movimientos de tu banco (CSV) y cada uno queda categorizado automáticamente. El Modelo 303
               se calcula solo, cada día. Al final del trimestre solo tienes que revisar y presentar.
             </p>
             <Link

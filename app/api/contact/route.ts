@@ -261,7 +261,7 @@ async function sendWelcomeEmail({
     <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f4ff;border-radius:12px;margin-bottom:24px;">
       <tr><td style="padding:20px 24px;">
         <div style="font-size:14px;font-weight:700;color:#2A5AAE;margin-bottom:12px;">Lo que te espera en KUENTAS.EU:</div>
-        ${["🏦 Conexión bancaria automática","🤖 IA que categoriza tus gastos","📊 IRPF e IVA en tiempo real","🧾 Facturas legales en 1 clic","⚠️ Alertas antes de cada vencimiento"]
+        ${["📥 Importación de movimientos por CSV","🤖 IA que categoriza tus gastos","📊 IRPF e IVA en tiempo real","🧾 Facturas legales en 1 clic","⚠️ Alertas antes de cada vencimiento"]
           .map(t => `<div style="font-size:13px;color:#333;padding:3px 0;">${t}</div>`).join("")}
       </td></tr>
     </table>
