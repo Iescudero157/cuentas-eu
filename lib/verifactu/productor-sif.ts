@@ -5,12 +5,13 @@
 // Orden HAC/1177/2024).
 //
 // Traspaso Mercadonet → Milbrotes (oct-2026): el productor pasa a ser
-// MILBROTES, S.L. (en constitución; escritura 16-oct-2026). Mercadonet Global
-// S.L. (B98407901) sigue siendo CLIENTE/obligado tributario, no productor.
+// MILBROTES, S.L. (NIF B05772710; escritura 6.470 de 16-oct-2026, inscrita el
+// 26-oct-2026 en el Registro Mercantil de Madrid, hoja M-899621). Mercadonet
+// Global S.L. (B98407901) sigue siendo CLIENTE/obligado tributario, no productor.
 //
-// DÍA D: rellenar `nif` (y `registroMercantil`) con los datos de Milbrotes en
-// cuanto existan. Mientras `nif` esté vacío o contenga un marcador, cualquier
-// emisión de registros y cualquier envío real a la AEAT ABORTA con
+// 30-oct-2026: `nif` y `registroMercantil` rellenados con la comunicación del
+// NIF de la AEAT y la inscripción. Si `nif` quedara vacío o con un marcador,
+// cualquier emisión de registros y cualquier envío real a la AEAT ABORTA con
 // ErrorProductorSif (nunca se remite un SistemaInformatico con NIF vacío).
 
 export interface ProductorSif {
@@ -29,9 +30,9 @@ export const MARCADOR_REGISTRO_PRODUCTOR = '{{MILBROTES_REGISTRO}}'
 
 export const PRODUCTOR_SIF: Readonly<ProductorSif> = Object.freeze({
   nombreRazon: 'Milbrotes S.L.',
-  nif: '', // {{MILBROTES_CIF}} · rellenar el día D (sin él no se emite ni se remite nada)
+  nif: 'B05772710',
   domicilio: 'SBC Villa El Viso, Calle Belalcázar 14, 28006 Madrid, España',
-  registroMercantil: '', // {{MILBROTES_REGISTRO}} · rellenar el día D
+  registroMercantil: 'Registro Mercantil de Madrid, hoja M-899621, inscripción 1.ª (26-10-2026)',
 })
 
 /** Error de configuración: el productor del SIF no tiene NIF válido. */
