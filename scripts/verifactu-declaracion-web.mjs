@@ -51,7 +51,7 @@ const html = `<!DOCTYPE html>
 <!-- Generada con cuentas-app/scripts/verifactu-declaracion-web.mjs desde
      lib/verifactu/declaracion-responsable.ts: no editar a mano. -->
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://www.kuentas.eu/verifactu.html">
+<link rel="canonical" href="https://kuentas.eu/verifactu.html">
 <link rel="icon" type="image/png" sizes="32x32" href="https://res.cloudinary.com/dyzzzlbfu/image/upload/v1775820232/Favic%C3%B3n_Kuentas_transparente_lnyh45.png">
 <style>
 body{font-family:'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;color:#1f2937;line-height:1.7;font-size:17px;background:#fff;margin:0}
