@@ -5,13 +5,13 @@
 // garantizar la coincidencia 1:1 con el bloque SistemaInformatico que viaja en
 // cada registro de facturación (art. 10.1.l RRSIF).
 //
-// ESTADO (1-nov-2026): texto revisado por el asesor (OK comunicado por Iván el
-// 23-oct-2026) y productor con NIF e inscripción. Solo falta la SUSCRIPCIÓN
-// (lugar, fecha y firmante): mientras `SUSCRIPCION_DECLARACION` no esté
-// completa o `DECLARACION_ES_BORRADOR` sea true, toda salida (página, PDF,
-// texto) lleva de forma destacada la marca de borrador y NO debe entregarse a
-// clientes. Server-only (la cadena de imports llega a node:crypto vía
-// registro-alta).
+// ESTADO (1-nov-2026): SUSCRITA. Texto revisado por el asesor (OK comunicado
+// por Iván el 23-oct-2026), productor con NIF e inscripción y suscripción en
+// SUSCRIPCION_DECLARACION. Si un cambio la devolviera a borrador (suscripción
+// incompleta o DECLARACION_ES_BORRADOR = true), toda salida (página, PDF,
+// texto) llevaría de forma destacada la marca de borrador. Cada nueva versión
+// del componente de facturación exige una declaración nueva. Server-only (la
+// cadena de imports llega a node:crypto vía registro-alta).
 
 import { sistemaInformaticoKuentas } from './registro-alta.ts'
 import {
@@ -21,8 +21,8 @@ import {
   productorSifConfigurado,
 } from './productor-sif.ts'
 
-/** true hasta que Iván suscriba la versión definitiva. */
-export const DECLARACION_ES_BORRADOR = true
+/** true hasta que Iván suscriba la versión definitiva (suscrita el 1-nov-2026). */
+export const DECLARACION_ES_BORRADOR = false
 
 /** Suscripción de la declaración (art. 15.1.l Orden): se rellena al firmar. */
 export interface SuscripcionDeclaracion {
@@ -35,11 +35,12 @@ export interface SuscripcionDeclaracion {
   cargo: string
 }
 
+// Firmante y fecha confirmados por Iván en el chat el 1-nov-2026.
 export const SUSCRIPCION_DECLARACION: Readonly<SuscripcionDeclaracion> = Object.freeze({
-  lugar: '',
-  fecha: '',
-  firmante: '',
-  cargo: '',
+  lugar: 'Madrid',
+  fecha: '2026-11-01',
+  firmante: 'Iván Escudero Salas',
+  cargo: 'administrador solidario',
 })
 
 const MESES = [

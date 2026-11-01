@@ -1,6 +1,7 @@
 # V19 · Declaración responsable del SIF Kuentas
 
-**Estado: BORRADOR — pendiente de [REVISIÓN IVAN/ASESOR]. No suscrita, no publicable.**
+**Estado: SUSCRITA el 1-nov-2026 en Madrid por Iván Escudero Salas, administrador solidario de
+MILBROTES, S.L. (versión 1.0.0).** Ver «Historial» al final.
 
 ## Base legal
 
@@ -50,17 +51,16 @@ facturación ⇒ subir `version` en `sistemaInformaticoKuentas()` ⇒ la declara
 sola, pero debe **volver a suscribirse** (fecha/lugar/firmante nuevos) y archivarse la
 anterior (13.3: hay que conservar las declaraciones de TODAS las versiones).
 
-## Pendiente de Iván / asesor antes de publicar
+## Historial
 
-1. Confirmar `IdSistemaInformatico` = `01` (estable entre versiones).
-2. Confirmar la dirección postal de contacto del productor (Milbrotes S.L.: SBC Villa El Viso,
-   Calle Belalcázar 14, 28006 Madrid).
-2bis. Día D: rellenar `PRODUCTOR_SIF.nif` ({{MILBROTES_CIF}}) y `registroMercantil`
-   ({{MILBROTES_REGISTRO}}) en `lib/verifactu/productor-sif.ts` y aplicar la migración
-   `20261016100000_sif_productor_milbrotes.sql`.
-3. Revisión jurídica del texto completo por el asesor (borrador técnico, no asesoría).
-4. Fecha, lugar y firmante de la suscripción (al ratificar la versión definitiva).
-5. Valorar mención expresa del ámbito de conformidad (territorio común; TicketBAI fuera).
-6. Al ratificar: poner `DECLARACION_ES_BORRADOR = false` en
-   `lib/verifactu/declaracion-responsable.ts` (retira banners/marca de agua y el `noindex`),
-   archivar el PDF suscrito y publicar la página en kuentas.eu al salir de mantenimiento.
+- 30-oct-2026: `PRODUCTOR_SIF` con el NIF B05772710 y la inscripción (RM de Madrid, hoja
+  M-899621, 1.ª). La migración `20261016100000_sif_productor_milbrotes.sql` se aplica con el
+  despliegue del código que la usa.
+- 1-nov-2026: razón social y domicilio como en la comunicación del NIF de la AEAT y el art. 3
+  de los estatutos («MILBROTES, S.L.», Calle Belalcázar, 14, 28006 Madrid). `IdSistemaInformatico`
+  `01`, estable entre versiones. Texto revisado por el asesor (OK comunicado por Iván el
+  23-oct-2026). Suscrita: `SUSCRIPCION_DECLARACION` (Madrid, 2026-11-01, Iván Escudero Salas,
+  administrador solidario) y `DECLARACION_ES_BORRADOR = false`. Sin suscripción completa la
+  declaración vuelve a salir como borrador aunque el indicador esté a false (test V19).
+- Pendiente: archivar el PDF suscrito de la v1.0.0 (13.3 RRSIF) y publicar `verifactu.html` en
+  kuentas.eu con el mismo texto al salir de mantenimiento.
