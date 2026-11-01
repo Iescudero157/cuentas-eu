@@ -132,6 +132,8 @@ export interface OpcionesEmision {
   tipoFactura?: TipoFactura
   /** Causa de exención E1-E8 si la operación va exenta de IVA. */
   operacionExenta?: OperacionExenta
+  /** Solo tests: «hoy» en España (`aaaa-mm-dd`). Por defecto, hoyEnEspana(). */
+  hoy?: string
 }
 
 export type ResultadoEmision =
@@ -184,6 +186,20 @@ const NUM_PROVISIONAL = 'F-0000-000000'
 // Funciones puras (testeables sin base de datos)
 // ---------------------------------------------------------------------------
 
+/**
+ * Fecha de hoy en España peninsular (`aaaa-mm-dd`): la referencia con la que la
+ * AEAT valida la fecha de expedición. Los servidores (Vercel) van en UTC, así
+ * que no vale `new Date().toISOString()` entre las 0:00 y las 2:00 en España.
+ */
+export function hoyEnEspana(ahora: Date = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Madrid',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(ahora)
+}
+
 /** Mapea la fila de `invoices` al modelo del adaptador factura-app. */
 export function filaAFacturaApp(inv: FilaInvoice, numSerie: string): FacturaApp {
   return {
@@ -211,6 +227,19 @@ export function prepararEntradaAlta(
   opciones: OpcionesEmision = {},
   rectificada?: Pick<FilaInvoice, 'numero_fiscal' | 'date' | 'subtotal' | 'iva'> | null
 ): EntradaRegistroAlta {
+  // La AEAT rechaza el registro si la fecha de expedición es posterior a la
+  // fecha actual (error 1112), y el registro ya habría entrado en la cadena:
+  // se corta aquí, antes de reservar número.
+  const fecha = String(invoice.date ?? '').slice(0, 10)
+  const hoy = opciones.hoy ?? hoyEnEspana()
+  if (fecha > hoy) {
+    throw new ErrorEmision(
+      'fecha_futura',
+      `La fecha de la factura (${fecha}) es posterior a hoy (${hoy}). La AEAT no admite facturas con fecha ` +
+        'de expedición futura: emítela el día que corresponda.'
+    )
+  }
+
   const esRectificativa = invoice.rectifica_invoice_id !== null || /^R[1-5]$/.test(opciones.tipoFactura ?? '')
   const tipoGuardado = invoice.tipo_factura && /^R[1-5]$/.test(invoice.tipo_factura)
     ? (invoice.tipo_factura as TipoFactura)
