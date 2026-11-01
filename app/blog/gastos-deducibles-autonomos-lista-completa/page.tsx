@@ -257,8 +257,8 @@ export default function GastosDeduciblesPage() {
           <div className="mt-8 rounded-2xl bg-[#2A5AAE]/5 border border-[#2A5AAE]/10 p-6">
             <p className="text-sm font-semibold text-[#2A5AAE] mb-2">¿Cansado de guardar facturas en carpetas?</p>
             <p className="text-sm text-gray-600 mb-4">
-              KUENTAS.EU registra y categoriza automáticamente todos tus gastos desde el banco.
-              Nada de Excel, nada de escáneres. Al final del trimestre, ya tienes el IVA calculado.
+              KUENTAS.EU categoriza automáticamente los gastos que importas desde el CSV de tu banco
+              o escaneas con el móvil. Nada de Excel. Al final del trimestre, ya tienes el IVA calculado.
             </p>
             <Link
               href="/dashboard"

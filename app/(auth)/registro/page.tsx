@@ -251,7 +251,7 @@ function _RegistroPageOriginal() {
           </p>
           <div className="space-y-3 text-left">
             {[
-              "Conexion bancaria automatica via Open Banking",
+              "Importacion de movimientos por CSV",
               "Categorizacion IA de gastos",
               "Estimacion IVA + IRPF en tiempo real",
               "Facturas legales con numeracion",

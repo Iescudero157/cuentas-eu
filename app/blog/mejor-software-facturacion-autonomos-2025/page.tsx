@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, CheckCircle, X, Clock, Star } from "lucide-react";
+import { ArrowRight, CheckCircle, X, Clock } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "El mejor software de facturación para autónomos en 2025 (comparativa honesta)",
@@ -84,7 +84,6 @@ interface Software {
   ventaja: string;
   desventaja: string;
   paraquien: string;
-  puntuacion: number;
   features: {
     facturacion: CheckVal;
     iva_automatico: CheckVal;
@@ -102,16 +101,15 @@ const softwares: Software[] = [
     nombre: "Kuentas.eu",
     precio: "Desde 9,99 €/mes",
     descripcion:
-      "Diseñado exclusivamente para autónomos españoles. Conecta el banco, categoriza gastos con IA, calcula el IVA e IRPF en tiempo real y avisa antes de cada declaración trimestral.",
+      "Diseñado exclusivamente para autónomos españoles. Importa los movimientos del banco por CSV, categoriza gastos con IA, calcula el IVA e IRPF en tiempo real y avisa antes de cada declaración trimestral.",
     ventaja: "IA integrada para categorización y alertas fiscales automáticas. El más centrado en autónomos unipersonales.",
-    desventaja: "No tiene módulo de nóminas ni contabilidad avanzada para empresas.",
+    desventaja: "No tiene conexión bancaria automática (los movimientos se importan por CSV) ni módulo de nóminas ni contabilidad avanzada para empresas.",
     paraquien: "Autónomos personas físicas que quieren control financiero sin tocar hojas de Excel.",
-    puntuacion: 4.8,
     features: {
       facturacion: true,
       iva_automatico: true,
       irpf_automatico: true,
-      conexion_banco: true,
+      conexion_banco: false,
       ia_categorizacion: true,
       alertas_fiscales: true,
       app_movil: true,
@@ -120,13 +118,12 @@ const softwares: Software[] = [
   },
   {
     nombre: "Holded",
-    precio: "Desde 14 €/mes",
+    precio: "Consulta el precio en su web",
     descripcion:
       "ERP completo para pymes y autónomos. Cubre facturación, contabilidad, CRM, inventario y proyectos. Muy completo pero más orientado a empresas que a freelancers.",
     ventaja: "Muy completo para negocios con empleados o inventario. Buena integración con bancos.",
     desventaja: "Precio más alto y curva de aprendizaje mayor. Excesivo para un autónomo unipersonal.",
     paraquien: "Pequeñas empresas o autónomos con equipo y necesidades contables avanzadas.",
-    puntuacion: 4.3,
     features: {
       facturacion: true,
       iva_automatico: true,
@@ -140,13 +137,12 @@ const softwares: Software[] = [
   },
   {
     nombre: "Billin",
-    precio: "Gratis (limitado) / 9 €/mes",
+    precio: "Consulta el precio en su web",
     descripcion:
       "Uno de los programas de facturación más populares en España. Interfaz sencilla, plan gratuito con facturas ilimitadas y opciones básicas de control de gastos.",
     ventaja: "Plan gratuito generoso. Muy fácil de usar para empezar. Sin curva de aprendizaje.",
     desventaja: "Sin conexión bancaria real, sin cálculo automático de IVA ni alertas de Hacienda.",
     paraquien: "Autónomos que solo necesitan emitir facturas y llevar un registro básico.",
-    puntuacion: 3.9,
     features: {
       facturacion: true,
       iva_automatico: false,
@@ -160,13 +156,12 @@ const softwares: Software[] = [
   },
   {
     nombre: "Contasimple",
-    precio: "Gratis (limitado) / 8,25 €/mes",
+    precio: "Consulta el precio en su web",
     descripcion:
       "Especialmente orientado a autónomos en régimen de estimación directa simplificada. Gestión de facturas, libros contables y modelos de Hacienda.",
     ventaja: "Incluye plantillas para modelos de Hacienda (303, 130, 111). Muy enfocado en lo fiscal.",
     desventaja: "Interfaz más antigua. Sin conexión bancaria automática ni IA de categorización.",
     paraquien: "Autónomos que buscan ayuda con los modelos de Hacienda a bajo precio.",
-    puntuacion: 3.7,
     features: {
       facturacion: true,
       iva_automatico: "partial",
@@ -180,13 +175,12 @@ const softwares: Software[] = [
   },
   {
     nombre: "Suma.es (antes Anfix)",
-    precio: "Desde 19,90 €/mes",
+    precio: "Consulta el precio en su web",
     descripcion:
       "Software de contabilidad y facturación con asistencia de gestores. Combina herramienta digital con acceso a asesores que revisan la contabilidad.",
     ventaja: "Incluye soporte de gestores reales. Buena opción si quieres asesoría incluida.",
     desventaja: "Precio más alto. La parte de software es menos intuitiva que alternativas modernas.",
     paraquien: "Autónomos que quieren gestoría + software en un mismo servicio.",
-    puntuacion: 3.8,
     features: {
       facturacion: true,
       iva_automatico: "partial",
@@ -218,22 +212,6 @@ function FeatureIcon({ val }: { val: CheckVal }) {
       <span className="text-amber-500 text-xs font-bold mx-auto block text-center">Parcial</span>
     );
   return <X className="w-4 h-4 text-gray-300 mx-auto" />;
-}
-
-function Stars({ n }: { n: number }) {
-  return (
-    <div className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((i) => (
-        <Star
-          key={i}
-          className={`w-3.5 h-3.5 ${
-            i <= Math.floor(n) ? "text-amber-400 fill-amber-400" : "text-gray-200 fill-gray-200"
-          }`}
-        />
-      ))}
-      <span className="text-xs font-semibold text-gray-700 ml-1">{n}</span>
-    </div>
-  );
 }
 
 export default function MejorSoftwarePage() {
@@ -271,8 +249,8 @@ export default function MejorSoftwarePage() {
         </h1>
         <p className="text-xl text-gray-500 leading-relaxed mb-10">
           Hay decenas de opciones, todas prometen lo mismo y los precios van desde cero hasta más
-          de veinte euros al mes. He probado las principales. Aquí está lo que nadie te dice en los
-          anuncios.
+          de veinte euros al mes. Esta comparativa repasa las principales a partir de lo que publican
+          en sus webs y de lo que hace cada una.
         </p>
 
         {/* Índice */}
@@ -366,7 +344,6 @@ export default function MejorSoftwarePage() {
                     <p className={`text-sm font-semibold ${idx === 0 ? "text-white" : "text-[#2A5AAE]"}`}>
                       {sw.precio}
                     </p>
-                    <Stars n={sw.puntuacion} />
                   </div>
                 </div>
                 <div className="p-6">
@@ -493,10 +470,10 @@ export default function MejorSoftwarePage() {
               },
               {
                 situacion:
-                  "Quiero conectar el banco y tener todo automatizado sin tocar nada",
+                  "Quiero que los gastos se clasifiquen solos y que me avisen de cada plazo",
                 recomendacion: "Kuentas.eu",
                 razon:
-                  "Es el único de esta lista diseñado específicamente para autónomos con IA de categorización de gastos, conexión bancaria real y alertas automáticas antes de cada trimestre.",
+                  "Es el único de esta lista diseñado específicamente para autónomos con IA de categorización de gastos y alertas automáticas antes de cada trimestre. Los movimientos del banco se importan por CSV: no hay conexión bancaria automática.",
               },
             ].map((item) => (
               <div key={item.situacion} className="border border-gray-100 rounded-xl p-5">
@@ -529,8 +506,8 @@ export default function MejorSoftwarePage() {
             trimestre, sumas y rezas.
           </p>
           <p className="text-gray-600 leading-relaxed mb-4">
-            Kuentas funciona al revés: conecta el banco desde el primer día y sabe en tiempo real
-            cuánto debes a Hacienda. Antes de que llegue el día 20, ya sabes el número. Antes de
+            Kuentas funciona al revés: registra cada movimiento (importado del banco por CSV, escaneado
+            o a mano) y sabe en tiempo real cuánto debes a Hacienda. Antes de que llegue el día 20, ya sabes el número. Antes de
             presentar el 303, ya tienes el resumen preparado. No hay sorpresas.
           </p>
 
@@ -543,7 +520,7 @@ export default function MejorSoftwarePage() {
               },
               {
                 titulo: "IA que categoriza",
-                desc: "Cada movimiento bancario queda clasificado automáticamente como ingreso, gasto deducible o personal.",
+                desc: "Cada movimiento que importas queda clasificado automáticamente como ingreso, gasto deducible o personal.",
                 icono: "🤖",
               },
               {
@@ -566,18 +543,18 @@ export default function MejorSoftwarePage() {
           <div className="text-center">
             <p className="text-sm font-semibold text-white/70 mb-2">KUENTAS.EU</p>
             <h3 className="text-2xl font-bold mb-3">
-              Pruébalo sin compromiso
+              Empieza sin compromiso
             </h3>
             <p className="text-white/80 text-sm leading-relaxed mb-6 max-w-md mx-auto">
-              Catorce días gratis, sin tarjeta de crédito. Conecta el banco, crea tu primera
-              factura y mira cómo el IVA se calcula solo. Si no te convence, no pagas nada.
+              Plan gratuito con hasta 5 facturas al mes, sin tarjeta de crédito. Importa tus movimientos,
+              crea tu primera factura y mira cómo el IVA se calcula solo. Si no te convence, no pagas nada.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 href="https://app.kuentas.eu/registro"
                 className="inline-flex items-center justify-center gap-2 bg-[#4ECB71] text-gray-900 font-bold px-6 py-3 rounded-xl hover:opacity-90 transition"
               >
-                Empezar prueba gratuita <ArrowRight className="w-5 h-5" />
+                Empezar gratis <ArrowRight className="w-5 h-5" />
               </Link>
               <Link
                 href="/dashboard"

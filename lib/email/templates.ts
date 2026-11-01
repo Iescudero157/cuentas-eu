@@ -45,7 +45,7 @@ export function fiscalAlertTemplate(data: FiscalAlertEmail) {
     </p>
 
     <div style="text-align: center; margin: 32px 0;">
-      <a href="https://app.cuentas.eu/dashboard"
+      <a href="https://app.kuentas.eu/dashboard"
          style="background: #2A5AAE; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">
         Ver mi dashboard
       </a>

@@ -242,7 +242,7 @@ export default function BlogIndexPage() {
         <h2 className="text-2xl font-bold mb-3">¿Cansado de calcular impuestos a mano?</h2>
         <p className="text-white/80 mb-6 max-w-lg mx-auto">
           KUENTAS.EU automatiza el IVA, el IRPF y la facturación para que tú te centres en tu
-          negocio. Prueba gratis, sin tarjeta de crédito.
+          negocio. Plan gratuito, sin tarjeta de crédito.
         </p>
         <Link
           href="https://app.kuentas.eu/registro"

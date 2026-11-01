@@ -81,7 +81,7 @@ function InlineCTA() {
       <p className="text-xs font-semibold uppercase tracking-wider text-white/60 mb-2">KUENTAS.EU</p>
       <h3 className="text-xl font-bold mb-3">Detecta gastos deducibles que se te escapan</h3>
       <p className="text-white/80 text-sm leading-relaxed mb-5">
-        Conecta tu banco y la IA de Kuentas clasifica cada gasto automáticamente: deducible,
+        Importa tus movimientos y la IA de Kuentas clasifica cada gasto automáticamente: deducible,
         parcialmente deducible o personal. Ves en tiempo real cuánto te ahorras en cada
         trimestre.
       </p>
@@ -518,7 +518,7 @@ export default function GastosDeduciblesPage() {
             Para de pagar más impuestos de los que debes
           </h3>
           <p className="text-white/80 text-sm leading-relaxed mb-6 max-w-md mx-auto">
-            Kuentas conecta tu banco, identifica automáticamente tus gastos deducibles y te
+            Kuentas importa tus movimientos por CSV, identifica automáticamente tus gastos deducibles y te
             muestra cuánto te ahorras en cada trimestre. Sin gestores, sin hojas de Excel, sin
             sustos al final del año.
           </p>

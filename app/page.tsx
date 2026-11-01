@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  CreditCard,
+  Upload,
   BarChart3,
   FileText,
   Brain,
@@ -11,22 +11,21 @@ import {
   Check,
   ArrowRight,
   ChevronDown,
-  Star,
 } from "lucide-react";
 import LandingNav from "./_components/LandingNav";
 
 export const metadata: Metadata = {
   title: "KUENTAS.EU — App Gestión Financiera con IA para Autónomos Españoles",
   description:
-    "Conecta tu banco, calcula IVA y IRPF en tiempo real, crea facturas legales y predice tu cash flow. La app financiera pensada para autónomos españoles. Prueba gratis.",
+    "Importa tus movimientos por CSV, calcula IVA y IRPF en tiempo real, crea facturas legales y predice tu cash flow. La app financiera pensada para autónomos españoles. Plan gratuito disponible.",
   alternates: { canonical: "https://app.kuentas.eu" },
 };
 
 const features = [
   {
-    icon: CreditCard,
-    title: "Conexión bancaria automática",
-    desc: "Conecta BBVA, Santander, CaixaBank y más vía Open Banking. Tus movimientos se importan solos.",
+    icon: Upload,
+    title: "Importación CSV y escáner de tickets",
+    desc: "Sube el extracto CSV de tu banco (fecha, concepto, importe) o fotografía tickets y facturas: la IA extrae los datos y tú confirmas.",
     color: "bg-brand-blue",
   },
   {
@@ -76,30 +75,27 @@ const plans = [
     price: "9,99",
     desc: "Todo lo que necesitas",
     features: [
-      "Conexión bancaria",
+      "Importación CSV de movimientos",
       "IA categorización",
       "Estimación impuestos",
       "Facturas ilimitadas",
       "Alertas fiscales",
       "Soporte prioritario",
     ],
-    cta: "Empezar prueba gratis",
+    cta: "Elegir plan",
     href: "/precios#autonomo",
     highlighted: true,
   },
   {
     name: "Creator",
     price: "19,99",
-    desc: "Para creadores de contenido",
+    desc: "Con previsión de caja",
     features: [
       "Todo de Autónomo",
-      "YouTube, Twitch, Etsy...",
-      "Multi-moneda",
-      "Cash flow forecast",
-      "Tax savings finder",
-      "Dashboard creador",
+      "Cash flow forecast (3 meses)",
+      "Exportación CSV y PDF para tu gestoría",
     ],
-    cta: "Empezar prueba gratis",
+    cta: "Elegir plan",
     href: "/precios#creator",
     highlighted: false,
   },
@@ -109,11 +105,7 @@ const plans = [
     desc: "Para profesionales",
     features: [
       "Todo de Creator",
-      "Multi-usuario",
-      "P&L por proyecto",
-      "API acceso",
-      "Export gestoría",
-      "Account manager",
+      "Soporte por email",
     ],
     cta: "Contactar ventas",
     href: "mailto:hola@kuentas.eu",
@@ -124,9 +116,9 @@ const plans = [
 const howItWorks = [
   {
     step: "01",
-    emoji: "🏦",
-    title: "Conecta tu banco",
-    desc: "Open Banking regulado (PSD2). Solo lectura, tus credenciales nunca se almacenan. Listo en 2 minutos.",
+    emoji: "📥",
+    title: "Importa tus movimientos",
+    desc: "Sube el CSV que descargas de tu banco o escanea tickets y facturas con la cámara. También puedes registrarlos a mano.",
   },
   {
     step: "02",
@@ -142,44 +134,17 @@ const howItWorks = [
   },
 ];
 
-const banks = ["BBVA", "Santander", "CaixaBank", "Sabadell", "Bankinter", "ING", "Openbank"];
-
 const comparison = [
   { task: "Categorizar gastos", gestor: "Manual o lo haces tú", kuentas: "IA automática" },
   { task: "Calcular IVA trimestral", gestor: "Al final del trimestre", kuentas: "Diario, en tiempo real" },
   { task: "Alertas de plazos fiscales", gestor: "Depende de tu gestor", kuentas: "Automáticas, siempre" },
   { task: "Crear facturas legales", gestor: "Software aparte o PDF", kuentas: "Integrado en la app" },
-  { task: "Coste mensual", gestor: "150 – 200 €/mes", kuentas: "Desde 9,99 €/mes" },
-];
-
-const testimonials = [
-  {
-    name: "Carlos M.",
-    role: "Consultor IT · Madrid",
-    text: "Antes perdía 3-4 horas al trimestre con el IVA en Excel. Ahora KUENTAS lo calcula en tiempo real. La conexión bancaria es lo mejor que he probado.",
-    plan: "Plan Autónomo",
-    rating: 5,
-  },
-  {
-    name: "Laura S.",
-    role: "Fotógrafa freelance · Barcelona",
-    text: "No entiendo de contabilidad y no hace falta. La IA categoriza todo sola y me avisa cuando se acerca el modelo 130. Un alivio enorme.",
-    plan: "Plan Autónomo",
-    rating: 5,
-  },
-  {
-    name: "Javier R.",
-    role: "Creador de contenido · Valencia",
-    text: "Tengo ingresos de YouTube, Twitch y Patreon en distintas monedas. Por fin una app que lo junta todo y me dice exactamente cuánto debo a Hacienda.",
-    plan: "Plan Creator",
-    rating: 5,
-  },
 ];
 
 const faqs = [
   {
-    q: "¿Es seguro conectar mi banco?",
-    a: "Sí. Utilizamos Open Banking regulado por el Banco de España bajo la directiva PSD2. Nunca almacenamos tus credenciales bancarias. El acceso es de solo lectura: podemos ver tus movimientos, pero nunca mover dinero.",
+    q: "¿Cómo entran mis movimientos bancarios en KUENTAS.EU?",
+    a: "Importándolos desde el fichero CSV que descargas de tu banca online (columnas fecha, concepto e importe), escaneando tickets y facturas con la cámara o registrándolos a mano. KUENTAS.EU no se conecta a tu banco: nunca te pide ni almacena tus credenciales bancarias.",
   },
   {
     q: "¿Necesito saber de contabilidad para usarlo?",
@@ -187,7 +152,7 @@ const faqs = [
   },
   {
     q: "¿Sustituye a mi gestoría?",
-    a: "Para la gestión diaria del negocio, sí. Para la declaración de la Renta anual o situaciones complejas, recomendamos un asesor. KUENTAS.EU exporta todo preparado para que tu gestor tarde minutos, no horas.",
+    a: "No. KUENTAS.EU es un software, no una gestoría: ordena tus facturas y gastos y te da una previsión orientativa del IVA y del IRPF. La presentación de los modelos y el asesoramiento siguen siendo cosa tuya o de tu asesor, que recibe todo exportado en CSV o PDF.",
   },
   {
     q: "¿Qué pasa con mis datos si cancelo?",
@@ -195,7 +160,7 @@ const faqs = [
   },
   {
     q: "¿Funciona para todo tipo de autónomos?",
-    a: "Sí: estimación directa simplificada y normal, y módulos. Cubre tanto el Régimen General como el Simplificado del IVA, con soporte para modelos 303 y 130.",
+    a: "Está pensado para autónomos en estimación directa (simplificada o normal) con IVA en régimen general: calcula previsiones orientativas de los modelos 303 y 130. No calcula módulos (estimación objetiva) ni el régimen simplificado del IVA.",
   },
 ];
 
@@ -208,7 +173,7 @@ const jsonLdSoftware = {
   url: "https://app.kuentas.eu",
   installUrl: "https://play.google.com/store/apps/details?id=eu.kuentas.app",
   description:
-    "App con IA para autónomos españoles. Calcula IVA y IRPF en tiempo real, crea facturas legales, conecta tu banco y predice tu cash flow.",
+    "App con IA para autónomos españoles. Calcula IVA y IRPF en tiempo real, crea facturas legales, importa tus movimientos por CSV y predice tu cash flow.",
   offers: {
     "@type": "Offer",
     price: "0",
@@ -220,14 +185,8 @@ const jsonLdSoftware = {
       billingDuration: "P1M",
     },
   },
-  aggregateRating: {
-    "@type": "AggregateRating",
-    ratingValue: "4.8",
-    reviewCount: "47",
-    bestRating: "5",
-  },
   featureList: [
-    "Conexión bancaria Open Banking PSD2",
+    "Importación de movimientos por CSV y escáner OCR de tickets",
     "Categorización automática con IA",
     "Cálculo IVA tiempo real (Modelo 303)",
     "Cálculo IRPF (Modelo 130)",
@@ -243,10 +202,10 @@ const jsonLdFaq = {
   mainEntity: [
     {
       "@type": "Question",
-      name: "¿Es seguro conectar mi banco a KUENTAS.EU?",
+      name: "¿Cómo entran mis movimientos bancarios en KUENTAS.EU?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Sí. Utilizamos Open Banking regulado por el Banco de España bajo la directiva PSD2. Nunca almacenamos tus credenciales bancarias. El acceso es de solo lectura.",
+        text: "Importándolos desde el fichero CSV que descargas de tu banca online, escaneando tickets y facturas con la cámara o registrándolos a mano. KUENTAS.EU no se conecta a tu banco ni almacena tus credenciales bancarias.",
       },
     },
     {
@@ -262,7 +221,7 @@ const jsonLdFaq = {
       name: "¿KUENTAS.EU sustituye a mi gestoría?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Para la gestión diaria del negocio, sí. Para la declaración de la Renta anual recomendamos un asesor. KUENTAS.EU exporta todo preparado para que tu gestor tarde minutos, no horas.",
+        text: "No. KUENTAS.EU es un software, no una gestoría: ordena tus facturas y gastos y te da una previsión orientativa del IVA y del IRPF. La presentación de los modelos y el asesoramiento siguen siendo cosa tuya o de tu asesor, que recibe todo exportado en CSV o PDF.",
       },
     },
     {
@@ -270,7 +229,7 @@ const jsonLdFaq = {
       name: "¿Cuánto cuesta KUENTAS.EU?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Hay un plan gratuito para empezar. El plan Autónomo cuesta 9,99€/mes e incluye conexión bancaria, IA de categorización, impuestos en tiempo real y facturas ilimitadas.",
+        text: "Hay un plan gratuito para empezar (hasta 5 facturas al mes). El plan Autónomo cuesta 9,99€/mes e incluye facturas ilimitadas, IA de categorización, impuestos en tiempo real, escáner OCR e importación CSV.",
       },
     },
     {
@@ -278,7 +237,7 @@ const jsonLdFaq = {
       name: "¿Funciona para todo tipo de autónomos?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Sí. Cubre estimación directa simplificada y normal, y módulos. Soporta modelos 303 y 130 tanto en Régimen General como Simplificado.",
+        text: "Está pensado para autónomos en estimación directa (simplificada o normal) con IVA en régimen general: calcula previsiones orientativas de los modelos 303 y 130. No calcula módulos ni el régimen simplificado del IVA.",
       },
     },
   ],
@@ -332,7 +291,7 @@ export default function LandingPage() {
               <span className="text-brand-blue">Todas tus cuentas, en una app.</span>
             </h1>
             <p className="mt-6 text-lg md:text-xl text-brand-muted max-w-2xl mx-auto">
-              Conecta tu banco, categoriza gastos con IA, estima impuestos en tiempo real, factura en
+              Importa tus movimientos, categoriza gastos con IA, estima impuestos en tiempo real, factura en
               segundos y predice tu cash flow. Diseñada para autónomos españoles.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -415,84 +374,6 @@ export default function LandingPage() {
               </div>
               {/* Fade bottom edge */}
               <div className="h-12 bg-gradient-to-b from-transparent to-white -mt-12 relative z-10" />
-            </div>
-          </div>
-        </section>
-
-        {/* Bank logos strip */}
-        <div className="border-y border-brand-border py-8 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <p className="text-center text-xs text-brand-muted uppercase tracking-widest font-semibold mb-5">
-              Compatible con los principales bancos españoles
-            </p>
-            <div className="flex flex-wrap items-center justify-center gap-3 md:gap-5">
-              {banks.map((bank) => (
-                <span
-                  key={bank}
-                  className="px-4 py-2 rounded-lg border border-brand-border bg-brand-gray text-sm font-semibold text-brand-muted hover:border-brand-blue/30 hover:text-brand-blue transition"
-                >
-                  {bank}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ── Stats: Datos de autónomos en España ── */}
-        <section className="py-20 bg-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-14">
-              <span className="inline-block bg-rose-50 text-rose-600 text-xs font-bold px-4 py-1.5 rounded-full uppercase tracking-widest mb-4">
-                El problema que resolvemos
-              </span>
-              <h2 className="text-3xl md:text-4xl font-bold text-brand-text">
-                3,3 millones de autónomos en España<br className="hidden md:block" />
-                merecen algo mejor
-              </h2>
-              <p className="mt-4 text-lg text-brand-muted max-w-2xl mx-auto">
-                La burocracia fiscal lastra a los profesionales más dinámicos del país. Hasta ahora.
-              </p>
-            </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
-              {[
-                {
-                  value: "3,3M",
-                  label: "autónomos activos en España",
-                  emoji: "👥",
-                  accent: "text-brand-blue",
-                  bg: "border-brand-blue/20 bg-brand-blue/[0.03]",
-                },
-                {
-                  value: "180€",
-                  label: "al mes de media en gestorías",
-                  emoji: "💸",
-                  accent: "text-rose-600",
-                  bg: "border-rose-200 bg-rose-50/50",
-                },
-                {
-                  value: "48 h",
-                  label: "anuales perdidas en trámites fiscales",
-                  emoji: "⏰",
-                  accent: "text-amber-600",
-                  bg: "border-amber-200 bg-amber-50/50",
-                },
-                {
-                  value: "2.160€",
-                  label: "ahorrados de media al año con KUENTAS.EU",
-                  emoji: "💡",
-                  accent: "text-emerald-600",
-                  bg: "border-emerald-200 bg-emerald-50/50",
-                },
-              ].map((s) => (
-                <div
-                  key={s.label}
-                  className={`rounded-2xl p-7 border-2 text-center transition hover:-translate-y-1 hover:shadow-md duration-200 ${s.bg}`}
-                >
-                  <div className="text-4xl mb-3">{s.emoji}</div>
-                  <div className={`text-4xl md:text-5xl font-extrabold mb-2 ${s.accent}`}>{s.value}</div>
-                  <p className="text-sm text-brand-muted leading-snug">{s.label}</p>
-                </div>
-              ))}
             </div>
           </div>
         </section>
@@ -650,7 +531,7 @@ export default function LandingPage() {
                 Listo en 3 minutos, sin formación
               </h2>
               <p className="mt-4 text-lg text-brand-muted max-w-xl mx-auto">
-                Sin importaciones manuales. Sin curva de aprendizaje. Sin contratos anuales.
+                Sin curva de aprendizaje. Sin contratos anuales.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
@@ -743,9 +624,6 @@ export default function LandingPage() {
                   </tbody>
                 </table>
               </div>
-              <p className="text-center text-xs text-brand-muted mt-3">
-                Ahorra hasta <strong className="text-brand-text">190€/mes</strong> frente a una gestoría tradicional
-              </p>
             </div>
 
             {/* Plan cards */}
@@ -788,45 +666,6 @@ export default function LandingPage() {
                   >
                     {plan.cta}
                   </Link>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Testimonials */}
-        <section className="py-20 bg-brand-gray">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-brand-text">
-                Lo que dicen nuestros usuarios
-              </h2>
-              <p className="mt-4 text-lg text-brand-muted">
-                Autónomos reales que gestionan sus finanzas con KUENTAS.EU
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {testimonials.map((t) => (
-                <div
-                  key={t.name}
-                  className="bg-white rounded-2xl p-8 shadow-sm border border-brand-border/50 flex flex-col"
-                >
-                  {/* Stars */}
-                  <div className="flex gap-1 mb-4">
-                    {Array.from({ length: t.rating }).map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-brand-text text-sm leading-relaxed flex-1">&ldquo;{t.text}&rdquo;</p>
-                  <div className="mt-6 pt-5 border-t border-brand-border/50 flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold text-brand-text text-sm">{t.name}</p>
-                      <p className="text-xs text-brand-muted mt-0.5">{t.role}</p>
-                    </div>
-                    <span className="text-xs bg-brand-blue/10 text-brand-blue font-semibold px-2.5 py-1 rounded-full">
-                      {t.plan}
-                    </span>
-                  </div>
                 </div>
               ))}
             </div>

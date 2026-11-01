@@ -86,7 +86,7 @@ export default async function Image() {
 
         {/* Features pills */}
         <div style={{ display: "flex", gap: "12px", marginTop: "40px", position: "relative", zIndex: 1, flexWrap: "wrap" }}>
-          {["Conexión bancaria", "IA categorización", "Modelo 303 auto", "Facturas legales"].map((f) => (
+          {["Importación CSV", "IA categorización", "Modelo 303 auto", "Facturas legales"].map((f) => (
             <div
               key={f}
               style={{
@@ -119,7 +119,7 @@ export default async function Image() {
           {[
             { label: "Ahorro vs gestoría", value: "190€/mes" },
             { label: "Desde", value: "9,99€/mes" },
-            { label: "Prueba", value: "Gratis" },
+            { label: "Plan gratuito", value: "0 €" },
           ].map((s) => (
             <div
               key={s.label}

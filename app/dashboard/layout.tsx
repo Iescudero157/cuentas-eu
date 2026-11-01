@@ -17,7 +17,6 @@ import {
   Users,
   Upload,
   Loader2,
-  Landmark,
   ShieldCheck,
 } from "lucide-react";
 import { useState } from "react";
@@ -32,7 +31,6 @@ const navItems = [
   { href: "/dashboard/impuestos", label: "Impuestos", icon: Calculator },
   { href: "/dashboard/cashflow", label: "Cash Flow", icon: BarChart3 },
   { href: "/dashboard/clientes", label: "Clientes", icon: Users },
-  { href: "/dashboard/banco", label: "Banco", icon: Landmark },
   { href: "/dashboard/importar", label: "Importar / OCR", icon: Upload },
   { href: "/dashboard/ajustes", label: "Ajustes", icon: Settings },
 ];

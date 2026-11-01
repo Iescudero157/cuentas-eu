@@ -18,7 +18,7 @@ export default function TerminosPage() {
         </Link>
 
         <h1 className="text-3xl font-bold text-brand-text mb-2">Terminos de Servicio</h1>
-        <p className="text-brand-muted mb-8">Ultima actualizacion: 15 de mayo de 2026</p>
+        <p className="text-brand-muted mb-8">Ultima actualizacion: 23 de octubre de 2026</p>
 
         <div className="prose prose-sm max-w-none text-brand-text space-y-6">
           <section>
@@ -77,11 +77,12 @@ export default function TerminosPage() {
           </section>
 
           <section>
-            <h2 className="text-xl font-bold mt-8 mb-3">6. Conexión bancaria</h2>
+            <h2 className="text-xl font-bold mt-8 mb-3">6. Movimientos bancarios</h2>
             <p className="text-brand-muted leading-relaxed">
-              La conexión bancaria utiliza Open Banking bajo la normativa PSD2 regulada por el Banco de España.
-              El acceso es de solo lectura: podemos consultar movimientos pero nunca realizar operaciones ni mover fondos.
-              Las credenciales bancarias nunca se almacenan en nuestros servidores.
+              KUENTAS.EU no se conecta a tu banco ni solicita ni almacena credenciales bancarias. Los movimientos
+              se incorporan a la Plataforma mediante la importación de ficheros CSV que el usuario descarga de su
+              entidad, el escaneo de tickets y facturas o el registro manual. La Plataforma no realiza operaciones
+              ni mueve fondos en ningún caso.
             </p>
           </section>
 

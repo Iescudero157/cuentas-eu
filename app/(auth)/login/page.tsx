@@ -210,10 +210,10 @@ function LoginForm() {
         <div className="max-w-md text-center text-white">
           <h2 className="text-3xl font-bold mb-4">Todas tus cuentas, en una app</h2>
           <p className="text-white/80 text-lg mb-8">
-            Conecta tu banco, categoriza gastos con IA, estima impuestos y factura. Todo en un solo sitio.
+            Importa tus movimientos, categoriza gastos con IA, estima impuestos y factura. Todo en un solo sitio.
           </p>
           <div className="grid grid-cols-2 gap-4 text-left">
-            {["Conexion bancaria", "IA integrada", "IVA + IRPF auto", "Facturas legales"].map((item) => (
+            {["Importacion CSV", "IA integrada", "IVA + IRPF auto", "Facturas legales"].map((item) => (
               <div key={item} className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
                 <p className="text-sm font-medium">{item}</p>
               </div>

@@ -265,7 +265,7 @@ export default function OnboardingPage() {
             <div className="bg-brand-gray rounded-xl p-5 text-left space-y-3">
               <p className="text-sm font-semibold text-brand-text">Próximos pasos recomendados:</p>
               {[
-                "Importa tus transacciones o conecta tu banco",
+                "Importa tus transacciones (CSV) o escanea tus tickets",
                 "Crea tu primera factura a un cliente",
                 "Revisa los próximos plazos fiscales en el dashboard",
               ].map((s, i) => (

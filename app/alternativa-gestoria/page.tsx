@@ -48,7 +48,7 @@ const incluye = [
   "Detector de gastos deducibles con IA",
   "Escaneo OCR de facturas y tickets",
   "Alertas de vencimientos fiscales",
-  "Importación de movimientos bancarios",
+  "Importación de movimientos bancarios por CSV",
   "Historial completo de declaraciones",
 ];
 
@@ -75,7 +75,7 @@ export default function AlternativaGestoriaPage() {
         <div className="max-w-5xl mx-auto flex items-center justify-between">
           <Link href="/" className="text-lg font-extrabold text-brand-blue tracking-tight">KUENTAS.EU</Link>
           <Link href="/registro" className="bg-brand-blue text-white text-sm font-bold px-5 py-2 rounded-lg hover:opacity-90 transition">
-            Prueba gratis
+            Empezar gratis
           </Link>
         </div>
       </header>
@@ -97,7 +97,7 @@ export default function AlternativaGestoriaPage() {
           href="/registro"
           className="inline-flex items-center gap-2 bg-brand-blue text-white font-bold px-8 py-4 rounded-xl hover:opacity-90 transition text-lg shadow-lg shadow-brand-blue/20"
         >
-          Prueba gratis — sin tarjeta <ArrowRight className="w-5 h-5" />
+          Empezar gratis — sin tarjeta <ArrowRight className="w-5 h-5" />
         </Link>
         <p className="mt-3 text-sm text-brand-muted">Sin tarjeta · Sin permanencia · Cancela cuando quieras</p>
       </section>
