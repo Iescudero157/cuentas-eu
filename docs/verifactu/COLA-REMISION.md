@@ -71,7 +71,9 @@ emisión (V07), usando el cliente SOAP mTLS de V09. Base legal: art. 16.1 RRSIF
   plan Hobby — con `* * * * *` el deploy entero FALLA, verificado 25-09-2026
   en el preview del PR #1); la cadencia por minuto se logra con Vercel Pro
   (restaurar `* * * * *`) o con el disparo externo
-  `scripts/verifactu-cron-externo.ps1`.
+  `scripts/verifactu-cron-externo.ps1` (el elegido: tarea
+  `KuentasVerifactu-Remision` en ARES2, secreto en la variable de usuario
+  `KUENTAS_CRON_SECRET`; se instala con `-Instalar` como administrador).
 - Estado: `GET /api/verifactu/estado-remision` (mismo Bearer): contadores de
   outbox/registros, pendiente más antiguo y situación por obligado (flujo,
   fallos, breaker).
@@ -83,9 +85,9 @@ emisión (V07), usando el cliente SOAP mTLS de V09. Base legal: art. 16.1 RRSIF
 
 - El plan **Hobby** de Vercel solo permite crons **diarios** y con `* * * * *`
   el deploy FALLA (no solo el cron): por eso `vercel.json` queda en `0 3 * * *`
-  como red de seguridad. Decidir: plan **Pro** (restaurar `* * * * *`) o
-  disparo externo por minuto desde el Programador de Windows de ARES2/NAS con
-  el mismo Bearer (`scripts/verifactu-cron-externo.ps1 -Instalar`).
+  como red de seguridad. Decidido por Iván el 8-oct: disparo externo por
+  minuto desde el Programador de Windows de ARES2 con el mismo Bearer
+  (`scripts/verifactu-cron-externo.ps1 -Instalar`); plan **Pro** descartado.
 - `maxDuration = 60` en el cron: suficiente para lotes normales; si un día hay
   >1000 registros acumulados en muchos obligados, revisar (drena 1000/obligado
   y minuto).

@@ -92,12 +92,14 @@ puede actualizarse después (mientras no se mergee, sigue entrando en la misma r
 - `vercel.json` trae ahora `/api/cron/verifactu-remision` a `0 3 * * *` (diario, válido en Hobby,
   red de seguridad). La cadencia por minuto que exige la remisión VERI*FACTU se cubre con UNA de:
   - [ ] **Opción A (Pro)**: contratar Vercel Pro y devolver el schedule a `* * * * *` (decisión de
-    gasto de Iván).
-  - [ ] **Opción B (sin coste)**: disparo externo por minuto con `Authorization: Bearer $CRON_SECRET`
-    desde el Programador de Windows de ARES2 o el NAS — script listo:
-    `scripts/verifactu-cron-externo.ps1` (`-Instalar` registra la tarea `KuentasVerifactu-Remision`;
-    NO instalada aún: el endpoint no está desplegado).
-- [ ] Tras desplegar: `GET /api/verifactu/estado-remision` (Bearer) responde y la cola está a cero.
+    gasto de Iván; descartada el 8-oct).
+  - [x] **Opción B (sin coste, elegida por Iván el 8-oct)**: disparo externo por minuto con
+    `Authorization: Bearer <CRON_SECRET de Vercel>` desde el Programador de Windows de ARES2:
+    `scripts/verifactu-cron-externo.ps1 -Instalar` en PowerShell **como administrador**. Pide el
+    secreto sin mostrarlo, lo prueba contra el endpoint, lo guarda en la variable de usuario
+    `KUENTAS_CRON_SECRET` (en ARES2 ya hay un `CRON_SECRET` de otra cosa) y registra la tarea
+    `KuentasVerifactu-Remision` como S4U: sin ventana cada minuto y también con la sesión
+    bloqueada o cerrada. El último tick queda en `%LOCALAPPDATA%\KuentasVerifactu\ultima.txt`.
 - [ ] Tras desplegar: `GET /api/verifactu/estado-remision` (Bearer) responde y la cola está a cero.
 
 ### 2.5 Merge y despliegue de la app
