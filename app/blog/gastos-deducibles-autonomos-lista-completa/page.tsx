@@ -303,9 +303,9 @@ export default function GastosDeduciblesPage() {
         <section className="mt-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Conclusión: no dejes dinero sobre la mesa</h2>
           <p className="text-gray-600 leading-relaxed mb-4">
-            Un autónomo medio que gana 40.000€ brutos al año puede tener gastos deducibles de entre
-            6.000€ y 12.000€ si lleva bien las cuentas. Eso supone un ahorro real de entre 1.200€ y
-            2.500€ en IRPF, más la recuperación del IVA soportado.
+            Cada gasto deducible bien registrado reduce tu rendimiento neto y, con él, el IRPF que
+            pagas; y el IVA soportado de los gastos afectos a la actividad se resta del que
+            repercutes. Cuánto supone depende de tu actividad y de tus gastos reales.
           </p>
           <p className="text-gray-600 leading-relaxed mb-6">
             La clave no es buscar gastos artificiales, sino asegurarte de que los gastos reales que

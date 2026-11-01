@@ -1,23 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CheckCircle, X, ArrowRight, Clock, Shield, HeadphonesIcon, Zap, TrendingDown } from "lucide-react";
+import { CheckCircle, ArrowRight, Clock, Shield, HeadphonesIcon, Zap } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Alternativa a la Gestoría para Autónomos — Desde €9,99/mes | KUENTAS.EU",
+  title: "Llevar tus cuentas de autónomo sin gestoría: qué hace Kuentas y qué no",
   description:
-    "¿Cuánto pagas al gestor cada mes? Kuentas hace lo mismo por €9,99/mes: facturas, IVA, declaraciones y gastos deducibles. Sin citas, sin esperas, sin sorpresas.",
+    "¿Te planteas llevar tú las cuentas? Kuentas ordena tus facturas y gastos y estima tu IVA e IRPF en tiempo real. No es una gestoría: no te asesora ni presenta tus modelos. Plan gratuito; de pago desde €9,99/mes.",
   keywords: [
     "alternativa gestoria autonomo",
     "precio gestoria autonomo",
     "cuanto cobra un gestor autonomo",
-    "gestoria online autonomos",
-    "sustituir gestor autonomo",
-    "gestoria barata autonomo",
   ],
   alternates: { canonical: "https://app.kuentas.eu/alternativa-gestoria" },
   openGraph: {
-    title: "Alternativa a la Gestoría — Kuentas desde €9,99/mes",
-    description: "Mismo resultado que un gestor. Sin citas, sin esperas, sin sorpresas.",
+    title: "¿Llevar tú las cuentas? Kuentas, gratis o desde €9,99/mes",
+    description: "Facturas, gastos y estimación de IVA e IRPF en una app. No es una gestoría: los modelos los presentas tú o tu asesor.",
     url: "https://app.kuentas.eu/alternativa-gestoria",
   },
 };
@@ -30,40 +27,29 @@ const trust = [
   { icon: CheckCircle,    text: "Cancela cuando quieras" },
 ];
 
-const comparativa = [
-  { aspecto: "Coste mensual",        gestor: "€80–€200/mes",        kuentas: "€9,99/mes",           win: "kuentas" },
-  { aspecto: "Disponibilidad",       gestor: "Horario de oficina",   kuentas: "24 h / 365 días",     win: "kuentas" },
-  { aspecto: "Tiempo de respuesta",  gestor: "Días o semanas",       kuentas: "Inmediato",           win: "kuentas" },
-  { aspecto: "Modelo 303 (IVA)",     gestor: "Lo hace el gestor",    kuentas: "Automático con IA",   win: "kuentas" },
-  { aspecto: "Modelo 130 (IRPF)",    gestor: "Lo hace el gestor",    kuentas: "Automático con IA",   win: "kuentas" },
-  { aspecto: "Facturas",             gestor: "Las aportas tú",       kuentas: "Crea y gestiona Kuentas", win: "kuentas" },
-  { aspecto: "Gastos deducibles",    gestor: "Tú se los informas",   kuentas: "IA los detecta sola", win: "kuentas" },
-  { aspecto: "Permanencia",          gestor: "Anual habitual",       kuentas: "Ninguna",             win: "kuentas" },
-];
-
 const incluye = [
   "Facturas ilimitadas con numeración legal",
-  "IVA trimestral automático — Modelo 303",
-  "IRPF trimestral automático — Modelo 130",
-  "Detector de gastos deducibles con IA",
+  "Estimación del IVA trimestral — Modelo 303",
+  "Estimación del IRPF trimestral — Modelo 130",
+  "Categorización automática de gastos con IA",
   "Escaneo OCR de facturas y tickets",
   "Alertas de vencimientos fiscales",
   "Importación de movimientos bancarios por CSV",
-  "Historial completo de declaraciones",
+  "Envío de facturas por email",
 ];
 
 const faqs = [
   {
-    q: "¿Kuentas reemplaza completamente a mi gestor?",
-    a: "Para la mayoría de autónomos en estimación directa simplificada: sí. Kuentas cubre facturación, IVA trimestral (Modelo 303), IRPF trimestral (Modelo 130), gestión de gastos deducibles y alertas fiscales. Para casos complejos como deducciones especiales, operaciones intracomunitarias frecuentes o inspecciones de Hacienda, sigue siendo recomendable contar con asesoramiento puntual.",
+    q: "¿Kuentas sustituye a mi gestor?",
+    a: "No. Kuentas es un software, no una gestoría: no te asesora ni presenta modelos en tu nombre. Te ayuda a llevar facturas y gastos y estima el IVA (modelo 303) y el pago fraccionado del IRPF (modelo 130), con un borrador imprimible. La presentación la haces tú en la Sede Electrónica de la AEAT, con certificado digital o Cl@ve, o tu asesor, a quien puedes pasar tus datos exportados en CSV o PDF.",
   },
   {
-    q: "¿Kuentas se mantiene actualizado con los cambios fiscales?",
-    a: "Sí. El equipo de Kuentas actualiza la app con cada cambio normativo relevante para autónomos. Las tablas de retención del IRPF, los límites de deducción y los plazos de presentación se actualizan automáticamente sin que tengas que hacer nada.",
+    q: "¿Las cifras de Kuentas tienen en cuenta mi situación fiscal concreta?",
+    a: "No. Son estimaciones orientativas a partir de las facturas y los gastos que registras: no tienen en cuenta tu situación personal ni sustituyen la revisión de un asesor. Revisa siempre los importes antes de presentar.",
   },
   {
     q: "¿Qué incluye el plan gratuito comparado con el de pago?",
-    a: "El plan gratuito incluye hasta 5 facturas al mes, categorización manual de gastos y el dashboard financiero básico. El plan Autónomo (€9,99/mes) desbloquea facturas ilimitadas, la IA de categorización automática, el Modelo 130 y 303 automáticos, OCR de facturas y alertas fiscales avanzadas.",
+    a: "El plan gratuito incluye hasta 5 facturas al mes, categorización manual de gastos y el dashboard financiero básico. El plan Autónomo (€9,99/mes) desbloquea facturas ilimitadas, la categorización automática con IA, la estimación del IVA y del IRPF en tiempo real, el OCR de facturas y las alertas fiscales.",
   },
 ];
 
@@ -83,15 +69,15 @@ export default function AlternativaGestoriaPage() {
       {/* ── HERO ─────────────────────────────────────────────────────── */}
       <section className="max-w-4xl mx-auto px-5 pt-16 pb-12 text-center">
         <span className="inline-block bg-brand-blue/10 text-brand-blue text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-5">
-          Alternativa a la gestoría · Sin gestor desde €9,99/mes
+          Para autónomos que llevan sus cuentas · Gratis o desde €9,99/mes
         </span>
         <h1 className="text-4xl sm:text-5xl font-extrabold text-brand-text leading-tight mb-4">
-          Tu gestor cobra €1.800/año.<br />
-          <span className="text-brand-blue">Kuentas cuesta €9,99/mes.</span>
+          ¿Te planteas llevar tú las cuentas?<br />
+          <span className="text-brand-blue">Kuentas te ayuda, gratis o desde €9,99/mes.</span>
         </h1>
         <p className="text-lg text-brand-muted max-w-xl mx-auto mb-8">
-          Mismo resultado que un gestor tradicional — facturas, IVA, declaraciones y gastos deducibles —
-          sin citas, sin esperas y sin sorpresas en la factura a fin de mes.
+          Facturas, gastos y una estimación en tiempo real de tu IVA e IRPF, en una app. Kuentas es un
+          software, no una gestoría: no te asesora ni presenta tus modelos, que presentas tú (o tu asesor) en la Sede de la AEAT.
         </p>
         <Link
           href="/registro"
@@ -113,36 +99,11 @@ export default function AlternativaGestoriaPage() {
         </div>
       </div>
 
-      {/* ── COMPARATIVA ──────────────────────────────────────────────── */}
-      <section className="max-w-4xl mx-auto px-5 py-14">
-        <h2 className="text-2xl font-bold text-brand-text text-center mb-2">Kuentas vs. tu gestoría actual</h2>
-        <p className="text-brand-muted text-center text-sm mb-8">La misma gestión fiscal. A una fracción del precio.</p>
-        <div className="rounded-2xl border border-brand-border overflow-hidden">
-          {/* Header */}
-          <div className="grid grid-cols-3 bg-brand-gray">
-            <div className="p-3 text-xs font-semibold text-brand-muted uppercase tracking-wide">Aspecto</div>
-            <div className="p-3 text-xs font-semibold text-brand-muted text-center">Gestoría</div>
-            <div className="p-3 text-xs font-semibold text-brand-blue text-center">Kuentas</div>
-          </div>
-          {comparativa.map(({ aspecto, gestor, kuentas }, i) => (
-            <div key={aspecto} className={`grid grid-cols-3 border-t border-brand-border ${i % 2 === 0 ? "bg-white" : "bg-brand-gray/50"}`}>
-              <div className="p-3.5 text-sm text-brand-text font-medium">{aspecto}</div>
-              <div className="p-3.5 text-sm text-brand-muted text-center flex items-center justify-center gap-1.5">
-                <X className="w-3.5 h-3.5 text-red-400 shrink-0" /> {gestor}
-              </div>
-              <div className="p-3.5 text-sm text-brand-blue font-semibold text-center flex items-center justify-center gap-1.5">
-                <CheckCircle className="w-3.5 h-3.5 text-brand-success shrink-0" /> {kuentas}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* ── QUÉ INCLUYE ──────────────────────────────────────────────── */}
       <section className="bg-brand-blue py-14">
         <div className="max-w-4xl mx-auto px-5">
-          <h2 className="text-2xl font-bold text-white text-center mb-2">Todo lo que incluye Kuentas — desde €9,99/mes</h2>
-          <p className="text-white/60 text-center text-sm mb-8">El plan Autónomo incluye todo lo que un gestor haría por ti.</p>
+          <h2 className="text-2xl font-bold text-white text-center mb-2">Qué incluye el plan Autónomo — €9,99/mes</h2>
+          <p className="text-white/60 text-center text-sm mb-8">IVA incluido y sin permanencia. Para empezar, el plan gratuito incluye hasta 5 facturas al mes.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {incluye.map((item) => (
               <div key={item} className="flex items-start gap-3 bg-white/10 rounded-xl p-4">
@@ -162,28 +123,14 @@ export default function AlternativaGestoriaPage() {
         </div>
       </section>
 
-      {/* ── CUÁNTO AHORRAS ───────────────────────────────────────────── */}
+      {/* ── CUÁNTO CUESTA ────────────────────────────────────────────── */}
       <section className="max-w-3xl mx-auto px-5 py-14 text-center">
-        <TrendingDown className="w-10 h-10 text-brand-success mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-brand-text mb-3">Calcula cuánto ahorras al año</h2>
+        <CheckCircle className="w-10 h-10 text-brand-success mx-auto mb-4" />
+        <h2 className="text-2xl font-bold text-brand-text mb-3">¿Cuánto cuesta Kuentas?</h2>
         <p className="text-brand-muted mb-8 text-sm leading-relaxed">
-          Si pagas €100/mes al gestor (precio muy habitual en autónomos con volumen medio),
-          con Kuentas pagarías €9,99/mes. La diferencia es <strong className="text-brand-text">€1.080 al año</strong> que se quedan en tu bolsillo.
-          Si pagas €150/mes, el ahorro sube a <strong className="text-brand-text">€1.680 al año</strong>.
+          Puedes empezar con el plan gratuito y pasar a un plan de pago cuando lo necesites: Autónomo
+          (€9,99/mes), Creator (€19,99/mes) o Business (€29,99/mes), con IVA incluido y sin permanencia.
         </p>
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          {[
-            { label: "Si pagas €80/mes", ahorro: "€841/año" },
-            { label: "Si pagas €100/mes", ahorro: "€1.081/año" },
-            { label: "Si pagas €150/mes", ahorro: "€1.681/año" },
-          ].map(({ label, ahorro }) => (
-            <div key={label} className="bg-brand-gray rounded-xl border border-brand-border p-4 text-center">
-              <p className="text-xs text-brand-muted mb-1">{label}</p>
-              <p className="text-xl font-extrabold text-brand-success">{ahorro}</p>
-              <p className="text-xs text-brand-muted">ahorrados</p>
-            </div>
-          ))}
-        </div>
         <Link href="/precios" className="text-brand-blue text-sm font-semibold hover:underline">
           Ver todos los planes →
         </Link>
@@ -209,11 +156,11 @@ export default function AlternativaGestoriaPage() {
         <div className="max-w-2xl mx-auto px-5 text-center">
           <Zap className="w-10 h-10 text-white mx-auto mb-4 opacity-80" />
           <h2 className="text-2xl font-bold text-white mb-3">
-            Deja de pagar de más por la gestoría
+            Lleva tus cuentas al día, con o sin gestor
           </h2>
           <p className="text-white/60 mb-7 text-sm leading-relaxed">
             Empieza con el plan gratuito. Sin tarjeta, sin compromiso.
-            Si te convence, el plan Autónomo cuesta menos de lo que pagas al gestor en un día.
+            Si te convence, el plan Autónomo cuesta €9,99/mes, sin permanencia.
           </p>
           <Link
             href="/registro"

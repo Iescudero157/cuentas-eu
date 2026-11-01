@@ -16,6 +16,7 @@ const plans = [
     features: [
       "Dashboard financiero básico",
       "Hasta 5 facturas/mes",
+      "Facturación VERI*FACTU: QR y envío a la AEAT (se activa a petición)",
       "Categorización manual de gastos",
       "Resumen mensual de ingresos/gastos",
       "App web y móvil",
@@ -39,6 +40,7 @@ const plans = [
     color: "text-brand-blue",
     features: [
       "Facturas ilimitadas",
+      "Facturación VERI*FACTU: QR y envío a la AEAT (se activa a petición)",
       "🤖 IA categorización automática",
       "📊 Estimación IRPF e IVA en tiempo real",
       "⚠️ Alertas fiscales (303, 130, 100)",
@@ -71,7 +73,7 @@ const plans = [
     id: "business",
     name: "Business",
     price: "29,99",
-    desc: "Para equipos y empresas",
+    desc: "Para empresas y pymes",
     icon: Building2,
     color: "text-brand-success",
     features: [
@@ -156,7 +158,7 @@ export default function PreciosPage() {
           </p>
           <div className="mt-4 inline-flex items-center gap-2 bg-brand-blue/10 text-brand-blue px-4 py-2 rounded-full text-sm font-medium">
             <Sparkles className="w-4 h-4" />
-            La IA incluye: categorización automática, OCR de facturas, estimación fiscal y tax savings finder
+            La IA incluye: categorización automática de gastos y OCR de facturas y tickets
           </div>
 
           {/* Sello de seguridad BBVA */}
@@ -186,7 +188,7 @@ export default function PreciosPage() {
               >
                 {plan.highlighted && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-blue text-white text-xs font-bold px-4 py-1 rounded-full whitespace-nowrap">
-                    MÁS POPULAR
+                    RECOMENDADO
                   </div>
                 )}
 

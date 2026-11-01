@@ -3,14 +3,14 @@ import Link from "next/link";
 import { CheckCircle, ArrowRight, TrendingDown, AlertCircle, Shield, HeadphonesIcon, Zap } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Gastos Deducibles para Autónomos: IA que Detecta tus Deducciones | KUENTAS.EU",
+  title: "Gastos deducibles para autónomos: lista orientativa y control de gastos con IA",
   description:
-    "¿Cuánto te estás dejando de deducir? La IA de Kuentas analiza tus gastos y detecta las deducciones que muchos gestores pasan por alto. Ahorra hasta €1.200/año.",
+    "Qué gastos suele poder deducir un autónomo y cómo llevarlos al día: Kuentas propone la categoría de cada gasto con IA, lee tus tickets por OCR y los suma a la estimación de tu IVA e IRPF. Plan gratuito disponible.",
   keywords: ["gastos deducibles autonomo", "que gastos puede deducir un autonomo", "deducciones fiscales autonomo", "gastos fiscales autonomo", "deducir gastos freelance"],
   alternates: { canonical: "https://app.kuentas.eu/gastos-deducibles" },
   openGraph: {
-    title: "Gastos Deducibles para Autónomos — IA que Detecta tus Deducciones",
-    description: "Kuentas analiza tus gastos y encuentra deducciones que muchos gestores pasan por alto.",
+    title: "Gastos deducibles para autónomos — lleva tus gastos al día con IA",
+    description: "Kuentas propone la categoría de tus gastos con IA y los suma a la estimación de tu IVA e IRPF.",
     url: "https://app.kuentas.eu/gastos-deducibles",
   },
 };
@@ -52,16 +52,16 @@ const gastos = [
 
 const faqs = [
   {
-    q: "¿Kuentas verifica automáticamente que mis deducciones son legales?",
-    a: "Kuentas aplica las reglas fiscales vigentes de la AEAT para clasificar cada gasto. Si un gasto tiene requisitos específicos (como el porcentaje de uso profesional del hogar), la app te guía para calcularlo correctamente. No es asesoramiento legal personalizado, pero los criterios son los que aplica Hacienda.",
+    q: "¿Kuentas comprueba que mis gastos son deducibles?",
+    a: "No. La IA propone una categoría para cada gasto (y, en los tickets escaneados, si parece deducible), pero es una sugerencia que debes revisar: Kuentas no comprueba los requisitos fiscales de cada gasto ni sustituye a un asesor. La estimación de IVA e IRPF suma los gastos que registras, así que conviene registrar solo los de tu actividad.",
   },
   {
     q: "¿Puedo subir facturas antiguas de meses o años anteriores?",
-    a: "Sí. Puedes importar facturas con cualquier fecha. Kuentas las procesa y las asigna al trimestre que corresponde automáticamente. Si hay que regularizar algún período, te lo indicará.",
+    a: "Sí. Puedes registrar gastos con cualquier fecha, y los del año en curso entran en la estimación del trimestre que les corresponde. Kuentas no detecta si tienes que regularizar un periodo: si necesitas corregir un trimestre ya presentado, consúltalo con tu asesor.",
   },
   {
-    q: "¿Qué diferencia hay entre el plan gratuito y el de pago en cuanto a gastos deducibles?",
-    a: "El plan gratuito incluye categorización manual de gastos. El plan Autónomo (€9,99/mes) activa la categorización automática con IA, el escáner OCR de facturas y tickets, y el detector automático de deducciones potenciales.",
+    q: "¿Qué diferencia hay entre el plan gratuito y el de pago en cuanto a gastos?",
+    a: "El plan gratuito incluye categorización manual de gastos. El plan Autónomo (€9,99/mes) activa la categorización automática con IA, el escáner OCR de facturas y tickets y la estimación del IVA y del IRPF en tiempo real.",
   },
 ];
 
@@ -81,21 +81,21 @@ export default function GastosDeduciblesPage() {
       {/* ── HERO ─────────────────────────────────────────────────────── */}
       <section className="max-w-4xl mx-auto px-5 pt-16 pb-12 text-center">
         <span className="inline-block bg-green-100 text-green-700 text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-5">
-          Gastos deducibles · IRPF · Ahorro fiscal
+          Gastos deducibles · IRPF · IVA
         </span>
         <h1 className="text-4xl sm:text-5xl font-extrabold text-brand-text leading-tight mb-4">
           ¿Qué gastos puedes deducir tú<br />
           <span className="text-brand-blue">como autónomo?</span>
         </h1>
         <p className="text-lg text-brand-muted max-w-xl mx-auto mb-8">
-          La IA de Kuentas analiza tus facturas y detecta automáticamente las deducciones que te corresponden.
-          De media, los autónomos descubren <strong className="text-brand-text">€1.200 en gastos no deducidos</strong> el primer mes.
+          Registra tus gastos a mano o escaneando el ticket: la IA de Kuentas propone la categoría y tú confirmas.
+          Así los tienes ordenados y sumados a la estimación de tu IVA e IRPF.
         </p>
         <Link
           href="/registro"
           className="inline-flex items-center gap-2 bg-brand-blue text-white font-bold px-8 py-4 rounded-xl hover:opacity-90 transition text-lg shadow-lg shadow-brand-blue/20"
         >
-          Ver mis deducciones gratis <ArrowRight className="w-5 h-5" />
+          Empieza gratis <ArrowRight className="w-5 h-5" />
         </Link>
         <p className="mt-3 text-sm text-brand-muted">Sin tarjeta · Plan gratuito · Cancela cuando quieras</p>
       </section>
@@ -111,29 +111,13 @@ export default function GastosDeduciblesPage() {
         </div>
       </div>
 
-      {/* ── STATS ────────────────────────────────────────────────────── */}
-      <section className="bg-brand-blue py-10">
-        <div className="max-w-4xl mx-auto px-5 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
-          {[
-            { val: "€1.200", label: "ahorro medio anual al deducir correctamente" },
-            { val: "23+",    label: "categorías de gastos deducibles para autónomos" },
-            { val: "47 %",   label: "de autónomos no deduce todo lo que podría" },
-          ].map(({ val, label }) => (
-            <div key={val}>
-              <p className="text-3xl font-extrabold text-white mb-1">{val}</p>
-              <p className="text-white/60 text-xs leading-snug">{label}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* ── LISTA DE GASTOS ──────────────────────────────────────────── */}
       <section className="max-w-5xl mx-auto px-5 py-14">
         <h2 className="text-2xl font-bold text-brand-text text-center mb-2">
           Los gastos que puedes deducir como autónomo
         </h2>
         <p className="text-brand-muted text-center text-sm mb-10">
-          Kuentas los detecta automáticamente para que no se te escape ninguno.
+          Lista orientativa. En Kuentas registras cada gasto y la IA te propone su categoría.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {gastos.map(({ cat, items }) => (
@@ -151,23 +135,23 @@ export default function GastosDeduciblesPage() {
           ))}
         </div>
         <p className="text-center text-xs text-brand-muted mt-5">
-          * La deducibilidad depende de la actividad y del porcentaje de uso profesional.
-          Kuentas aplica los criterios vigentes de la AEAT.
+          * Lista orientativa: la deducibilidad depende de tu actividad y del porcentaje de uso profesional.
+          Ante la duda, consulta a un asesor.
         </p>
       </section>
 
-      {/* ── CÓMO DETECTA KUENTAS ─────────────────────────────────────── */}
+      {/* ── CÓMO AYUDA KUENTAS ───────────────────────────────────────── */}
       <section className="bg-brand-gray py-14">
         <div className="max-w-4xl mx-auto px-5 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           <div>
             <h2 className="text-2xl font-bold text-brand-text mb-4">
-              Cómo Kuentas maximiza tus deducciones
+              Cómo te ayuda Kuentas con tus gastos
             </h2>
             <div className="space-y-4">
               {[
-                { icon: Zap,           titulo: "Detección automática con IA", desc: "La IA categoriza tus gastos y marca los deducibles sin que hagas nada." },
-                { icon: AlertCircle,   titulo: "Sin gastos olvidados", desc: "Kuentas detecta patrones de gastos habituales que no has registrado y te avisa." },
-                { icon: TrendingDown,  titulo: "IRPF optimizado", desc: "Con todos los gastos bien registrados, tu Modelo 130 trimestral refleja lo que realmente debes." },
+                { icon: Zap,           titulo: "Categorización con IA", desc: "Al registrar un gasto o escanear un ticket, la IA propone su categoría (y, en los tickets, si parece deducible). Tú revisas y confirmas." },
+                { icon: AlertCircle,   titulo: "Tickets y movimientos del banco", desc: "Escanea tickets y facturas con la cámara (OCR) o importa los movimientos desde el CSV de tu banco." },
+                { icon: TrendingDown,  titulo: "IVA e IRPF al día", desc: "Tus gastos entran en la estimación orientativa del IVA (modelo 303) y del IRPF (modelo 130) del trimestre." },
               ].map(({ icon: Icon, titulo, desc }) => (
                 <div key={titulo} className="flex items-start gap-4 bg-white rounded-xl border border-brand-border p-4">
                   <div className="w-9 h-9 rounded-lg bg-brand-blue/10 flex items-center justify-center shrink-0">
@@ -183,27 +167,21 @@ export default function GastosDeduciblesPage() {
           </div>
           {/* Price anchor */}
           <div className="bg-white rounded-2xl border border-brand-border p-7 shadow-sm">
-            <p className="text-xs font-semibold text-brand-muted uppercase tracking-wide mb-4">Lo que te cuesta Kuentas vs. lo que te ahorra</p>
+            <p className="text-xs font-semibold text-brand-muted uppercase tracking-wide mb-4">Lo que cuesta Kuentas</p>
             <div className="flex items-center gap-3 mb-5">
-              <div className="flex-1 text-center bg-red-50 rounded-xl p-4 border border-red-100">
-                <p className="text-xs text-red-500 font-semibold mb-1">Sin Kuentas</p>
-                <p className="text-2xl font-extrabold text-red-500">−€1.200</p>
-                <p className="text-xs text-red-400 mt-1">en deducciones perdidas</p>
-              </div>
-              <span className="text-brand-muted font-bold">vs</span>
               <div className="flex-1 text-center bg-green-50 rounded-xl p-4 border border-green-100">
-                <p className="text-xs text-brand-success font-semibold mb-1">Con Kuentas</p>
-                <p className="text-2xl font-extrabold text-brand-success">+€1.200</p>
-                <p className="text-xs text-green-500 mt-1">recuperados al año</p>
+                <p className="text-xs text-brand-success font-semibold mb-1">Plan Autónomo</p>
+                <p className="text-2xl font-extrabold text-brand-success">€9,99</p>
+                <p className="text-xs text-green-500 mt-1">al mes, IVA incluido</p>
               </div>
             </div>
             <Link
               href="/registro"
               className="flex items-center justify-center gap-2 w-full bg-brand-blue text-white font-bold py-3 rounded-xl hover:opacity-90 transition"
             >
-              Descubrir mis deducciones <ArrowRight className="w-4 h-4" />
+              Empezar gratis <ArrowRight className="w-4 h-4" />
             </Link>
-            <p className="text-center text-xs text-brand-muted mt-3">Desde €9,99/mes · Plan gratis disponible</p>
+            <p className="text-center text-xs text-brand-muted mt-3">Plan gratis disponible · Sin permanencia</p>
           </div>
         </div>
       </section>
@@ -225,10 +203,10 @@ export default function GastosDeduciblesPage() {
       <section className="bg-brand-blue py-16">
         <div className="max-w-2xl mx-auto px-5 text-center">
           <h2 className="text-2xl font-bold text-white mb-3">
-            Empieza a deducir lo que te corresponde
+            Lleva tus gastos al día
           </h2>
           <p className="text-white/70 mb-7 text-sm leading-relaxed">
-            Crea tu cuenta gratis y descubre en minutos los gastos que deberías estar deduciendo.
+            Crea tu cuenta gratis y empieza a registrar y ordenar tus gastos.
           </p>
           <Link
             href="/registro"

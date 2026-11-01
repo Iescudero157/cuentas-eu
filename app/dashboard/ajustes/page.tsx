@@ -318,7 +318,6 @@ export default function AjustesPage() {
                 { key: "notifFiscales" as const, label: "Alertas fiscales", desc: "Fechas de presentación de modelos" },
                 { key: "notifFacturas" as const, label: "Facturas pendientes", desc: "Recordatorios de cobro" },
                 { key: "notifResumen" as const, label: "Resumen semanal", desc: "Informe de ingresos y gastos" },
-                { key: "notifTips" as const, label: "Tips de ahorro fiscal", desc: "La IA encuentra deducciones" },
               ].map((n) => (
                 <label key={n.key} className="flex items-center justify-between cursor-pointer">
                   <div>

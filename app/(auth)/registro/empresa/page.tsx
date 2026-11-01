@@ -132,7 +132,7 @@ export default function RegistroEmpresaPage() {
             </div>
             <div>
               <h1 className="text-lg font-bold text-brand-text">Registro Empresa</h1>
-              <p className="text-sm text-brand-muted">Plan Business desde 29,99 EUR/mes</p>
+              <p className="text-sm text-brand-muted">Plan Business: 29,99 EUR/mes</p>
             </div>
           </div>
 

@@ -57,7 +57,7 @@ function buildModelo303HTML(q: ReturnType<typeof calculateQuarterlyTax>, quarter
     e iniciar sesión con Cl@ve o certificado digital.
   </div>
 </div>
-<div class="footer">Generado por KUENTAS.EU — Gestoría con IA para autónomos</div>
+<div class="footer">Generado por KUENTAS.EU — estimación orientativa, no sustituye la presentación en la AEAT</div>
 </body></html>`;
 }
 
@@ -110,7 +110,7 @@ function buildModelo130HTML(q: ReturnType<typeof calculateQuarterlyTax>, quarter
     con Cl@ve PIN o certificado digital.
   </div>
 </div>
-<div class="footer">Generado por KUENTAS.EU — Gestoría con IA para autónomos</div>
+<div class="footer">Generado por KUENTAS.EU — estimación orientativa, no sustituye la presentación en la AEAT</div>
 </body></html>`;
 }
 
@@ -162,7 +162,7 @@ function buildModelo100HTML(annualData: { ingresos: number; gastos: number; bene
     con Cl@ve, certificado digital o número de referencia.
   </div>
 </div>
-<div class="footer">Generado por KUENTAS.EU — Gestoría con IA para autónomos</div>
+<div class="footer">Generado por KUENTAS.EU — estimación orientativa, no sustituye la presentación en la AEAT</div>
 </body></html>`;
 }
 

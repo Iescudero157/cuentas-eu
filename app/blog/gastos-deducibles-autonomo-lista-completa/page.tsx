@@ -79,11 +79,11 @@ function InlineCTA() {
   return (
     <div className="rounded-2xl bg-gradient-to-br from-[#2A5AAE] to-[#1a3d7c] p-7 my-10 text-white">
       <p className="text-xs font-semibold uppercase tracking-wider text-white/60 mb-2">KUENTAS.EU</p>
-      <h3 className="text-xl font-bold mb-3">Detecta gastos deducibles que se te escapan</h3>
+      <h3 className="text-xl font-bold mb-3">Lleva tus gastos al día</h3>
       <p className="text-white/80 text-sm leading-relaxed mb-5">
-        Importa tus movimientos y la IA de Kuentas clasifica cada gasto automáticamente: deducible,
-        parcialmente deducible o personal. Ves en tiempo real cuánto te ahorras en cada
-        trimestre.
+        Registra tus gastos a mano, escaneando el ticket o importando el CSV de tu banco. En los
+        planes de pago, la IA propone la categoría de lo que escaneas o apuntas y Kuentas suma
+        tus gastos a la estimación orientativa de IVA e IRPF del trimestre.
       </p>
       <Link
         href="https://app.kuentas.eu/registro"
@@ -515,12 +515,11 @@ export default function GastosDeduciblesPage() {
         {/* Final CTA */}
         <div className="mt-12 rounded-2xl bg-gradient-to-br from-[#2A5AAE] to-[#1a3d7c] p-8 text-white text-center">
           <h3 className="text-xl font-bold mb-3">
-            Para de pagar más impuestos de los que debes
+            Tus gastos, ordenados cada trimestre
           </h3>
           <p className="text-white/80 text-sm leading-relaxed mb-6 max-w-md mx-auto">
-            Kuentas importa tus movimientos por CSV, identifica automáticamente tus gastos deducibles y te
-            muestra cuánto te ahorras en cada trimestre. Sin gestores, sin hojas de Excel, sin
-            sustos al final del año.
+            Kuentas importa tus movimientos por CSV y te deja registrar y categorizar cada gasto. Si
+            un gasto es deducible lo decides tú (o tu asesor): Kuentas no asesora.
           </p>
           <Link
             href="https://app.kuentas.eu/registro"

@@ -150,7 +150,7 @@ export function invoiceEmailTemplate(data: InvoiceEmailData) {
     </p>
   </td></tr>
   <tr><td style="background:#f8f9fb;padding:20px 40px;border-top:1px solid #eee;text-align:center;">
-    <p style="margin:0;font-size:12px;color:#bbb;">Factura emitida a través de KUENTAS.EU — La gestoría con IA para autónomos españoles.</p>
+    <p style="margin:0;font-size:12px;color:#bbb;">Factura emitida con KUENTAS.EU, la app de facturación para autónomos.</p>
   </td></tr>
 </table>
 </td></tr></table>

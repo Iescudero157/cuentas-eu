@@ -17,7 +17,7 @@ import LandingNav from "./_components/LandingNav";
 export const metadata: Metadata = {
   title: "KUENTAS.EU — App Gestión Financiera con IA para Autónomos Españoles",
   description:
-    "Importa tus movimientos por CSV, calcula IVA y IRPF en tiempo real, crea facturas legales y predice tu cash flow. La app financiera pensada para autónomos españoles. Plan gratuito disponible.",
+    "Importa tus movimientos por CSV, estima el IVA y el IRPF en tiempo real, crea facturas legales y predice tu cash flow. La app financiera pensada para autónomos españoles. Plan gratuito disponible.",
   alternates: { canonical: "https://app.kuentas.eu" },
 };
 
@@ -37,7 +37,7 @@ const features = [
   {
     icon: BarChart3,
     title: "Impuestos en tiempo real",
-    desc: "Sabes CADA DÍA cuánto guardar para el IVA (modelo 303) y el IRPF (modelo 130). Sin sorpresas.",
+    desc: "Ves CADA DÍA una estimación orientativa del IVA (modelo 303) y del IRPF (modelo 130) para saber cuánto apartar.",
     color: "bg-amber-500",
   },
   {
@@ -55,7 +55,7 @@ const features = [
   {
     icon: Shield,
     title: "Alertas fiscales",
-    desc: "Nunca más te pillan fuera de plazo. Alertas automáticas antes de cada fecha fiscal.",
+    desc: "Calendario con los próximos plazos fiscales del 303, el 130 y la renta, destacados cuando se acerca la fecha.",
     color: "bg-rose-500",
   },
 ];
@@ -123,22 +123,22 @@ const howItWorks = [
   {
     step: "02",
     emoji: "🤖",
-    title: "La IA lo organiza todo",
-    desc: "Cada movimiento queda categorizado automáticamente: gastos deducibles, ingresos, IVA pendiente.",
+    title: "La IA te ayuda a ordenarlo",
+    desc: "La IA propone la categoría de los gastos que registras o escaneas y tú confirmas. Ingresos, gastos e IVA quedan ordenados.",
   },
   {
     step: "03",
     emoji: "📊",
-    title: "Tú controlas, sin sorpresas",
-    desc: "Dashboard en tiempo real: cuánto debes a Hacienda hoy, cuándo cobras, cómo va el mes.",
+    title: "Tú controlas tus números",
+    desc: "Dashboard en tiempo real: una estimación de lo que te tocará pagar a Hacienda, cuándo cobras y cómo va el mes.",
   },
 ];
 
 const comparison = [
-  { task: "Categorizar gastos", gestor: "Manual o lo haces tú", kuentas: "IA automática" },
-  { task: "Calcular IVA trimestral", gestor: "Al final del trimestre", kuentas: "Diario, en tiempo real" },
-  { task: "Alertas de plazos fiscales", gestor: "Depende de tu gestor", kuentas: "Automáticas, siempre" },
-  { task: "Crear facturas legales", gestor: "Software aparte o PDF", kuentas: "Integrado en la app" },
+  { task: "Categorizar gastos", manual: "A mano", kuentas: "La IA propone la categoría" },
+  { task: "Estimar el IVA trimestral", manual: "Sumas al final del trimestre", kuentas: "Al día, en tiempo real" },
+  { task: "Plazos fiscales", manual: "Los apuntas tú", kuentas: "Calendario fiscal en la app" },
+  { task: "Crear facturas legales", manual: "Plantilla aparte", kuentas: "Integrado en la app" },
 ];
 
 const faqs = [
@@ -148,15 +148,15 @@ const faqs = [
   },
   {
     q: "¿Necesito saber de contabilidad para usarlo?",
-    a: "No. La IA categoriza automáticamente cada gasto e ingreso. Tú solo revisas y confirmas. Si algo no está bien categorizado, lo corriges con un clic y la IA aprende.",
+    a: "No. Con los planes de pago, la IA propone la categoría de cada gasto que registras o escaneas; tú solo revisas y confirmas. Si algo no está bien categorizado, lo corriges con un clic.",
   },
   {
     q: "¿Sustituye a mi gestoría?",
-    a: "No. KUENTAS.EU es un software, no una gestoría: ordena tus facturas y gastos y te da una previsión orientativa del IVA y del IRPF. La presentación de los modelos y el asesoramiento siguen siendo cosa tuya o de tu asesor, que recibe todo exportado en CSV o PDF.",
+    a: "No. KUENTAS.EU es un software, no una gestoría: ordena tus facturas y gastos y te da una previsión orientativa del IVA y del IRPF. La presentación de los modelos y el asesoramiento siguen siendo cosa tuya o de tu asesor, a quien puedes pasar tus datos exportados en CSV o PDF.",
   },
   {
     q: "¿Qué pasa con mis datos si cancelo?",
-    a: "Son tuyos siempre. Puedes exportar todo en CSV o PDF antes de cancelar. No conservamos datos personales después de 30 días de darte de baja.",
+    a: "Son tuyos siempre. Puedes exportarlos en CSV o PDF antes de cancelar. Al eliminar tu cuenta, los datos se borran en un plazo de 30 días, salvo los que la ley obliga a conservar (por ejemplo, los registros de facturación VERI*FACTU, al menos seis años).",
   },
   {
     q: "¿Funciona para todo tipo de autónomos?",
@@ -173,7 +173,7 @@ const jsonLdSoftware = {
   url: "https://app.kuentas.eu",
   installUrl: "https://play.google.com/store/apps/details?id=eu.kuentas.app",
   description:
-    "App con IA para autónomos españoles. Calcula IVA y IRPF en tiempo real, crea facturas legales, importa tus movimientos por CSV y predice tu cash flow.",
+    "App con IA para autónomos españoles. Estima el IVA y el IRPF en tiempo real, crea facturas legales, importa tus movimientos por CSV y predice tu cash flow.",
   offers: {
     "@type": "Offer",
     price: "0",
@@ -188,8 +188,8 @@ const jsonLdSoftware = {
   featureList: [
     "Importación de movimientos por CSV y escáner OCR de tickets",
     "Categorización automática con IA",
-    "Cálculo IVA tiempo real (Modelo 303)",
-    "Cálculo IRPF (Modelo 130)",
+    "Estimación del IVA en tiempo real (modelo 303)",
+    "Estimación del IRPF (modelo 130)",
     "Facturación legal",
     "Cash flow forecast 3 meses",
     "Alertas fiscales automáticas",
@@ -213,7 +213,7 @@ const jsonLdFaq = {
       name: "¿Necesito saber de contabilidad para usar KUENTAS.EU?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "No. La IA categoriza automáticamente cada gasto e ingreso. Tú solo revisas y confirmas con un clic.",
+        text: "No. Con los planes de pago, la IA propone la categoría de cada gasto que registras o escaneas; tú solo revisas y confirmas con un clic.",
       },
     },
     {
@@ -221,7 +221,7 @@ const jsonLdFaq = {
       name: "¿KUENTAS.EU sustituye a mi gestoría?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "No. KUENTAS.EU es un software, no una gestoría: ordena tus facturas y gastos y te da una previsión orientativa del IVA y del IRPF. La presentación de los modelos y el asesoramiento siguen siendo cosa tuya o de tu asesor, que recibe todo exportado en CSV o PDF.",
+        text: "No. KUENTAS.EU es un software, no una gestoría: ordena tus facturas y gastos y te da una previsión orientativa del IVA y del IRPF. La presentación de los modelos y el asesoramiento siguen siendo cosa tuya o de tu asesor, a quien puedes pasar tus datos exportados en CSV o PDF.",
       },
     },
     {
@@ -229,7 +229,7 @@ const jsonLdFaq = {
       name: "¿Cuánto cuesta KUENTAS.EU?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Hay un plan gratuito para empezar (hasta 5 facturas al mes). El plan Autónomo cuesta 9,99€/mes e incluye facturas ilimitadas, IA de categorización, impuestos en tiempo real, escáner OCR e importación CSV.",
+        text: "Hay un plan gratuito para empezar (hasta 5 facturas al mes). El plan Autónomo cuesta 9,99€/mes e incluye facturas ilimitadas, IA de categorización, estimación del IVA y del IRPF en tiempo real, escáner OCR e importación CSV.",
       },
     },
     {
@@ -287,7 +287,7 @@ export default function LandingPage() {
               Nuevo · Gestión financiera con IA para autónomos españoles
             </div>
             <h1 className="text-4xl md:text-6xl font-extrabold text-brand-text leading-tight max-w-4xl mx-auto">
-              Tu gestoría con IA.{" "}
+              Tu gestión financiera con IA.{" "}
               <span className="text-brand-blue">Todas tus cuentas, en una app.</span>
             </h1>
             <p className="mt-6 text-lg md:text-xl text-brand-muted max-w-2xl mx-auto">
@@ -409,7 +409,7 @@ export default function LandingPage() {
                   {[
                     "Escanea tickets con la cámara (OCR con IA)",
                     "Crea y envía facturas legales al instante",
-                    "IVA e IRPF calculados en tiempo real",
+                    "IVA e IRPF estimados en tiempo real",
                     "Alertas automáticas de vencimientos fiscales",
                   ].map((feat) => (
                     <li key={feat} className="flex items-center gap-3 text-white/85 text-sm">
@@ -528,7 +528,7 @@ export default function LandingPage() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold text-brand-text">
-                Listo en 3 minutos, sin formación
+                Listo en 3 pasos, sin formación
               </h2>
               <p className="mt-4 text-lg text-brand-muted max-w-xl mx-auto">
                 Sin curva de aprendizaje. Sin contratos anuales.
@@ -562,8 +562,8 @@ export default function LandingPage() {
                 Todo lo que un autónomo necesita
               </h2>
               <p className="mt-4 text-lg text-brand-muted max-w-2xl mx-auto">
-                Deja de perder tiempo con Excel y gestorías caras. KUENTAS.EU automatiza tu
-                contabilidad.
+                Deja de perder tiempo con hojas de Excel. KUENTAS.EU reúne tus facturas, tus
+                gastos y la estimación de tus impuestos en una sola app.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -595,14 +595,14 @@ export default function LandingPage() {
               </p>
             </div>
 
-            {/* Comparison table vs gestoría */}
+            {/* Comparison table vs hoja de cálculo */}
             <div className="max-w-2xl mx-auto mb-14">
               <div className="overflow-hidden rounded-2xl border border-brand-border shadow-sm">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-brand-gray">
                       <th className="text-left py-3 px-5 text-brand-muted font-semibold">Tarea</th>
-                      <th className="py-3 px-5 text-brand-muted font-semibold text-center">Gestoría</th>
+                      <th className="py-3 px-5 text-brand-muted font-semibold text-center">Hoja de cálculo</th>
                       <th className="py-3 px-5 text-brand-blue font-bold text-center bg-brand-blue/5">
                         KUENTAS.EU
                       </th>
@@ -612,7 +612,7 @@ export default function LandingPage() {
                     {comparison.map((row, i) => (
                       <tr key={row.task} className={i % 2 === 0 ? "bg-white" : "bg-brand-gray/40"}>
                         <td className="py-3 px-5 font-medium text-brand-text">{row.task}</td>
-                        <td className="py-3 px-5 text-brand-muted text-center">{row.gestor}</td>
+                        <td className="py-3 px-5 text-brand-muted text-center">{row.manual}</td>
                         <td className="py-3 px-5 text-center bg-brand-blue/[0.04]">
                           <span className="inline-flex items-center gap-1.5 text-brand-blue font-semibold">
                             <Check className="w-3.5 h-3.5 shrink-0" />
@@ -639,7 +639,7 @@ export default function LandingPage() {
                 >
                   {plan.highlighted && (
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-blue text-white text-xs font-bold px-4 py-1 rounded-full whitespace-nowrap">
-                      MÁS POPULAR
+                      RECOMENDADO
                     </div>
                   )}
                   <h3 className="text-lg font-bold text-brand-text">{plan.name}</h3>
@@ -703,7 +703,7 @@ export default function LandingPage() {
               Empieza a controlar tus finanzas hoy
             </h2>
             <p className="text-white/80 text-lg mb-8 max-w-2xl mx-auto">
-              Di adiós a las sorpresas fiscales. Sin complicaciones, sin letra pequeña, sin permanencia.
+              Ten al día tus números y una estimación de tus impuestos. Sin complicaciones, sin letra pequeña, sin permanencia.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link

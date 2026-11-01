@@ -70,7 +70,7 @@ export default async function Image() {
               marginBottom: "20px",
             }}
           >
-            Tu gestoría con IA.
+            Tu gestión financiera con IA.
           </h1>
           <p
             style={{
@@ -80,13 +80,13 @@ export default async function Image() {
               lineHeight: 1.4,
             }}
           >
-            IVA, IRPF y facturas para autónomos españoles — en tiempo real.
+            Facturas y estimación de IVA e IRPF en tiempo real, para autónomos españoles.
           </p>
         </div>
 
         {/* Features pills */}
         <div style={{ display: "flex", gap: "12px", marginTop: "40px", position: "relative", zIndex: 1, flexWrap: "wrap" }}>
-          {["Importación CSV", "IA categorización", "Modelo 303 auto", "Facturas legales"].map((f) => (
+          {["Importación CSV", "IA categorización", "Estimación 303", "Facturas legales"].map((f) => (
             <div
               key={f}
               style={{
@@ -117,7 +117,6 @@ export default async function Image() {
           }}
         >
           {[
-            { label: "Ahorro vs gestoría", value: "190€/mes" },
             { label: "Desde", value: "9,99€/mes" },
             { label: "Plan gratuito", value: "0 €" },
           ].map((s) => (

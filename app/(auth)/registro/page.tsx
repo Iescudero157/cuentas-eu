@@ -51,9 +51,9 @@ function PlanSelector() {
               <div className="flex-1">
                 <div className="flex items-center justify-between">
                   <h2 className="font-bold text-brand-text">Registro Empresa</h2>
-                  <span className="text-xs font-semibold text-brand-blue bg-brand-blue/10 px-2 py-0.5 rounded-full">Desde 29,99€</span>
+                  <span className="text-xs font-semibold text-brand-blue bg-brand-blue/10 px-2 py-0.5 rounded-full">Plan Business</span>
                 </div>
-                <p className="text-sm text-brand-muted mt-0.5">Pymes, equipos y negocios con múltiples usuarios</p>
+                <p className="text-sm text-brand-muted mt-0.5">Pymes y negocios · plan Business, 29,99 €/mes</p>
               </div>
             </div>
           </Link>
@@ -151,7 +151,7 @@ function _RegistroPageOriginal() {
           </div>
 
           <h1 className="text-2xl font-bold text-brand-text mb-2">Crea tu cuenta gratis</h1>
-          <p className="text-brand-muted mb-8">Empieza a gestionar tus finanzas en 2 minutos</p>
+          <p className="text-brand-muted mb-8">Empieza hoy a gestionar tus finanzas</p>
 
           <form onSubmit={handleRegister} className="space-y-4" noValidate>
             <div>
@@ -245,9 +245,9 @@ function _RegistroPageOriginal() {
 
       <div className="hidden lg:flex flex-1 bg-brand-blue items-center justify-center p-12">
         <div className="max-w-md text-center text-white">
-          <h2 className="text-3xl font-bold mb-4">Ahorra hasta 150 EUR/mes</h2>
+          <h2 className="text-3xl font-bold mb-4">Tus finanzas, en orden</h2>
           <p className="text-white/80 text-lg mb-8">
-            Gestiona tus finanzas tú mismo con ayuda de IA. Sin gestoría, sin complicaciones.
+            Facturas, gastos y una estimación de tus impuestos, con ayuda de IA.
           </p>
           <div className="space-y-3 text-left">
             {[

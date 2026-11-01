@@ -3,14 +3,14 @@ import Link from "next/link";
 import { CheckCircle, ArrowRight, Clock, AlertTriangle, X, Zap, Shield, HeadphonesIcon } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Modelo 303 Automático para Autónomos — Gestión IVA sin Gestor | KUENTAS.EU",
+  title: "IVA trimestral para autónomos: estima tu modelo 303 en tiempo real",
   description:
-    "Kuentas calcula y prepara tu IVA trimestral automáticamente. Modelo 303 listo con tus facturas, sin errores, sin gestor. Plan gratuito disponible.",
+    "Kuentas estima tu IVA trimestral (modelo 303) en tiempo real con tus facturas y gastos y te da un borrador imprimible para revisarlo antes de presentarlo tú en la Sede de la AEAT. Plan gratuito disponible.",
   keywords: ["iva trimestral autonomos", "modelo 303 automatico", "calcular iva autonomo", "gestión iva autonomo", "declaración iva trimestral autonomo"],
   alternates: { canonical: "https://app.kuentas.eu/iva-autonomos" },
   openGraph: {
-    title: "Modelo 303 Automático — Tu IVA trimestral sin gestor",
-    description: "Kuentas prepara tu Modelo 303 automáticamente. Sin errores, sin sorpresas en Hacienda.",
+    title: "Tu IVA trimestral (modelo 303), estimado en tiempo real",
+    description: "Kuentas estima tu IVA trimestral con tus facturas y gastos. La presentación del 303 la haces tú en la Sede de la AEAT.",
     url: "https://app.kuentas.eu/iva-autonomos",
   },
 };
@@ -26,36 +26,36 @@ const trust = [
 const problemas = [
   { icon: Clock,         text: "Horas separando IVA soportado e IVA repercutido a mano" },
   { icon: AlertTriangle, text: "Miedo a equivocarte y que Hacienda te sancione" },
-  { icon: X,             text: "Pagar al gestor €80–€150/mes para que haga lo mismo que puedes hacer tú" },
+  { icon: X,             text: "No saber cuánto apartar para el IVA hasta que llega el plazo" },
 ];
 
 const pasos = [
-  { num: "1", titulo: "Añade tus facturas", desc: "Crea o importa tus facturas de ingresos y gastos. El OCR de Kuentas las lee por ti." },
-  { num: "2", titulo: "Kuentas calcula el IVA", desc: "Separamos automáticamente IVA soportado y repercutido. Cuota diferencial calculada al instante." },
-  { num: "3", titulo: "Revisa y presenta", desc: "Descarga el borrador del Modelo 303 o preséntalo directamente desde la app. En minutos." },
+  { num: "1", titulo: "Añade tus facturas", desc: "Crea tus facturas en Kuentas y registra tus gastos a mano, escaneando el ticket (OCR) o importando el CSV de tu banco." },
+  { num: "2", titulo: "Kuentas estima el IVA", desc: "Separa el IVA repercutido de tus ingresos y el soportado de tus gastos, y estima el resultado del trimestre al instante." },
+  { num: "3", titulo: "Revisa y presenta tú", desc: "Imprime el borrador orientativo del 303, revisa las cifras y presenta el modelo en la Sede Electrónica de la AEAT con tu certificado o Cl@ve." },
 ];
 
 const features = [
-  "IVA soportado y repercutido calculados sin intervención manual",
-  "Modelo 303 generado automáticamente cada trimestre",
+  "IVA repercutido y soportado calculados a partir de tus facturas y gastos",
+  "Estimación del modelo 303 de cada trimestre, con borrador imprimible",
   "Alertas antes de cada plazo: enero, abril, julio, octubre",
-  "Compatible con todos los tipos de IVA (21 %, 10 %, 4 %, 0 %)",
-  "Histórico completo de declaraciones trimestre a trimestre",
-  "Cuadre automático entre facturas emitidas y recibidas",
+  "Facturas y gastos con IVA del 21 %, 10 %, 4 % o 0 %",
+  "Resumen por trimestres del año en curso",
+  "Escaneo OCR de facturas y tickets de gastos",
 ];
 
 const faqs = [
   {
     q: "¿Necesito conocimientos de contabilidad para gestionar el IVA con Kuentas?",
-    a: "No. Kuentas está diseñado para autónomos sin formación contable. La app clasifica tus facturas, calcula el IVA y te explica cada cifra en español claro. Si algo no cuadra, te avisa antes de que presentes.",
+    a: "No. Kuentas está pensado para autónomos sin formación contable: registras tus facturas y gastos y la app estima el IVA del trimestre. Es una estimación orientativa: revísala (o pide a tu asesor que la revise) antes de presentar.",
   },
   {
-    q: "¿Kuentas me ayuda a presentar el Modelo 303 directamente en la AEAT?",
-    a: "Kuentas genera los datos del Modelo 303 listos para presentar. Puedes descargarlo en el formato que acepta la AEAT o seguir nuestras instrucciones paso a paso para la presentación online. La presentación oficial la realizas tú en la sede electrónica de la AEAT.",
+    q: "¿Kuentas presenta el Modelo 303 en la AEAT?",
+    a: "No. Kuentas estima las cifras del Modelo 303 y te da un borrador imprimible orientativo. La presentación oficial la haces tú en la Sede Electrónica de la AEAT, con certificado digital o Cl@ve.",
   },
   {
-    q: "Tengo meses de facturas sin registrar. ¿Puedo regularizarlos?",
-    a: "Sí. Puedes importar facturas con cualquier fecha pasada. Kuentas recalcula el IVA de cada trimestre automáticamente cuando añades datos históricos.",
+    q: "Tengo meses de facturas sin registrar. ¿Puedo añadirlas?",
+    a: "Sí. Puedes registrar facturas y gastos con fecha pasada, y la estimación de cada trimestre del año en curso se recalcula al añadirlos. Si tienes que regularizar un trimestre ya presentado, consúltalo con tu asesor.",
   },
 ];
 
@@ -75,15 +75,15 @@ export default function IVAAutonomosPage() {
       {/* ── HERO ─────────────────────────────────────────────────────── */}
       <section className="max-w-4xl mx-auto px-5 pt-16 pb-12 text-center">
         <span className="inline-block bg-brand-blue/10 text-brand-blue text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-5">
-          Gestión IVA · Modelo 303 Automático
+          Gestión IVA · Estimación del Modelo 303
         </span>
         <h1 className="text-4xl sm:text-5xl font-extrabold text-brand-text leading-tight mb-4">
           Tu IVA trimestral,<br />
-          <span className="text-brand-blue">calculado y listo en minutos.</span>
+          <span className="text-brand-blue">estimado en tiempo real.</span>
         </h1>
         <p className="text-lg text-brand-muted max-w-xl mx-auto mb-8">
-          Kuentas prepara el Modelo 303 automáticamente con tus facturas. Sin errores, sin gestor,
-          sin perder horas cada trimestre.
+          Kuentas estima el IVA del trimestre (modelo 303) con tus facturas y gastos, y te da un borrador
+          imprimible para revisarlo. La presentación la haces tú en la Sede de la AEAT.
         </p>
         <Link
           href="/registro"
@@ -110,7 +110,7 @@ export default function IVAAutonomosPage() {
         <h2 className="text-2xl font-bold text-brand-text text-center mb-2">
           ¿Esto te pasa cada trimestre?
         </h2>
-        <p className="text-brand-muted text-center mb-8 text-sm">Si la respuesta es sí, Kuentas lo resuelve de raíz.</p>
+        <p className="text-brand-muted text-center mb-8 text-sm">Si la respuesta es sí, Kuentas te ayuda a llevarlo al día.</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {problemas.map(({ icon: Icon, text }) => (
             <div key={text} className="flex items-start gap-3 bg-red-50 border border-red-100 rounded-xl p-5">
@@ -125,7 +125,7 @@ export default function IVAAutonomosPage() {
       <section className="bg-brand-gray py-14">
         <div className="max-w-4xl mx-auto px-5">
           <h2 className="text-2xl font-bold text-brand-text text-center mb-2">Cómo funciona — 3 pasos</h2>
-          <p className="text-brand-muted text-center text-sm mb-10">De cero a tu declaración de IVA preparada en menos de 10 minutos.</p>
+          <p className="text-brand-muted text-center text-sm mb-10">De tus facturas a una estimación del IVA del trimestre.</p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {pasos.map(({ num, titulo, desc }) => (
               <div key={num} className="bg-white rounded-2xl border border-brand-border p-6 text-center shadow-sm">
@@ -157,18 +157,12 @@ export default function IVAAutonomosPage() {
           </div>
           {/* Price anchor */}
           <div className="bg-brand-gray rounded-2xl border border-brand-border p-7">
-            <p className="text-sm font-semibold text-brand-muted mb-4 uppercase tracking-wide">Compara el coste</p>
+            <p className="text-sm font-semibold text-brand-muted mb-4 uppercase tracking-wide">Lo que cuesta Kuentas</p>
             <div className="flex items-end gap-3 mb-3">
-              <div className="flex-1 bg-red-50 rounded-xl p-4 text-center border border-red-100">
-                <p className="text-xs text-red-500 font-semibold mb-1">Gestoría</p>
-                <p className="text-3xl font-extrabold text-red-500">€1.800</p>
-                <p className="text-xs text-red-400 mt-1">de media al año</p>
-              </div>
-              <span className="text-brand-muted font-bold text-lg mb-3">vs</span>
               <div className="flex-1 bg-green-50 rounded-xl p-4 text-center border border-green-100">
-                <p className="text-xs text-brand-success font-semibold mb-1">Kuentas</p>
+                <p className="text-xs text-brand-success font-semibold mb-1">Plan Autónomo</p>
                 <p className="text-3xl font-extrabold text-brand-success">€9,99</p>
-                <p className="text-xs text-green-500 mt-1">al mes</p>
+                <p className="text-xs text-green-500 mt-1">al mes, IVA incluido</p>
               </div>
             </div>
             <Link
@@ -204,7 +198,7 @@ export default function IVAAutonomosPage() {
             Gestiona tu IVA trimestral hoy mismo
           </h2>
           <p className="text-white/70 mb-7 text-sm leading-relaxed">
-            Miles de autónomos ya no pierden horas con el Modelo 303. Empieza gratis, sin tarjeta.
+            Ten al día la estimación de tu IVA trimestral. Empieza gratis, sin tarjeta.
           </p>
           <Link
             href="/registro"

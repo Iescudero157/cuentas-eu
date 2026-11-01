@@ -101,7 +101,7 @@ const softwares: Software[] = [
     nombre: "Kuentas.eu",
     precio: "Desde 9,99 €/mes",
     descripcion:
-      "Diseñado exclusivamente para autónomos españoles. Importa los movimientos del banco por CSV, categoriza gastos con IA, calcula el IVA e IRPF en tiempo real y avisa antes de cada declaración trimestral.",
+      "Diseñado exclusivamente para autónomos españoles. Importa los movimientos del banco por CSV, categoriza gastos con IA, estima el IVA y el IRPF en tiempo real y avisa antes de cada declaración trimestral.",
     ventaja: "IA integrada para categorización y alertas fiscales automáticas. El más centrado en autónomos unipersonales.",
     desventaja: "No tiene conexión bancaria automática (los movimientos se importan por CSV) ni módulo de nóminas ni contabilidad avanzada para empresas.",
     paraquien: "Autónomos personas físicas que quieren control financiero sin tocar hojas de Excel.",
@@ -460,7 +460,7 @@ export default function MejorSoftwarePage() {
                   "Necesito ayuda también con los modelos de Hacienda (130, 111...)",
                 recomendacion: "Contasimple o Kuentas.eu",
                 razon:
-                  "Contasimple tiene plantillas específicas para los modelos. Kuentas calcula en tiempo real lo que irá en cada modelo.",
+                  "Contasimple tiene plantillas específicas para los modelos. Kuentas estima en tiempo real las cifras de los modelos 303 y 130 (no calcula el 111).",
               },
               {
                 situacion: "Tengo empleados o una SL / SA",
@@ -507,25 +507,25 @@ export default function MejorSoftwarePage() {
           </p>
           <p className="text-gray-600 leading-relaxed mb-4">
             Kuentas funciona al revés: registra cada movimiento (importado del banco por CSV, escaneado
-            o a mano) y sabe en tiempo real cuánto debes a Hacienda. Antes de que llegue el día 20, ya sabes el número. Antes de
-            presentar el 303, ya tienes el resumen preparado. No hay sorpresas.
+            o a mano) y estima en tiempo real cuánto te tocará pagar a Hacienda. Antes de que llegue el día 20
+            ya tienes una cifra orientativa y, antes de presentar el 303, un resumen preparado para revisarlo.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 my-8">
             {[
               {
                 titulo: "IVA en tiempo real",
-                desc: "Sabes cada día cuánto debes a Hacienda este trimestre, no el día antes del plazo.",
+                desc: "Ves cada día una estimación del IVA del trimestre, no el día antes del plazo.",
                 icono: "⚡",
               },
               {
                 titulo: "IA que categoriza",
-                desc: "Cada movimiento que importas queda clasificado automáticamente como ingreso, gasto deducible o personal.",
+                desc: "La IA propone la categoría de cada gasto que registras o escaneas; tú la revisas y confirmas.",
                 icono: "🤖",
               },
               {
                 titulo: "Alertas de plazos",
-                desc: "Te avisa una semana antes de cada plazo: 303, 130, 111 y 180. Sin carreras de última hora.",
+                desc: "Calendario en la app con los próximos plazos del 303, el 130 y la renta, destacados cuando se acercan.",
                 icono: "🔔",
               },
             ].map((item) => (
@@ -546,8 +546,9 @@ export default function MejorSoftwarePage() {
               Empieza sin compromiso
             </h3>
             <p className="text-white/80 text-sm leading-relaxed mb-6 max-w-md mx-auto">
-              Plan gratuito con hasta 5 facturas al mes, sin tarjeta de crédito. Importa tus movimientos,
-              crea tu primera factura y mira cómo el IVA se calcula solo. Si no te convence, no pagas nada.
+              Plan gratuito con hasta 5 facturas al mes, sin tarjeta de crédito: crea tu primera factura sin
+              pagar nada. La importación CSV, la IA y la estimación del IVA y del IRPF en tiempo real llegan
+              con el plan Autónomo.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
@@ -579,7 +580,7 @@ export default function MejorSoftwarePage() {
               },
               {
                 q: "¿Tengo que usar un software homologado por Hacienda?",
-                a: "No existe una «homologación» oficial de software de facturación para autónomos en estimación directa. Lo que sí existe es la obligación de que los sistemas de facturación cumplan los requisitos del Reglamento de Facturación, lo que cualquier software serio ya cumple.",
+                a: "No existe una «homologación» ni un certificado de Hacienda para el software de facturación. Lo que sí hay son requisitos legales: los del Reglamento de Facturación y los del Reglamento de los sistemas informáticos de facturación (Real Decreto 1007/2023, conocido como Verifactu), desarrollado por la Orden HAC/1177/2024. Según ese reglamento, el productor de cada programa debe declarar, mediante una declaración responsable, que su sistema cumple esos requisitos, y quien factura con un programa debe usar uno adaptado a partir de las fechas que fija la normativa (consúltalas en la web de la AEAT). Kuentas dispone de módulo VERI*FACTU, con su declaración responsable suscrita por MILBROTES, S.L. y publicada en app.kuentas.eu/verifactu: con el módulo activado, cada factura lleva su código QR y su registro de facturación se remite a la AEAT. Lo activa el equipo de Kuentas a petición del usuario (kuentas@mercadonet.es), y el usuario sube su certificado digital.",
               },
               {
                 q: "¿Puedo cambiar de software sin perder mis datos?",
@@ -587,7 +588,7 @@ export default function MejorSoftwarePage() {
               },
               {
                 q: "¿El software de facturación sustituye al gestor?",
-                a: "Para la mayoría de autónomos unipersonales con actividad sencilla, sí: puedes gestionar el IVA, el IRPF y las facturas sin gestor. Si tienes actividades complejas, empleados o dudas fiscales específicas, un gestor sigue siendo útil aunque solo sea puntualmente.",
+                a: "Depende. Un software te ayuda a llevar al día las facturas, los gastos, el IVA y el IRPF, pero no te asesora. Si tu actividad es sencilla, puedes presentar tú los modelos; si tienes actividades complejas, empleados o dudas fiscales concretas, un gestor sigue siendo útil, aunque solo sea puntualmente. En Kuentas, las cifras de impuestos son estimaciones orientativas y la presentación la haces tú (o tu asesor) en la Sede de la AEAT.",
               },
             ].map((faq) => (
               <div key={faq.q} className="border border-gray-100 rounded-xl p-5">

@@ -255,7 +255,7 @@ async function sendWelcomeEmail({
 <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08);">
   <tr><td style="background:linear-gradient(135deg,#2A5AAE 0%,#1a3d7e 100%);padding:36px 40px;text-align:center;">
     <div style="font-size:28px;font-weight:900;color:#fff;letter-spacing:-1px;">KUENTAS<span style="color:#4ECB71;">.EU</span></div>
-    <div style="color:rgba(255,255,255,.8);font-size:13px;margin-top:4px;">Tu gestoría con IA para autónomos</div>
+    <div style="color:rgba(255,255,255,.8);font-size:13px;margin-top:4px;">Facturación y gestión financiera para autónomos</div>
   </td></tr>
   <tr><td style="padding:36px 40px 28px;">
     <h1 style="margin:0 0 16px;font-size:22px;color:#1a1a2e;font-weight:700;">¡Hola, ${firstName}! 👋</h1>
@@ -275,7 +275,7 @@ async function sendWelcomeEmail({
     </div>
   </td></tr>
   <tr><td style="background:#f8f9fb;padding:20px 40px;border-top:1px solid #eee;text-align:center;">
-    <p style="margin:0;font-size:12px;color:#bbb;">KUENTAS.EU · La gestoría con IA para autónomos españoles<br>
+    <p style="margin:0;font-size:12px;color:#bbb;">KUENTAS.EU · Facturación y gestión financiera para autónomos<br>
     Has recibido este email porque te registraste en <a href="https://kuentas.eu" style="color:#2A5AAE;">kuentas.eu</a>.</p>
   </td></tr>
 </table>

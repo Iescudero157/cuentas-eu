@@ -497,8 +497,9 @@ export default function Modelo303GuiaCompletaPage() {
             El próximo trimestre, sin el estrés del día 19
           </h3>
           <p className="text-white/80 text-sm leading-relaxed mb-6 max-w-md mx-auto">
-            Kuentas calcula tu IVA en tiempo real, categoriza tus gastos con IA y te avisa antes
-            de cada plazo. Sin sorpresas, sin carreras de última hora.
+            Kuentas estima tu IVA trimestral con tus facturas y gastos, la IA propone la categoría
+            de los gastos y el calendario de la app te muestra el próximo plazo. El 303 lo presentas
+            tú en la Sede de la AEAT.
           </p>
           <Link
             href="https://app.kuentas.eu/registro"

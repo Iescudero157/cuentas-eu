@@ -545,12 +545,12 @@ export default function FacturaCorrectaPage() {
         {/* Final CTA */}
         <div className="mt-12 rounded-2xl bg-gradient-to-br from-[#2A5AAE] to-[#1a3d7c] p-8 text-white text-center">
           <h3 className="text-xl font-bold mb-3">
-            Facturas correctas, sin errores y guardadas automáticamente
+            Tus facturas, completas y guardadas
           </h3>
           <p className="text-white/80 text-sm leading-relaxed mb-6 max-w-md mx-auto">
-            Kuentas genera facturas con todos los campos obligatorios, calcula el IVA y la
-            retención en automático, asigna el número de serie y las archiva para ti. Sin errores
-            y sin preocupaciones.
+            Kuentas genera la factura con sus campos, calcula el IVA y la retención de cada línea,
+            asigna el número de serie y la guarda en tu cuenta. Revisa siempre los datos del
+            cliente y los tipos antes de emitirla.
           </p>
           <Link
             href="https://app.kuentas.eu/registro"

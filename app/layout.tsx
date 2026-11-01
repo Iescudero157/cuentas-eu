@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     template: "%s | KUENTAS.EU",
   },
   description:
-    "App con IA para autónomos españoles. Calcula IVA y IRPF en tiempo real, crea facturas legales, importa tus movimientos por CSV y predice tu cash flow. Plan gratuito; de pago desde 9,99 €/mes.",
+    "App con IA para autónomos españoles. Estima el IVA y el IRPF en tiempo real, crea facturas legales, importa tus movimientos por CSV y predice tu cash flow. Plan gratuito; de pago desde 9,99 €/mes.",
   keywords: [
     "app autónomos",
     "gestión financiera autónomos",
@@ -27,7 +27,6 @@ export const metadata: Metadata = {
     "programa contabilidad autónomos",
     "gastos deducibles autónomos",
     "software autónomos España",
-    "gestoría online autónomos",
   ],
   authors: [{ name: "KUENTAS.EU", url: BASE_URL }],
   creator: "KUENTAS.EU",
@@ -42,7 +41,7 @@ export const metadata: Metadata = {
     url: BASE_URL,
     title: "KUENTAS.EU — App Gestión Financiera para Autónomos con IA",
     description:
-      "Calcula IVA y IRPF en tiempo real, crea facturas legales e importa tus movimientos por CSV. La app financiera pensada para autónomos españoles. Plan gratuito disponible.",
+      "Estima el IVA y el IRPF en tiempo real, crea facturas legales e importa tus movimientos por CSV. La app financiera pensada para autónomos españoles. Plan gratuito disponible.",
     siteName: "KUENTAS.EU",
     locale: "es_ES",
     images: [
@@ -58,7 +57,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "KUENTAS.EU — App Gestión Financiera para Autónomos",
     description:
-      "Calcula IVA y IRPF en tiempo real, crea facturas legales e importa tus movimientos por CSV. Plan gratuito disponible.",
+      "Estima el IVA y el IRPF en tiempo real, crea facturas legales e importa tus movimientos por CSV. Plan gratuito disponible.",
     images: ["/opengraph-image.png"],
     creator: "@kuentas_eu",
     site: "@kuentas_eu",

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CheckCircle, ArrowRight, Calendar, AlertTriangle, Shield, HeadphonesIcon, FileText, Zap } from "lucide-react";
+import { CheckCircle, ArrowRight, Calendar, Shield, HeadphonesIcon, FileText, Zap } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Modelo 130 Automático para Autónomos — Declaraciones sin Gestor | KUENTAS.EU",
+  title: "Modelos 130 y 303 para autónomos: estima tu IRPF e IVA trimestral",
   description:
-    "Kuentas genera el Modelo 130 de IRPF y el Modelo 303 de IVA automáticamente. Declara en Hacienda sin gestor, sin errores y sin multas. Plan gratuito disponible.",
+    "Kuentas estima en tiempo real tu pago fraccionado de IRPF (modelo 130) y tu IVA trimestral (modelo 303) con tus facturas y gastos, y te da un borrador imprimible. La presentación la haces tú en la Sede de la AEAT. Plan gratuito disponible.",
   keywords: [
     "declaraciones hacienda autonomo",
     "modelo 130 autonomo",
@@ -16,8 +16,8 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: "https://app.kuentas.eu/declaraciones-hacienda" },
   openGraph: {
-    title: "Modelo 130 Automático — Declara en Hacienda sin Gestor",
-    description: "Kuentas genera tus declaraciones de IRPF e IVA automáticamente. Sin errores, sin multas.",
+    title: "Modelos 130 y 303 — tu IRPF e IVA trimestral, estimados al día",
+    description: "Kuentas estima tus impuestos trimestrales con tus facturas y gastos. Tú revisas las cifras y presentas los modelos en la Sede de la AEAT.",
     url: "https://app.kuentas.eu/declaraciones-hacienda",
   },
 };
@@ -34,7 +34,7 @@ const modelos = [
   {
     modelo: "Modelo 130",
     nombre: "IRPF trimestral",
-    desc: "El pago fraccionado del IRPF. Se presenta 4 veces al año y Kuentas lo prepara automáticamente con tus ingresos y gastos del trimestre.",
+    desc: "El pago fraccionado del IRPF. Se presenta 4 veces al año y Kuentas lo estima con tus ingresos y gastos del trimestre.",
     plazos: ["1er trim — hasta 20 abril", "2º trim — hasta 20 julio", "3er trim — hasta 20 octubre", "4º trim — hasta 30 enero"],
     color: "border-brand-blue bg-brand-blue/5",
     badgeColor: "bg-brand-blue text-white",
@@ -42,7 +42,7 @@ const modelos = [
   {
     modelo: "Modelo 303",
     nombre: "IVA trimestral",
-    desc: "La liquidación del IVA. Kuentas calcula la diferencia entre el IVA cobrado en tus facturas y el IVA pagado en tus gastos.",
+    desc: "La liquidación del IVA. Kuentas estima la diferencia entre el IVA cobrado en tus facturas y el IVA pagado en tus gastos.",
     plazos: ["1er trim — hasta 20 abril", "2º trim — hasta 20 julio", "3er trim — hasta 20 octubre", "4º trim — hasta 30 enero"],
     color: "border-brand-success bg-brand-success/5",
     badgeColor: "bg-brand-success text-white",
@@ -50,26 +50,26 @@ const modelos = [
 ];
 
 const features = [
-  "Modelo 130 generado automáticamente con tus ingresos y gastos",
-  "Modelo 303 calculado con el IVA de tus facturas",
+  "Estimación del modelo 130 con tus ingresos y gastos",
+  "Estimación del modelo 303 con el IVA de tus facturas y gastos",
   "Alertas de vencimiento antes de cada plazo trimestral",
-  "Histórico completo de todas tus declaraciones",
-  "Datos pre-rellenados para presentar en la sede AEAT",
+  "Resumen por trimestres del año en curso",
+  "Borrador imprimible para revisar las cifras antes de presentar",
   "Compatible con estimación directa simplificada",
 ];
 
 const faqs = [
   {
     q: "¿Kuentas presenta las declaraciones por mí en la AEAT?",
-    a: "Kuentas genera los datos y el borrador del Modelo 130 y 303. La presentación oficial la realizas tú en la sede electrónica de la AEAT usando el certificado digital o Cl@ve PIN. El proceso tarda menos de 5 minutos una vez tienes los datos preparados.",
+    a: "No. Kuentas estima las cifras de los modelos 130 y 303 y te da un borrador imprimible orientativo. La presentación oficial la haces tú en la Sede Electrónica de la AEAT, con certificado digital o Cl@ve PIN, después de revisar las cifras.",
   },
   {
     q: "¿El Modelo 130 y el Modelo 303 son lo mismo?",
-    a: "No. El Modelo 130 es el pago fraccionado del IRPF (lo que pagas a cuenta de la declaración anual). El Modelo 303 es la liquidación del IVA (diferencia entre el IVA cobrado y el IVA pagado). Kuentas gestiona ambos automáticamente.",
+    a: "No. El Modelo 130 es el pago fraccionado del IRPF (lo que pagas a cuenta de la declaración anual). El Modelo 303 es la liquidación del IVA (diferencia entre el IVA cobrado y el IVA pagado). Kuentas estima los dos.",
   },
   {
     q: "¿Qué pasa si presento una declaración fuera de plazo?",
-    a: "Hacienda aplica recargos del 1 % al 20 % según el retraso (1 % por mes hasta 12 meses, luego el 20 % más intereses). Kuentas te avisa antes de cada vencimiento para que nunca presentes tarde.",
+    a: "Si la presentas tarde sin requerimiento previo de Hacienda, se aplica un recargo del 1 % más otro 1 % por cada mes completo de retraso; a partir de 12 meses, el recargo es del 15 % más intereses de demora (art. 27 de la Ley General Tributaria). Kuentas te muestra en la app los próximos plazos y los destaca cuando se acercan.",
   },
 ];
 
@@ -92,18 +92,18 @@ export default function DeclaracionesHaciendaPage() {
           Declaraciones autónomos · Modelo 130 · Modelo 303
         </span>
         <h1 className="text-4xl sm:text-5xl font-extrabold text-brand-text leading-tight mb-4">
-          Modelo 130 automático.<br />
-          <span className="text-brand-blue">Hacienda sin complicaciones.</span>
+          Tus modelos 130 y 303,<br />
+          <span className="text-brand-blue">estimados en tiempo real.</span>
         </h1>
         <p className="text-lg text-brand-muted max-w-xl mx-auto mb-8">
-          Kuentas genera tus declaraciones trimestrales de IRPF e IVA automáticamente.
-          Sin gestor, sin errores y sin multas por presentar fuera de plazo.
+          Kuentas estima tu pago fraccionado de IRPF y tu IVA trimestral con tus facturas y gastos,
+          y te avisa de los plazos. Tú revisas las cifras y presentas los modelos en la Sede Electrónica de la AEAT.
         </p>
         <Link
           href="/registro"
           className="inline-flex items-center gap-2 bg-brand-blue text-white font-bold px-8 py-4 rounded-xl hover:opacity-90 transition text-lg shadow-lg shadow-brand-blue/20"
         >
-          Declara sin gestor, gratis <ArrowRight className="w-5 h-5" />
+          Empieza gratis <ArrowRight className="w-5 h-5" />
         </Link>
         <p className="mt-3 text-sm text-brand-muted">Sin tarjeta · Plan gratuito disponible · Cancela cuando quieras</p>
       </section>
@@ -122,7 +122,7 @@ export default function DeclaracionesHaciendaPage() {
       {/* ── MODELOS ──────────────────────────────────────────────────── */}
       <section className="max-w-4xl mx-auto px-5 py-14">
         <h2 className="text-2xl font-bold text-brand-text text-center mb-2">Las dos declaraciones trimestrales del autónomo</h2>
-        <p className="text-brand-muted text-center text-sm mb-10">Kuentas las prepara las dos. Tú solo las revisas y presentas.</p>
+        <p className="text-brand-muted text-center text-sm mb-10">Kuentas estima las dos. Tú revisas las cifras y presentas los modelos.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {modelos.map(({ modelo, nombre, desc, plazos, color, badgeColor }) => (
             <div key={modelo} className={`rounded-2xl border-2 p-6 ${color}`}>
@@ -147,7 +147,7 @@ export default function DeclaracionesHaciendaPage() {
       <section className="bg-brand-gray py-14">
         <div className="max-w-4xl mx-auto px-5 grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           <div>
-            <h2 className="text-xl font-bold text-brand-text mb-5">Lo que incluye Kuentas para tus declaraciones</h2>
+            <h2 className="text-xl font-bold text-brand-text mb-5">Lo que incluye Kuentas para tus impuestos trimestrales</h2>
             <ul className="space-y-3">
               {features.map((f) => (
                 <li key={f} className="flex items-start gap-3">
@@ -158,24 +158,8 @@ export default function DeclaracionesHaciendaPage() {
             </ul>
           </div>
           <div className="bg-white rounded-2xl border border-brand-border p-7 shadow-sm">
-            <div className="flex items-center gap-2 mb-4">
-              <AlertTriangle className="w-5 h-5 text-brand-warning" />
-              <p className="text-sm font-bold text-brand-text">Coste real de una gestoría</p>
-            </div>
-            <div className="space-y-3 mb-5">
-              {[
-                { label: "Gestoría tradicional (media)", val: "€1.800/año" },
-                { label: "Sanciones por error en declaración", val: "hasta €1.500" },
-                { label: "Recargo por retraso en presentación", val: "+20 %" },
-              ].map(({ label, val }) => (
-                <div key={label} className="flex items-center justify-between text-sm border-b border-brand-border pb-2">
-                  <span className="text-brand-muted">{label}</span>
-                  <span className="font-bold text-brand-danger">{val}</span>
-                </div>
-              ))}
-            </div>
             <div className="bg-brand-blue/10 rounded-xl p-4 text-center mb-4">
-              <p className="text-sm text-brand-muted mb-1">Kuentas (todo incluido)</p>
+              <p className="text-sm text-brand-muted mb-1">Plan Autónomo</p>
               <p className="text-3xl font-extrabold text-brand-blue">€9,99/mes</p>
               <p className="text-xs text-brand-muted mt-1">Sin permanencia · Plan gratis disponible</p>
             </div>
@@ -207,10 +191,10 @@ export default function DeclaracionesHaciendaPage() {
         <div className="max-w-2xl mx-auto px-5 text-center">
           <FileText className="w-10 h-10 text-white mx-auto mb-4 opacity-80" />
           <h2 className="text-2xl font-bold text-white mb-3">
-            Sin multas de Hacienda. Sin gestor.
+            Tus impuestos trimestrales, a la vista.
           </h2>
           <p className="text-white/70 mb-7 text-sm leading-relaxed">
-            Kuentas genera tus declaraciones trimestrales automáticamente. Tú las revisas y presentas en minutos.
+            Kuentas estima tu IVA y tu IRPF de cada trimestre. Tú revisas las cifras y presentas los modelos en la Sede de la AEAT.
           </p>
           <Link
             href="/registro"
