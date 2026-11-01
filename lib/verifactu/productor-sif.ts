@@ -13,6 +13,11 @@
 // NIF de la AEAT y la inscripción. Si `nif` quedara vacío o con un marcador,
 // cualquier emisión de registros y cualquier envío real a la AEAT ABORTA con
 // ErrorProductorSif (nunca se remite un SistemaInformatico con NIF vacío).
+//
+// 1-nov-2026: razón social y domicilio tal como constan en la comunicación del
+// NIF de la AEAT (expediente 2026C3677270307Y: «MILBROTES, SOCIEDAD LIMITADA»,
+// «CL. BELALCAZAR, 14 - 28006 Madrid») y en el art. 3 de los estatutos
+// (centro de negocios SBC Villa El Viso).
 
 export interface ProductorSif {
   /** Razón social del productor (bloque SistemaInformatico.NombreRazon). */
@@ -29,9 +34,9 @@ export const MARCADOR_CIF_PRODUCTOR = '{{MILBROTES_CIF}}'
 export const MARCADOR_REGISTRO_PRODUCTOR = '{{MILBROTES_REGISTRO}}'
 
 export const PRODUCTOR_SIF: Readonly<ProductorSif> = Object.freeze({
-  nombreRazon: 'Milbrotes S.L.',
+  nombreRazon: 'MILBROTES, S.L.',
   nif: 'B05772710',
-  domicilio: 'SBC Villa El Viso, Calle Belalcázar 14, 28006 Madrid, España',
+  domicilio: 'Calle Belalcázar, 14 (centro de negocios SBC Villa El Viso), 28006 Madrid, España',
   registroMercantil: 'Registro Mercantil de Madrid, hoja M-899621, inscripción 1.ª (26-10-2026)',
 })
 

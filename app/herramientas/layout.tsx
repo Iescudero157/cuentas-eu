@@ -49,7 +49,7 @@ export default function HerramientasLayout({ children }: { children: React.React
           {" · "}
           <Link href="/blog" className="hover:text-white transition">Blog</Link>
           {" · "}
-          <a href="mailto:hola@kuentas.eu" className="hover:text-white transition">hola@kuentas.eu</a>
+          <a href="mailto:kuentas@mercadonet.es" className="hover:text-white transition">kuentas@mercadonet.es</a>
         </p>
       </footer>
     </div>

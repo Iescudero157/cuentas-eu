@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "KUENTAS.EU", url: BASE_URL }],
   creator: "KUENTAS.EU",
-  publisher: "MercadonetGlobal",
+  publisher: "MILBROTES, S.L.",
   category: "Finance",
   alternates: {
     canonical: BASE_URL,

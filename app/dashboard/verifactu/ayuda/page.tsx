@@ -46,8 +46,8 @@ const PASOS: { titulo: string; detalle: React.ReactNode }[] = [
       <>
         La activación la realiza el equipo de Kuentas al dar de alta el servicio:
         escríbenos a{" "}
-        <a href="mailto:hola@kuentas.eu" className="text-brand-blue hover:underline">
-          hola@kuentas.eu
+        <a href="mailto:kuentas@mercadonet.es" className="text-brand-blue hover:underline">
+          kuentas@mercadonet.es
         </a>{" "}
         y la configuramos con tus datos fiscales. Cuando esté lista, el{" "}
         <Link href="/dashboard/verifactu" className="text-brand-blue hover:underline">
@@ -468,8 +468,8 @@ export default function AyudaVerifactuPage() {
         referencia: Real Decreto 1007/2023, de 5 de diciembre (RRSIF), Orden
         HAC/1177/2024, de 17 de octubre, y Real Decreto-ley 15/2025 (calendario).
         Para tu caso concreto, consulta con tu asesor. ¿Dudas sobre Kuentas?{" "}
-        <a href="mailto:hola@kuentas.eu" className="text-brand-blue hover:underline">
-          hola@kuentas.eu
+        <a href="mailto:kuentas@mercadonet.es" className="text-brand-blue hover:underline">
+          kuentas@mercadonet.es
         </a>
         .
       </p>

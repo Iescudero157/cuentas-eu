@@ -74,7 +74,7 @@ export default function BlogLayout({ children }: { children: React.ReactNode }) 
           {" · "}
           <Link href="/terminos" className="hover:text-white transition">Términos</Link>
           {" · "}
-          <a href="mailto:hola@kuentas.eu" className="hover:text-white transition">hola@kuentas.eu</a>
+          <a href="mailto:kuentas@mercadonet.es" className="hover:text-white transition">kuentas@mercadonet.es</a>
         </p>
       </footer>
     </div>

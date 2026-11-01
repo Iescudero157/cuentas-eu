@@ -5,10 +5,13 @@
 // garantizar la coincidencia 1:1 con el bloque SistemaInformatico que viaja en
 // cada registro de facturación (art. 10.1.l RRSIF).
 //
-// ⚠️ ESTADO: BORRADOR pendiente de [REVISIÓN IVAN/ASESOR]. Mientras
-// `DECLARACION_ES_BORRADOR` sea true, toda salida (página, PDF, texto) lleva
-// de forma destacada la marca de borrador y NO debe entregarse a clientes.
-// Server-only (la cadena de imports llega a node:crypto vía registro-alta).
+// ESTADO (1-nov-2026): texto revisado por el asesor (OK comunicado por Iván el
+// 23-oct-2026) y productor con NIF e inscripción. Solo falta la SUSCRIPCIÓN
+// (lugar, fecha y firmante): mientras `SUSCRIPCION_DECLARACION` no esté
+// completa o `DECLARACION_ES_BORRADOR` sea true, toda salida (página, PDF,
+// texto) lleva de forma destacada la marca de borrador y NO debe entregarse a
+// clientes. Server-only (la cadena de imports llega a node:crypto vía
+// registro-alta).
 
 import { sistemaInformaticoKuentas } from './registro-alta.ts'
 import {
@@ -18,8 +21,46 @@ import {
   productorSifConfigurado,
 } from './productor-sif.ts'
 
-/** true mientras el texto no haya sido ratificado por Iván y el asesor. */
+/** true hasta que Iván suscriba la versión definitiva. */
 export const DECLARACION_ES_BORRADOR = true
+
+/** Suscripción de la declaración (art. 15.1.l Orden): se rellena al firmar. */
+export interface SuscripcionDeclaracion {
+  lugar: string
+  /** Fecha de suscripción, `aaaa-mm-dd`. */
+  fecha: string
+  /** Nombre y apellidos de quien firma en representación del productor. */
+  firmante: string
+  /** Cargo del firmante en el productor (p. ej. «administrador solidario»). */
+  cargo: string
+}
+
+export const SUSCRIPCION_DECLARACION: Readonly<SuscripcionDeclaracion> = Object.freeze({
+  lugar: '',
+  fecha: '',
+  firmante: '',
+  cargo: '',
+})
+
+const MESES = [
+  'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+  'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
+]
+
+/** `aaaa-mm-dd` → «1 de noviembre de 2026»; null si no es una fecha válida. */
+function fechaLarga(iso: string): string | null {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso.trim())
+  if (!m) return null
+  const [anio, mes, dia] = [Number(m[1]), Number(m[2]), Number(m[3])]
+  const f = new Date(Date.UTC(anio, mes - 1, dia))
+  if (f.getUTCFullYear() !== anio || f.getUTCMonth() !== mes - 1 || f.getUTCDate() !== dia) return null
+  return `${dia} de ${MESES[mes - 1]} de ${anio}`
+}
+
+/** true si la suscripción tiene lugar, fecha válida, firmante y cargo. */
+export function suscripcionCompleta(s: Readonly<SuscripcionDeclaracion> = SUSCRIPCION_DECLARACION): boolean {
+  return Boolean(s.lugar.trim() && fechaLarga(s.fecha) && s.firmante.trim() && s.cargo.trim())
+}
 
 /** Un apartado del contenido mínimo del art. 15.1 de la Orden HAC/1177/2024. */
 export interface ApartadoDeclaracion {
@@ -47,19 +88,19 @@ export interface DeclaracionResponsable {
   productor: {
     razonSocial: string
     nif: string
-    /** Datos del aviso legal de kuentas.eu — confirmar antes de publicar. */
+    /** Domicilio de la comunicación del NIF (AEAT) y del art. 3 de los estatutos. */
     domicilio: string
     registroMercantil: string
   }
   apartados: ApartadoDeclaracion[]
-  /** Placeholders que Iván/asesor deben resolver antes de publicar. */
+  /** Lo que falta resolver antes de publicar (vacío en la versión definitiva). */
   pendientes: string[]
 }
 
 const PLACEHOLDER_FECHA_LUGAR =
-  '[LUGAR Y FECHA DE SUSCRIPCIÓN — se fijarán al firmar la versión definitiva · REVISIÓN IVAN/ASESOR]'
+  '[LUGAR Y FECHA DE SUSCRIPCIÓN — se fijarán al firmar la versión definitiva · REVISIÓN IVAN]'
 const PLACEHOLDER_FIRMANTE =
-  '[NOMBRE Y CARGO DEL FIRMANTE en representación de Milbrotes S.L. — REVISIÓN IVAN/ASESOR]'
+  '[NOMBRE Y CARGO DEL FIRMANTE en representación de MILBROTES, S.L. — REVISIÓN IVAN]'
 
 /**
  * Construye la declaración responsable de la versión actual del SIF. Los datos
@@ -67,8 +108,18 @@ const PLACEHOLDER_FIRMANTE =
  * productor) se toman de la misma función que los estampa en cada registro de
  * facturación, de modo que un cambio allí se refleja aquí automáticamente
  * (art. 15.1 Orden: los datos deben coincidir con los remitidos a la AEAT).
+ *
+ * `opciones` solo existe para los tests: en producción se usan siempre
+ * DECLARACION_ES_BORRADOR y SUSCRIPCION_DECLARACION.
  */
-export function declaracionResponsableKuentas(): DeclaracionResponsable {
+export function declaracionResponsableKuentas(
+  opciones: { borrador?: boolean; suscripcion?: Readonly<SuscripcionDeclaracion> } = {}
+): DeclaracionResponsable {
+  const suscripcion = opciones.suscripcion ?? SUSCRIPCION_DECLARACION
+  const firmada = suscripcionCompleta(suscripcion)
+  // Nunca sale como definitiva sin lugar, fecha y firmante, aunque el
+  // indicador se haya puesto a false por error.
+  const esBorrador = (opciones.borrador ?? DECLARACION_ES_BORRADOR) || !firmada || !productorSifConfigurado()
   // El NumeroInstalacion es por obligado (tenant) y NO forma parte de la
   // declaración (art. 15.1 identifica sistema y versión, no instalaciones).
   const si = sistemaInformaticoKuentas('N/A')
@@ -81,8 +132,8 @@ export function declaracionResponsableKuentas(): DeclaracionResponsable {
     multiplesObligados: si.tipoUsoPosibleMultiOT === 'S',
   }
 
-  // Productor: Milbrotes S.L. (lib/verifactu/productor-sif.ts). Mientras no
-  // haya NIF/inscripción, el borrador muestra los marcadores del día D.
+  // Productor: MILBROTES, S.L. (lib/verifactu/productor-sif.ts). Si faltaran
+  // NIF o inscripción, el borrador mostraría los marcadores.
   const productorListo = productorSifConfigurado()
   const productor = {
     razonSocial: si.nombreRazon,
@@ -104,10 +155,9 @@ export function declaracionResponsableKuentas(): DeclaracionResponsable {
       titulo: 'Código identificador del sistema informático',
       parrafos: [
         `«${sistema.idSistemaInformatico}» (IdSistemaInformatico), código asignado por el productor ` +
-          'que identifica a este sistema en los registros de facturación remitidos a la AEAT. ' +
-          '[REVISIÓN IVAN: confirmar el código antes de publicar; debe mantenerse estable entre versiones.]',
+          'que identifica a este sistema en los registros de facturación remitidos a la AEAT y que ' +
+          'se mantiene en todas sus versiones.',
       ],
-      pendienteRevision: true,
     },
     {
       letra: 'c',
@@ -177,13 +227,11 @@ export function declaracionResponsableKuentas(): DeclaracionResponsable {
       letra: 'h-j',
       titulo: 'Productor del sistema informático',
       parrafos: [
-        `Razón social: ${productor.razonSocial}.`,
+        `Razón social: ${productor.razonSocial}`,
         `NIF: ${productor.nif}.`,
-        `Dirección postal completa de contacto: ${productor.domicilio}. ` +
-          '[REVISIÓN IVAN: confirmar que este es el domicilio de contacto que debe figurar.]',
+        `Dirección postal completa de contacto: ${productor.domicilio}.`,
         `Inscripción registral: ${productor.registroMercantil}.`,
       ],
-      pendienteRevision: true,
     },
     {
       letra: 'k',
@@ -199,35 +247,45 @@ export function declaracionResponsableKuentas(): DeclaracionResponsable {
           'de diciembre, y en la Orden HAC/1177/2024, de 17 de octubre, que lo desarrolla.',
       ],
     },
-    {
-      letra: 'l',
-      titulo: 'Fecha y lugar de suscripción',
-      parrafos: [PLACEHOLDER_FECHA_LUGAR, PLACEHOLDER_FIRMANTE],
-      pendienteRevision: true,
-    },
+    firmada
+      ? {
+          letra: 'l',
+          titulo: 'Fecha y lugar de suscripción',
+          parrafos: [
+            `Suscrita en ${suscripcion.lugar.trim()}, a ${fechaLarga(suscripcion.fecha)}.`,
+            `Por ${productor.razonSocial}: ${suscripcion.firmante.trim()}, ${suscripcion.cargo.trim()}.`,
+          ],
+        }
+      : {
+          letra: 'l',
+          titulo: 'Fecha y lugar de suscripción',
+          parrafos: [PLACEHOLDER_FECHA_LUGAR, PLACEHOLDER_FIRMANTE],
+          pendienteRevision: true,
+        },
   ]
 
   return {
     titulo: 'DECLARACIÓN RESPONSABLE DEL SISTEMA INFORMÁTICO DE FACTURACIÓN',
-    esBorrador: DECLARACION_ES_BORRADOR,
+    esBorrador,
     sistema,
     productor,
     apartados,
     pendientes: [
       ...(productorListo && !productor.registroMercantil.includes('{{')
         ? []
-        : ['NIF e inscripción registral de Milbrotes S.L. (productor): rellenar PRODUCTOR_SIF en lib/verifactu/productor-sif.ts el día D.']),
-      'Código identificador del sistema (IdSistemaInformatico «01»): confirmación de Iván.',
-      'Dirección postal de contacto del productor: confirmación de Iván.',
-      'Texto completo: revisión jurídica del asesor (es un borrador técnico, no asesoría).',
-      'Fecha, lugar y firmante de la suscripción: se fijan al firmar la versión definitiva.',
-      'Ámbito de conformidad: territorio común (TicketBAI/forales fuera de alcance); valorar mención expresa con el asesor.',
+        : ['NIF e inscripción registral de MILBROTES, S.L. (productor): rellenar PRODUCTOR_SIF en lib/verifactu/productor-sif.ts.']),
+      ...(firmada
+        ? []
+        : ['Fecha, lugar y firmante de la suscripción: rellenar SUSCRIPCION_DECLARACION al firmar la versión definitiva.']),
+      ...(esBorrador && firmada && productorListo
+        ? ['Suscripción rellenada: falta poner DECLARACION_ES_BORRADOR = false.']
+        : []),
     ],
   }
 }
 
 const AVISO_BORRADOR =
-  '*** BORRADOR PENDIENTE DE REVISIÓN (IVAN/ASESOR) — DOCUMENTO NO SUSCRITO. ' +
+  '*** BORRADOR PENDIENTE DE SUSCRIPCIÓN (IVAN) — DOCUMENTO NO SUSCRITO. ' +
   'NO ENTREGAR A CLIENTES NI PUBLICAR ***'
 
 /**

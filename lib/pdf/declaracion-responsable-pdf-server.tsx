@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
 });
 
 const AVISO =
-  "BORRADOR PENDIENTE DE REVISIÓN (IVAN/ASESOR) — DOCUMENTO NO SUSCRITO. NO ENTREGAR A CLIENTES NI PUBLICAR";
+  "BORRADOR PENDIENTE DE SUSCRIPCIÓN — DOCUMENTO NO SUSCRITO. NO ENTREGAR A CLIENTES NI PUBLICAR";
 
 function DeclaracionPDF({ d }: { d: DeclaracionResponsable }) {
   return (

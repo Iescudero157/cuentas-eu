@@ -108,7 +108,7 @@ const plans = [
       "Soporte por email",
     ],
     cta: "Contactar ventas",
-    href: "mailto:hola@kuentas.eu",
+    href: "mailto:kuentas@mercadonet.es",
     highlighted: false,
   },
 ];
@@ -251,7 +251,7 @@ const jsonLdOrganization = {
   logo: "https://app.kuentas.eu/logo.png",
   contactPoint: {
     "@type": "ContactPoint",
-    email: "hola@kuentas.eu",
+    email: "kuentas@mercadonet.es",
     contactType: "customer service",
     availableLanguage: "Spanish",
   },
@@ -771,12 +771,12 @@ export default function LandingPage() {
                 <li><Link href="/privacidad" className="hover:text-white transition">Privacidad</Link></li>
                 <li><Link href="/terminos" className="hover:text-white transition">Términos</Link></li>
                 <li><Link href="/verifactu" className="hover:text-white transition">Declaración responsable Verifactu</Link></li>
-                <li><a href="mailto:hola@kuentas.eu" className="hover:text-white transition">hola@kuentas.eu</a></li>
+                <li><a href="mailto:kuentas@mercadonet.es" className="hover:text-white transition">kuentas@mercadonet.es</a></li>
               </ul>
             </div>
           </div>
           <div className="mt-10 pt-8 border-t border-white/10 text-sm text-center">
-            &copy; {new Date().getFullYear()} KUENTAS.EU · MercadonetGlobal · Todos los derechos reservados.
+            &copy; {new Date().getFullYear()} KUENTAS.EU · MILBROTES, S.L. · Todos los derechos reservados.
           </div>
         </div>
       </footer>

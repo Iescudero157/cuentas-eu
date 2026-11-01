@@ -15,7 +15,7 @@ export const metadata = {
   title: `Declaración responsable Verifactu - KUENTAS.EU${declaracion.esBorrador ? " (borrador)" : ""}`,
   description:
     "Declaración responsable del sistema informático de facturación Kuentas (art. 13 RD 1007/2023 y art. 15 Orden HAC/1177/2024).",
-  // Borrador: fuera de los índices hasta que Iván/asesor ratifiquen el texto.
+  // Borrador: fuera de los índices hasta que Iván suscriba la versión definitiva.
   robots: declaracion.esBorrador ? { index: false, follow: false } : undefined,
 };
 
@@ -34,8 +34,8 @@ export default function DeclaracionResponsablePage() {
           <div className="flex items-start gap-3 border border-red-300 bg-red-50 text-red-700 rounded-xl px-4 py-3 mb-8">
             <TriangleAlert className="w-5 h-5 shrink-0 mt-0.5" />
             <p className="text-sm font-semibold">
-              BORRADOR PENDIENTE DE REVISIÓN (IVAN/ASESOR) — documento no suscrito. No entregar
-              a clientes ni publicar hasta su ratificación.
+              BORRADOR PENDIENTE DE SUSCRIPCIÓN — documento no suscrito. No entregar a
+              clientes ni publicar hasta que esté firmado.
             </p>
           </div>
         )}
