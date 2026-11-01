@@ -60,8 +60,8 @@ export function getFiscalAlerts(): FiscalAlert[] {
   const year = now.getFullYear();
 
   const deadlines = [
-    { modelo: "303", description: "IVA Trimestral (Q4 anterior)", date: `${year}-01-20`, quarter: 4 },
-    { modelo: "130", description: "IRPF Trimestral (Q4 anterior)", date: `${year}-01-20`, quarter: 4 },
+    { modelo: "303", description: "IVA Trimestral (Q4 anterior)", date: `${year}-01-30`, quarter: 4 },
+    { modelo: "130", description: "IRPF Trimestral (Q4 anterior)", date: `${year}-01-30`, quarter: 4 },
     { modelo: "303", description: "IVA Trimestral (Q1)", date: `${year}-04-20`, quarter: 1 },
     { modelo: "130", description: "IRPF Trimestral (Q1)", date: `${year}-04-20`, quarter: 1 },
     { modelo: "100", description: "Declaracion Renta Anual", date: `${year}-06-30`, quarter: 0 },
