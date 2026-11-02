@@ -74,6 +74,9 @@ emisión (V07), usando el cliente SOAP mTLS de V09. Base legal: art. 16.1 RRSIF
   `scripts/verifactu-cron-externo.ps1` (el elegido: tarea
   `KuentasVerifactu-Remision` en ARES2, secreto en la variable de usuario
   `KUENTAS_CRON_SECRET`; se instala con `-Instalar` como administrador).
+  Hasta el primer obligado corre semanal (`-Instalar -Semanal`, decisión de
+  Iván del 2-nov-2026); antes de activarlo, `-Instalar` la devuelve a cada
+  minuto.
 - Estado: `GET /api/verifactu/estado-remision` (mismo Bearer): contadores de
   outbox/registros, pendiente más antiguo y situación por obligado (flujo,
   fallos, breaker).

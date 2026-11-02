@@ -101,6 +101,10 @@ puede actualizarse después (mientras no se mergee, sigue entrando en la misma r
     `KUENTAS_CRON_SECRET` (en ARES2 ya hay un `CRON_SECRET` de otra cosa) y registra la tarea
     `KuentasVerifactu-Remision` como S4U: sin ventana cada minuto y también con la sesión
     bloqueada o cerrada. El último tick queda en `%LOCALAPPDATA%\KuentasVerifactu\ultima.txt`.
+    **Hasta el primer obligado corre semanal** (`-Instalar -Semanal`, lunes 09:00; decisión de Iván
+    del 2-nov-2026): sin obligados activos no hay nada que remitir y el cron diario de `vercel.json`
+    vacía lo que pudiera entrar. **Antes de activar al primer obligado, `-Instalar` a secas** para
+    volver a cada minuto.
 - [x] Tras desplegar: `GET /api/verifactu/estado-remision` (Bearer) responde y la cola está a cero
   (comprobado el 2-nov-2026).
 

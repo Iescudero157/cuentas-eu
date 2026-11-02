@@ -11,6 +11,9 @@
 #   .\verifactu-cron-externo.ps1 -Instalar               pide y prueba el secreto y registra la tarea
 #                                                        'KuentasVerifactu-Remision' (cada minuto).
 #                                                        Requiere PowerShell como administrador.
+#   .\verifactu-cron-externo.ps1 -Instalar -Semanal      igual, pero cada lunes a las 09:00. Solo mientras no
+#                                                        haya ningun obligado activo (decision de Ivan,
+#                                                        2-nov-2026): antes del primer alta, -Instalar a secas.
 #   .\verifactu-cron-externo.ps1 -Desinstalar            elimina la tarea
 #   .\verifactu-cron-externo.ps1 -BaseUrl https://...    otro despliegue (por defecto app.kuentas.eu)
 #
@@ -33,6 +36,7 @@
 
 param(
   [switch]$Instalar,
+  [switch]$Semanal,
   [switch]$Desinstalar,
   [string]$BaseUrl = 'https://app.kuentas.eu'
 )
@@ -124,14 +128,20 @@ if ($Instalar) {
 
   $accion = New-ScheduledTaskAction -Execute 'powershell.exe' `
     -Argument "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$copia`" -BaseUrl `"$BaseUrl`""
-  $disparo = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 1)
+  if ($Semanal) {
+    $disparo = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Monday -At '09:00'
+    $cadencia = 'cada lunes a las 09:00'
+  } else {
+    $disparo = New-ScheduledTaskTrigger -Once -At (Get-Date).AddMinutes(1) -RepetitionInterval (New-TimeSpan -Minutes 1)
+    $cadencia = 'cada minuto'
+  }
   $opciones = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes 3) `
     -MultipleInstances IgnoreNew -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
   $principal = New-ScheduledTaskPrincipal -UserId $identidad.Name -LogonType S4U -RunLevel Limited
   Register-ScheduledTask -TaskName $TareaNombre -Action $accion -Trigger $disparo -Settings $opciones `
     -Principal $principal -Force `
     -Description "Disparo externo del cron de remision VERI*FACTU de Kuentas (sustituye al cron por minuto de Vercel en plan Hobby)." | Out-Null
-  Write-Output "Tarea '$TareaNombre' registrada: cada minuto, sin ventana, contra $Endpoint"
+  Write-Output "Tarea '$TareaNombre' registrada: $cadencia, sin ventana, contra $Endpoint"
 
   # Primer tick ya, ejecutado por el Programador de tareas (mismo entorno que los siguientes)
   $antes = (Get-ScheduledTaskInfo -TaskName $TareaNombre).LastRunTime
@@ -145,6 +155,7 @@ if ($Instalar) {
   $ultima = Join-Path $DirDatos 'ultima.txt'
   Write-Output "Primer tick desde el Programador: resultado $($info.LastTaskResult) (0 = correcto)."
   if (Test-Path -LiteralPath $ultima) { Write-Output ('ultima.txt: ' + (Get-Content -LiteralPath $ultima -Raw).Trim()) }
+  if ($Semanal) { Write-Output 'Antes de activar al primer cliente hay que volver a cada minuto: -Instalar sin -Semanal.' }
   return
 }
 
