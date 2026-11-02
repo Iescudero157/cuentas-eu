@@ -59,15 +59,29 @@ function Invoke-Tick([string]$Secreto) {
 }
 
 # $true si el endpoint acepta el secreto (hace un tick real, igual que la tarea), $false si
-# responde 401; cualquier otro fallo (red, 5xx) se propaga
+# responde 401 o el valor ni se puede enviar (vacio o con caracteres de control, que
+# Invoke-RestMethod rechaza en la cabecera); cualquier otro fallo (red, 5xx) se propaga
 function Test-Secreto([string]$Secreto) {
-  if (-not $Secreto) { return $false }
+  if (-not $Secreto -or $Secreto -match '[\x00-\x1F\x7F]') { return $false }
   try { $null = Invoke-Tick $Secreto; return $true }
   catch {
     $respuesta = $_.Exception.Response
     if ($respuesta -and [int]$respuesta.StatusCode -eq 401) { return $false }
     throw
   }
+}
+
+# Pide el secreto sin mostrarlo. Esta lectura no entiende Ctrl+V: lo recibe como el caracter
+# de control 0x16 (un solo asterisco en pantalla, visto en ARES2 el 2-nov-2026), y entonces
+# se toma del portapapeles. El clic derecho si pega de verdad.
+function Read-SecretoOculto {
+  $seguro = Read-Host 'Pega el CRON_SECRET de Vercel (solo se veran asteriscos) y pulsa Intro' -AsSecureString
+  $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($seguro)
+  try { $valor = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr) }
+  finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr) }
+  if ($valor -match '\x16') { $valor = Get-Clipboard -Raw }
+  if ($valor) { return $valor.Trim() }
+  return $null
 }
 
 if ($Desinstalar) {
@@ -88,12 +102,9 @@ if ($Instalar) {
   $guardar = $false
   if (-not (Test-Secreto $secreto)) {
     if ($secreto) { Write-Output "El $VariableSecreto guardado no vale (401): hay que pegarlo de nuevo." }
-    $seguro = Read-Host 'Pega el CRON_SECRET de Vercel (no se vera al pegarlo) y pulsa Intro' -AsSecureString
-    $bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($seguro)
-    try { $secreto = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr).Trim() }
-    finally { [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr) }
+    $secreto = Read-SecretoOculto
     if (-not (Test-Secreto $secreto)) {
-      throw "Ese valor no es el CRON_SECRET de Vercel ($Endpoint responde 401). No se ha guardado ni instalado nada."
+      throw "Ese valor no es el CRON_SECRET de Vercel: $Endpoint no lo acepta. Copialo otra vez y repite; no se ha guardado ni instalado nada."
     }
     $guardar = $true
   }
