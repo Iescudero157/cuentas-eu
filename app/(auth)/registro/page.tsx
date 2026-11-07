@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { Mail, Lock, User, ArrowRight, AlertCircle, Info, Building2, Sparkles } from "lucide-react";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Mail, Lock, User, ArrowRight, AlertCircle, Info, Building2, Sparkles, Loader2 } from "lucide-react";
 import { fireConversion } from "@/lib/gtag";
+import { leerCodigoSocio, rutaConCodigoSocio } from "@/lib/socio-ref";
 
 // ── Plan selector shown before the registration form ────────────────────────
 function PlanSelector() {
@@ -13,6 +14,10 @@ function PlanSelector() {
   useEffect(() => {
     fireConversion(5.0, "EUR");
   }, []);
+
+  // Programa de socios: el ?ref= del socio sigue hasta la página de registro concreta.
+  const searchParams = useSearchParams();
+  const codigoSocio = leerCodigoSocio(searchParams);
 
   return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-brand-gray">
@@ -27,7 +32,7 @@ function PlanSelector() {
 
         <div className="space-y-4">
           {/* Profesional */}
-          <Link href="/registro/profesional" className="block bg-white rounded-2xl border-2 border-brand-border hover:border-brand-green transition p-5 group">
+          <Link href={rutaConCodigoSocio("/registro/profesional", codigoSocio)} className="block bg-white rounded-2xl border-2 border-brand-border hover:border-brand-green transition p-5 group">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-brand-green/10 flex items-center justify-center shrink-0 group-hover:bg-brand-green/20 transition">
                 <User className="w-6 h-6 text-brand-green" />
@@ -43,7 +48,7 @@ function PlanSelector() {
           </Link>
 
           {/* Empresa */}
-          <Link href="/registro/empresa" className="block bg-white rounded-2xl border-2 border-brand-border hover:border-brand-blue transition p-5 group">
+          <Link href={rutaConCodigoSocio("/registro/empresa", codigoSocio)} className="block bg-white rounded-2xl border-2 border-brand-border hover:border-brand-blue transition p-5 group">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-brand-blue/10 flex items-center justify-center shrink-0 group-hover:bg-brand-blue/20 transition">
                 <Building2 className="w-6 h-6 text-brand-blue" />
@@ -88,7 +93,12 @@ function PlanSelector() {
 }
 
 export default function RegistroPage() {
-  return <PlanSelector />;
+  // useSearchParams() necesita un <Suspense> para que next build no falle (como /login).
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-brand-gray"><Loader2 className="w-8 h-8 animate-spin text-brand-blue" /></div>}>
+      <PlanSelector />
+    </Suspense>
+  );
 }
 
 function _RegistroPageOriginal() {

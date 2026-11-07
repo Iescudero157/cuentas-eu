@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Building2, Mail, User, Hash, Briefcase, Lock, ArrowLeft, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { fireConversion } from "@/lib/gtag";
+import { codigoSocioDeLaUrl } from "@/lib/socio-ref";
 
 const SECTORES = [
   "Tecnología / Software", "Consultoría", "Construcción", "Comercio / Retail",
@@ -40,11 +41,13 @@ export default function RegistroEmpresaPage() {
     try {
       // 1. Create Supabase auth account
       const supabase = createClient();
+      // Programa de socios: si la visita trae ?ref= válido, queda en los metadatos de la cuenta.
+      const refSocio = codigoSocioDeLaUrl();
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: form.email,
         password: form.password,
         options: {
-          data: { name: form.name, empresa: form.empresa, tipo: "empresa" },
+          data: { name: form.name, empresa: form.empresa, tipo: "empresa", ...(refSocio ? { ref_socio: refSocio } : {}) },
           emailRedirectTo: `${window.location.origin}/dashboard`,
         },
       });
