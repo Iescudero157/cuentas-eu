@@ -76,9 +76,12 @@ export default function TerminosPage() {
           <section>
             <h2 className="text-xl font-bold mt-8 mb-3">5. Planes y facturación</h2>
             <p className="text-brand-muted leading-relaxed">
-              KUENTAS.EU ofrece planes gratuitos y de pago. Los planes de pago se facturan mensualmente y
-              pueden cancelarse en cualquier momento. La cancelación surte efecto al final del periodo de
-              facturación en curso. No se realizan reembolsos por periodos parciales.
+              KUENTAS.EU ofrece planes gratuitos y de pago. Cada pago de un plan cubre un mes desde la fecha
+              de pago. Antes de que caduque te enviamos por email el enlace para renovarlo, y solo se renueva
+              si pagas ese enlace: no hay cargos automáticos. Para dejar un plan basta con no renovarlo: si no
+              lo renuevas, mantienes sus funciones 7 días más y después tu cuenta pasa al plan Gratis, sin
+              perder tus datos. También puedes darte de baja por email (apartado 10). No se realizan
+              reembolsos por periodos parciales.
             </p>
             <p className="text-brand-muted leading-relaxed mt-2">
               Los pagos se procesan a través del TPV Virtual de BBVA (Redsys). KUENTAS.EU no almacena
@@ -130,7 +133,8 @@ export default function TerminosPage() {
               Puedes darte de baja en cualquier momento escribiendo a{" "}
               <a href="mailto:kuentas@mercadonet.es" className="text-brand-blue hover:underline">kuentas@mercadonet.es</a>{" "}
               desde el email con el que te registraste. La baja de un plan de pago produce efectos al final
-              del periodo de facturación en curso (apartado 5). Al cancelar, tienes 30 días
+              del mes ya pagado; para dejar un plan también basta con no renovarlo (apartado 5). Al cancelar,
+              tienes 30 días
               para exportar todos tus datos en formato CSV o PDF. Transcurrido ese plazo, eliminaremos tus
               datos personales de nuestros sistemas, salvo los registros de facturación del módulo
               Verifactu, sus envíos a la AEAT y sus respuestas, que se conservan al menos seis años desde
