@@ -55,7 +55,8 @@ export async function GET(request: Request) {
   const avisos: { tipo: TipoAviso; dias: number; estado: EstadoAviso }[] = [];
   let sinCaducidad = 0;
   let resend: Resend | null = null;
-  const migracionAplicada = perfiles.length === 0 || perfiles.some((p) => "plan_expires_at" in p);
+  // Sin cuentas de pago no se puede saber si la columna existe: null («sin comprobar»).
+  const migracionAplicada = perfiles.length === 0 ? null : perfiles.some((p) => "plan_expires_at" in p);
 
   for (const p of perfiles) {
     const e = estadoPlan(
