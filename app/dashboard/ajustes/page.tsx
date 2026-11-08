@@ -4,7 +4,9 @@ import { User, Building2, CreditCard, Bell, Shield, Loader2, ExternalLink, Star 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { estadoPlan, NOMBRE_PLAN } from "@/lib/plan";
 import CertificadoCard from "./certificado-card";
+import RenovarPlan from "./renovar-plan";
 
 const PLAN_LABELS: Record<string, { label: string; price: string; color: string }> = {
   gratis: { label: "Plan Gratis", price: "0 EUR/mes", color: "text-brand-muted" },
@@ -20,11 +22,36 @@ const PORTAL_STRIPE_ACTIVO: boolean = false;
 
 const MAILTO_PLAN = `mailto:kuentas@mercadonet.es?subject=${encodeURIComponent("Cambio de plan o baja en KUENTAS.EU")}`;
 
+function fechaLarga(fecha: Date): string {
+  return new Intl.DateTimeFormat("es-ES", {
+    timeZone: "Europe/Madrid",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(fecha);
+}
+
 function PlanCard() {
   const [loading, setLoading] = useState(false);
   const { profile } = useAuth();
   const currentPlan = profile?.plan || "gratis";
   const planInfo = PLAN_LABELS[currentPlan] ?? PLAN_LABELS.gratis;
+  // Caducidad mensual (8-nov-2026): estado del plan pagado, que puede haber caducado aunque la app ya trate la
+  // cuenta como Gratis (profile.plan es el plan efectivo; profile.plan_contratado, el pagado).
+  const estado = estadoPlan({
+    plan: profile?.plan_contratado ?? profile?.plan,
+    plan_expires_at: profile?.plan_expires_at ?? null,
+  });
+  const nombrePagado = NOMBRE_PLAN[estado.contratado];
+  const conCaducidad =
+    estado.situacion === "vigente" || estado.situacion === "gracia" || estado.situacion === "caducado";
+
+  // El enlace de los avisos por email lleva ?renovar=1: se baja hasta esta tarjeta.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("renovar")) {
+      document.getElementById("tu-plan")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, []);
 
   async function handleManageBilling() {
     setLoading(true);
@@ -44,7 +71,7 @@ function PlanCard() {
   }
 
   return (
-    <div className="bg-white rounded-xl p-6 border border-brand-border/50 shadow-sm">
+    <div id="tu-plan" className="bg-white rounded-xl p-6 border border-brand-border/50 shadow-sm">
       <div className="flex items-center gap-2 mb-4">
         <CreditCard className="w-5 h-5 text-brand-blue" />
         <h3 className="font-semibold text-brand-text">Tu plan</h3>
@@ -54,11 +81,41 @@ function PlanCard() {
           <p className={`font-semibold ${planInfo.color}`}>{planInfo.label}</p>
           <p className="text-sm text-brand-muted">{planInfo.price}</p>
         </div>
-        <span className="text-xs bg-brand-success/10 text-brand-success px-3 py-1 rounded-full font-medium">
-          {currentPlan === "gratis" ? "Gratuito" : "Activo"}
-        </span>
+        {estado.situacion === "gracia" ? (
+          <span className="text-xs bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-medium">Por renovar</span>
+        ) : (
+          <span className="text-xs bg-brand-success/10 text-brand-success px-3 py-1 rounded-full font-medium">
+            {currentPlan === "gratis" ? "Gratuito" : "Activo"}
+          </span>
+        )}
       </div>
-      {currentPlan === "gratis" ? (
+      {estado.situacion === "vigente" && estado.caducaEl && (
+        <p className="mt-3 text-sm text-brand-muted">
+          Pagado hasta el {fechaLarga(estado.caducaEl)}. Cada pago cubre un mes y no hay cargos automáticos: antes de
+          que caduque te avisamos por email con el enlace para renovar.
+        </p>
+      )}
+      {estado.situacion === "gracia" && estado.caducaEl && estado.finGracia && (
+        <p className="mt-3 text-sm text-amber-800">
+          Tu plan {nombrePagado} caducó el {fechaLarga(estado.caducaEl)}. Lo mantienes hasta el{" "}
+          {fechaLarga(estado.finGracia)}; si no lo renuevas, después tu cuenta pasará al plan Gratis. Tus datos no se
+          borran.
+        </p>
+      )}
+      {estado.situacion === "caducado" && estado.caducaEl && (
+        <p className="mt-3 text-sm text-amber-800">
+          Tu plan {nombrePagado} caducó el {fechaLarga(estado.caducaEl)} y ahora tienes las funciones del plan Gratis.
+          Tus datos siguen ahí: renuévalo para recuperar las funciones de pago.
+        </p>
+      )}
+      {conCaducidad ? (
+        <div className="mt-4 flex gap-3">
+          <RenovarPlan
+            plan={estado.contratado}
+            texto={estado.situacion === "vigente" ? "Renovar un mes más" : `Renovar plan ${nombrePagado}`}
+          />
+        </div>
+      ) : currentPlan === "gratis" ? (
         <div className="mt-4 flex gap-3">
           <Link
             href="/precios"
@@ -83,10 +140,11 @@ function PlanCard() {
         </div>
       ) : null}
       <p className="mt-3 text-sm text-brand-muted">
-        {currentPlan === "gratis" ? "Para darte de baja" : "Para cambiar de plan o darte de baja"}, escribe a{" "}
+        {estado.contratado === "gratis" ? "Para darte de baja" : "Para cambiar de plan o darte de baja"}, escribe a{" "}
         <a href={MAILTO_PLAN} className="text-brand-blue hover:underline">kuentas@mercadonet.es</a>{" "}
         desde el email con el que te registraste.
-        {currentPlan !== "gratis" && " La baja produce efectos al final del periodo de facturación en curso."}
+        {conCaducidad && " Para dejar el plan de pago también basta con no renovarlo."}
+        {estado.situacion === "sin_caducidad" && " La baja produce efectos al final del periodo de facturación en curso."}
       </p>
     </div>
   );

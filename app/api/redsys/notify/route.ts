@@ -1,9 +1,21 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
 import crypto from "crypto";
+import { IMPORTE_CENTIMOS, nuevaCaducidad } from "@/lib/plan";
 
 const REDSYS_KEY    = process.env.TPV_RAIOLA_REDSYS_KEY ?? "";
 const MERCHANT_CODE = process.env.TPV_MERCHANT_CODE ?? "370237745";
+
+// 8-nov-2026: la notificación de Redsys llega de servidor a servidor, sin sesión de usuario, y la RLS de
+// profiles solo deja leer y escribir la fila propia (auth.uid() = id): con el cliente de cookies la consulta no
+// encontraba el perfil y el plan nunca se activaba. Se usa el service_role, como en el resto de rutas de servidor.
+function clienteServicio() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) return null;
+  return createServiceClient(url, serviceKey);
+}
 
 function verifyRedsysSignature(
   merchantParamsB64: string,
@@ -77,11 +89,16 @@ export async function POST(request: Request) {
     }
 
     // Find the user who initiated this payment
-    const supabase = await createClient();
+    const servicio = clienteServicio();
+    if (!servicio) {
+      console.error("[redsys/notify] Falta SUPABASE_SERVICE_ROLE_KEY: sin ella la RLS no deja activar el plan");
+    }
+    const supabase = servicio ?? (await createClient());
 
+    // select("*"): funciona antes y después de la migración de caducidad mensual.
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("id, redsys_plan_pending")
+      .select("*")
       .eq("redsys_order_pending", orderNumber)
       .limit(1);
 
@@ -90,11 +107,21 @@ export async function POST(request: Request) {
       return new NextResponse("OK", { status: 200 });
     }
 
-    const { id: userId, redsys_plan_pending: plan } = profiles[0];
+    const perfil = profiles[0] as Record<string, unknown>;
+    const userId = perfil.id as string | undefined;
+    const plan = perfil.redsys_plan_pending as string | null | undefined;
 
     if (userId && plan) {
+      // El importe cobrado tiene que ser el del plan pendiente (el usuario puede tocar su redsys_plan_pending).
+      const importe = parseInt(merchantParams.Ds_Amount ?? "", 10);
+      const esperado = IMPORTE_CENTIMOS[plan];
+      if (esperado === undefined || importe !== esperado) {
+        console.error(`[redsys/notify] Importe ${importe} no corresponde al plan "${plan}" (order ${orderNumber}): no se activa`);
+        return new NextResponse("OK", { status: 200 });
+      }
+
       // Activate the plan
-      await supabase
+      const { error: errorPlan } = await supabase
         .from("profiles")
         .update({
           plan,
@@ -103,6 +130,22 @@ export async function POST(request: Request) {
           updated_at: new Date().toISOString(),
         })
         .eq("id", userId);
+      if (errorPlan) {
+        console.error("[redsys/notify] No se pudo activar el plan:", errorPlan.message);
+        return new NextResponse("KO", { status: 500 });
+      }
+
+      // Caducidad mensual: cada pago cubre un mes desde la mayor entre ahora y la caducidad vigente. Va aparte
+      // porque, hasta aplicar la migración 20261108100000_plan_caducidad_mensual.sql, la columna no existe: en ese
+      // caso el plan queda activo sin caducidad, como antes, y solo se deja aviso en el log.
+      const caducidad = nuevaCaducidad(perfil.plan_expires_at as string | null | undefined);
+      const { error: errorCaducidad } = await supabase
+        .from("profiles")
+        .update({ plan_expires_at: caducidad.toISOString(), plan_avisos_enviados: [] })
+        .eq("id", userId);
+      if (errorCaducidad) {
+        console.warn("[redsys/notify] Plan activado sin caducidad (¿migración pendiente?):", errorCaducidad.message);
+      }
 
       console.log(`[redsys/notify] Plan "${plan}" activated for user ${userId}, order ${orderNumber}`);
     }

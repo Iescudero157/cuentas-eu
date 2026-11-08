@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import crypto from "crypto";
+import { IMPORTE_CENTIMOS } from "@/lib/plan";
 
 // ── Redsys BBVA TPV Virtual Integration ───────────────────────────────────────
 // Merchant credentials (set in Vercel environment variables)
@@ -10,12 +11,9 @@ const TERMINAL        = process.env.TPV_TERMINAL ?? "001";
 const REDSYS_URL      = "https://sis.redsys.es/sis/realizarPago";
 const APP_URL         = process.env.NEXT_PUBLIC_APP_URL ?? "https://app.kuentas.eu";
 
-// Plan amounts in cents (EUR × 100)
-const PLAN_AMOUNTS: Record<string, number> = {
-  autonomo: 999,   // 9,99 EUR
-  creator: 1999,   // 19,99 EUR
-  business: 2999,  // 29,99 EUR
-};
+// Plan amounts in cents (EUR × 100): 9,99 / 19,99 / 29,99 EUR. Fuente única en lib/plan.ts, la misma con la
+// que /api/redsys/notify comprueba el importe cobrado. Cada pago cubre un mes (caducidad mensual, 8-nov-2026).
+const PLAN_AMOUNTS: Record<string, number> = IMPORTE_CENTIMOS;
 
 /**
  * Generate a unique 12-char order number (alphanum, Redsys requirement).

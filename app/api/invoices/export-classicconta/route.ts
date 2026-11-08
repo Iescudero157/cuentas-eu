@@ -8,6 +8,7 @@ import {
   type FacturaContable,
 } from "@/lib/export-contable/classicconta";
 import { limitarTasa, respuesta429 } from "@/lib/verifactu/seguridad-http";
+import { planEfectivo } from "@/lib/plan";
 
 // V22 · «Exportar a ClassicConta (AIG)» — plan Business (D3 del plan maestro).
 // Genera un ZIP con CC_subcuentas.txt (444 c/registro) y CC_diario.txt
@@ -40,7 +41,7 @@ export async function GET(request: Request) {
   // ── Gating de plan: el export contable AIG es una función del plan Business
   const { data: profileData, error: profileError } = await supabase
     .from("profiles")
-    .select("plan")
+    .select("*")
     .eq("id", user.id)
     .single();
   if (profileError) {
@@ -50,7 +51,8 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-  if ((profileData?.plan as string) !== "business") {
+  // Plan efectivo: Gratis si el plan de pago caducó hace más de 7 días (caducidad mensual, lib/plan.ts).
+  if (planEfectivo(profileData) !== "business") {
     return NextResponse.json(
       {
         error: "plan_requerido",

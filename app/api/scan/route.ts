@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { esPlanDePago, planEfectivo } from "@/lib/plan";
 
 export const maxDuration = 30; // OCR can take a few seconds
 
@@ -21,14 +22,12 @@ export async function POST(request: Request) {
   if (!isAdmin) {
     const { data: profileData } = await supabase
       .from("profiles")
-      .select("plan")
+      .select("*")
       .eq("id", user.id)
       .single();
 
-    const plan = (profileData?.plan as string) ?? "gratis";
-    const paidPlans = ["autonomo", "creator", "business"];
-
-    if (!paidPlans.includes(plan)) {
+    // Plan efectivo: Gratis si el plan de pago caducó hace más de 7 días (caducidad mensual, lib/plan.ts).
+    if (!esPlanDePago(planEfectivo(profileData))) {
       return NextResponse.json({
         error: "plan_required",
         message: "El escaneo OCR con IA está disponible desde el plan Autónomo. Mejora tu plan para usar esta función.",

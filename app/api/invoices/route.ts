@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { emitirFactura, ErrorEmision } from "@/lib/verifactu/emision";
 import { ErrorValidacionRegistro } from "@/lib/verifactu/registro-alta";
+import { planEfectivo } from "@/lib/plan";
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -76,11 +77,12 @@ export async function POST(request: Request) {
   // ── Plan limit: gratis users can create max 5 invoices/month ──────────────
   const { data: profileData } = await supabase
     .from("profiles")
-    .select("plan")
+    .select("*")
     .eq("id", user.id)
     .single();
 
-  const userPlan = (profileData?.plan as string) ?? "gratis";
+  // Plan efectivo: Gratis si el plan de pago caducó hace más de 7 días (caducidad mensual, lib/plan.ts).
+  const userPlan = planEfectivo(profileData);
 
   if (userPlan === "gratis") {
     const now = new Date();

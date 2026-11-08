@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { planEfectivo, type Plan } from "@/lib/plan";
 import type { User, Session } from "@supabase/supabase-js";
 
 interface UserProfile {
@@ -22,7 +23,12 @@ interface UserProfile {
   epigrafe: string | null;
   tipo_iva: number;
   retencion_irpf: number;
-  plan: "gratis" | "autonomo" | "creator" | "business";
+  /** Plan que aplica la app hoy (Gratis si el de pago caducó hace más de 7 días). */
+  plan: Plan;
+  /** Plan pagado, aunque esté caducado: el que se ofrece renovar en Ajustes. */
+  plan_contratado?: Plan;
+  /** Caducidad mensual del plan de pago (columna de la migración del 8-nov-2026; ausente antes de aplicarla). */
+  plan_expires_at?: string | null;
   stripe_customer_id: string | null;
   stripe_subscription_id: string | null;
   notif_fiscales: boolean;
@@ -71,7 +77,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .single();
 
       if (!error && data) {
-        setProfile(data as UserProfile);
+        const perfil = data as UserProfile;
+        setProfile({ ...perfil, plan_contratado: perfil.plan, plan: planEfectivo(perfil) });
       }
     } catch {
       // Profile fetch failed, continue without it
