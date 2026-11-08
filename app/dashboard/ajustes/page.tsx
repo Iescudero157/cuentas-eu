@@ -13,6 +13,13 @@ const PLAN_LABELS: Record<string, { label: string; price: string; color: string 
   business: { label: "Plan Business", price: "29,99 EUR/mes", color: "text-brand-blue" },
 };
 
+// Portal de Stripe DESACTIVADO (8-nov-2026): hoy se cobra con el TPV de BBVA (Redsys), que no crea cliente en
+// Stripe, así que «Gestionar suscripción» siempre acababa en error. Se conserva para la fase 2 (Stripe de
+// MILBROTES): para volver a mostrar el botón, poner esta constante a true (ruta /api/stripe/portal intacta).
+const PORTAL_STRIPE_ACTIVO: boolean = false;
+
+const MAILTO_PLAN = `mailto:kuentas@mercadonet.es?subject=${encodeURIComponent("Cambio de plan o baja en KUENTAS.EU")}`;
+
 function PlanCard() {
   const [loading, setLoading] = useState(false);
   const { profile } = useAuth();
@@ -51,15 +58,17 @@ function PlanCard() {
           {currentPlan === "gratis" ? "Gratuito" : "Activo"}
         </span>
       </div>
-      <div className="mt-4 flex gap-3">
-        {currentPlan === "gratis" ? (
+      {currentPlan === "gratis" ? (
+        <div className="mt-4 flex gap-3">
           <Link
             href="/precios"
             className="flex-1 flex items-center justify-center gap-2 bg-brand-blue text-white text-sm font-semibold py-2 rounded-lg hover:opacity-90 transition"
           >
             <Star className="w-4 h-4" /> Mejorar plan
           </Link>
-        ) : (
+        </div>
+      ) : PORTAL_STRIPE_ACTIVO ? (
+        <div className="mt-4 flex gap-3">
           <button
             onClick={handleManageBilling}
             disabled={loading}
@@ -71,8 +80,14 @@ function PlanCard() {
               <><ExternalLink className="w-4 h-4" /> Gestionar suscripción</>
             )}
           </button>
-        )}
-      </div>
+        </div>
+      ) : null}
+      <p className="mt-3 text-sm text-brand-muted">
+        {currentPlan === "gratis" ? "Para darte de baja" : "Para cambiar de plan o darte de baja"}, escribe a{" "}
+        <a href={MAILTO_PLAN} className="text-brand-blue hover:underline">kuentas@mercadonet.es</a>{" "}
+        desde el email con el que te registraste.
+        {currentPlan !== "gratis" && " La baja produce efectos al final del periodo de facturación en curso."}
+      </p>
     </div>
   );
 }
