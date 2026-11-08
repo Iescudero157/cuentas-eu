@@ -18,7 +18,7 @@ export default function TerminosPage() {
         </Link>
 
         <h1 className="text-3xl font-bold text-brand-text mb-2">Términos de Servicio</h1>
-        <p className="text-brand-muted mb-8">Última actualización: 1 de noviembre de 2026</p>
+        <p className="text-brand-muted mb-8">Última actualización: 8 de noviembre de 2026</p>
 
         <div className="prose prose-sm max-w-none text-brand-text space-y-6">
           <section>
@@ -127,7 +127,10 @@ export default function TerminosPage() {
           <section>
             <h2 className="text-xl font-bold mt-8 mb-3">10. Cancelación y portabilidad</h2>
             <p className="text-brand-muted leading-relaxed">
-              Puedes cancelar tu cuenta en cualquier momento desde los ajustes. Al cancelar, tienes 30 días
+              Puedes darte de baja en cualquier momento escribiendo a{" "}
+              <a href="mailto:kuentas@mercadonet.es" className="text-brand-blue hover:underline">kuentas@mercadonet.es</a>{" "}
+              desde el email con el que te registraste. La baja de un plan de pago produce efectos al final
+              del periodo de facturación en curso (apartado 5). Al cancelar, tienes 30 días
               para exportar todos tus datos en formato CSV o PDF. Transcurrido ese plazo, eliminaremos tus
               datos personales de nuestros sistemas, salvo los registros de facturación del módulo
               Verifactu, sus envíos a la AEAT y sus respuestas, que se conservan al menos seis años desde
