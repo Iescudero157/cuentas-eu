@@ -7,6 +7,10 @@
     {
       "path": "/api/cron/verifactu-remision",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/plan-caducidad",
+      "schedule": "0 8 * * *"
     }
   ]
 }
