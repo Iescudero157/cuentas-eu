@@ -1,136 +1,65 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { NextResponse } from "next/server";
+import type Stripe from "stripe";
 import { getStripe } from "@/lib/stripe";
-import Stripe from "stripe";
+import { clienteServicio } from "@/lib/supabase/servicio";
+import { aplicarSesionStripe, esSesionDeKuentas } from "@/lib/pago-stripe";
 
-// Use service role client for webhook (bypasses RLS)
-function getServiceClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-}
-
-// Map Stripe status to app plan name
-function planFromSubscription(sub: Stripe.Subscription): string {
-  if (sub.status !== "active" && sub.status !== "trialing") return "gratis";
-  const priceId = sub.items.data[0]?.price?.id ?? "";
-  const { STRIPE_PRICE_AUTONOMO, STRIPE_PRICE_CREATOR, STRIPE_PRICE_BUSINESS } = process.env;
-  if (priceId === STRIPE_PRICE_BUSINESS) return "business";
-  if (priceId === STRIPE_PRICE_CREATOR) return "creator";
-  if (priceId === STRIPE_PRICE_AUTONOMO) return "autonomo";
-  return "gratis";
-}
-
-export async function POST(req: NextRequest) {
-  const body = await req.text();
-  const signature = req.headers.get("stripe-signature") ?? "";
+// Aviso de Stripe (13-nov-2026). Con el pago único de un mes (lib/pago-stripe.ts) solo importan las sesiones de
+// Checkout pagadas: activan o renuevan un mes el plan con la misma lógica que el aviso del TPV de BBVA
+// (lib/pago-plan.ts), una sola vez aunque el aviso llegue repetido. Ya no hay suscripciones: los demás eventos se
+// ignoran. La cuenta de Stripe es compartida con otras webs: sus sesiones (sin metadata.app = "kuentas") se
+// ignoran con 200, para que Stripe no las reintente.
+export async function POST(request: Request) {
+  const body = await request.text();
+  const firma = request.headers.get("stripe-signature") ?? "";
 
   let event: Stripe.Event;
   try {
-    event = getStripe().webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
+    event = getStripe().webhooks.constructEvent(body, firma, process.env.STRIPE_WEBHOOK_SECRET ?? "");
   } catch (err) {
-    console.error("[stripe/webhook] signature verification failed:", err);
+    console.error("[stripe/webhook] Firma no válida:", err instanceof Error ? err.message : err);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
-  const supabase = getServiceClient();
+  if (event.type !== "checkout.session.completed" && event.type !== "checkout.session.async_payment_succeeded") {
+    return NextResponse.json({ received: true });
+  }
+  const sesion = event.data.object as Stripe.Checkout.Session;
+  if (!esSesionDeKuentas(sesion)) {
+    return NextResponse.json({ received: true });
+  }
+
+  const servicio = clienteServicio();
+  if (!servicio) {
+    console.error("[stripe/webhook] Falta SUPABASE_SERVICE_ROLE_KEY: no se puede activar el plan");
+    return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 });
+  }
 
   try {
-    switch (event.type) {
-      // Checkout completed → link customer and activate plan
-      case "checkout.session.completed": {
-        const session = event.data.object as Stripe.Checkout.Session;
-        const userId = session.metadata?.supabase_user_id;
-        const plan = session.metadata?.plan ?? "autonomo";
-        if (userId) {
-          await supabase
-            .from("profiles")
-            .update({
-              stripe_customer_id: session.customer as string,
-              stripe_subscription_id: session.subscription as string,
-              plan,
-            })
-            .eq("id", userId);
-        }
+    const r = await aplicarSesionStripe(servicio, sesion);
+    switch (r.estado) {
+      case "aplicado":
+        console.log(
+          `[stripe/webhook] Plan "${r.plan}" activado para ${r.usuario} hasta ${r.caducidad ?? "(sin caducidad)"}, sesión ${sesion.id}`
+        );
         break;
-      }
-
-      // Subscription updated: plan change, renewal, past_due, unpaid → sync plan
-      // planFromSubscription() returns "gratis" for any non-active/trialing status,
-      // so past_due/unpaid after Stripe exhausts retries will automatically downgrade
-      case "customer.subscription.updated": {
-        const sub = event.data.object as Stripe.Subscription;
-        const userId = sub.metadata?.supabase_user_id;
-        const plan = planFromSubscription(sub);
-        if (userId) {
-          await supabase
-            .from("profiles")
-            .update({ plan, stripe_subscription_id: sub.id })
-            .eq("id", userId);
-        } else {
-          // Fallback: look up user by customer ID
-          const { data } = await supabase
-            .from("profiles")
-            .select("id")
-            .eq("stripe_customer_id", sub.customer as string)
-            .single();
-          if (data?.id) {
-            await supabase
-              .from("profiles")
-              .update({ plan, stripe_subscription_id: sub.id })
-              .eq("id", data.id);
-          }
-        }
+      case "sin_pedido":
+        console.warn(
+          `[stripe/webhook] Sesión ${sesion.id} sin pedido pendiente: ya aplicada (aviso repetido o vuelta del cliente) o sustituida`
+        );
         break;
-      }
-
-      // Subscription cancelled → downgrade to free immediately
-      case "customer.subscription.deleted": {
-        const sub = event.data.object as Stripe.Subscription;
-        const userId = sub.metadata?.supabase_user_id;
-        if (userId) {
-          await supabase
-            .from("profiles")
-            .update({ plan: "gratis", stripe_subscription_id: null })
-            .eq("id", userId);
-        } else {
-          const { data } = await supabase
-            .from("profiles")
-            .select("id")
-            .eq("stripe_customer_id", sub.customer as string)
-            .single();
-          if (data?.id) {
-            await supabase
-              .from("profiles")
-              .update({ plan: "gratis", stripe_subscription_id: null })
-              .eq("id", data.id);
-          }
-        }
+      case "pendiente":
+        console.log(`[stripe/webhook] Sesión ${sesion.id} aún sin pagar (${sesion.payment_status})`);
         break;
-      }
-
-      // Invoice payment failed → Stripe will retry via dunning.
-      // Plan stays active during retry period; subscription.updated handles final downgrade.
-      case "invoice.payment_failed": {
-        const invoice = event.data.object as Stripe.Invoice;
-        const custId = invoice.customer as string;
-        if (custId) {
-          console.warn(`[stripe/webhook] invoice.payment_failed for customer ${custId} — Stripe will retry`);
-        }
+      case "rechazado":
+        console.error(`[stripe/webhook] Sesión ${sesion.id} pagada y NO aplicada: ${r.motivo}. Revisar a mano.`);
         break;
-      }
-
-      default:
-        // Ignore unhandled events
-        break;
+      case "error":
+        console.error(`[stripe/webhook] Sesión ${sesion.id}: ${r.motivo}`);
+        return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 });
     }
   } catch (err) {
-    console.error(`[stripe/webhook] error handling ${event.type}:`, err);
+    console.error(`[stripe/webhook] Error con ${event.type} ${sesion.id}:`, err);
     return NextResponse.json({ error: "Webhook handler failed" }, { status: 500 });
   }
 

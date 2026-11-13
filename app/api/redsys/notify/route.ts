@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 import crypto from "crypto";
-import { IMPORTE_CENTIMOS, nuevaCaducidad } from "@/lib/plan";
+import { aplicarPagoDePlan } from "@/lib/pago-plan";
 
 const REDSYS_KEY    = process.env.TPV_RAIOLA_REDSYS_KEY ?? "";
 const MERCHANT_CODE = process.env.TPV_MERCHANT_CODE ?? "370237745";
@@ -95,59 +95,29 @@ export async function POST(request: Request) {
     }
     const supabase = servicio ?? (await createClient());
 
-    // select("*"): funciona antes y después de la migración de caducidad mensual.
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("redsys_order_pending", orderNumber)
-      .limit(1);
+    // 13-nov-2026: la activación es la misma que la del aviso de Stripe (lib/pago-plan.ts): busca el perfil con este
+    // pedido pendiente, exige que el importe cobrado sea el del plan pendiente (el usuario puede tocar su
+    // redsys_plan_pending) y, en un solo UPDATE condicionado a que el pedido siga pendiente, activa el plan, suma un
+    // mes a la caducidad y vacía el pedido. Un aviso repetido ya no encuentra el pedido y no cambia nada.
+    const resultado = await aplicarPagoDePlan(supabase, {
+      origen: "redsys",
+      pedido: orderNumber,
+      importeCentimos: parseInt(merchantParams.Ds_Amount ?? "", 10),
+    });
 
-    if (!profiles || profiles.length === 0) {
-      console.warn("[redsys/notify] No profile found for order", orderNumber);
-      return new NextResponse("OK", { status: 200 });
-    }
-
-    const perfil = profiles[0] as Record<string, unknown>;
-    const userId = perfil.id as string | undefined;
-    const plan = perfil.redsys_plan_pending as string | null | undefined;
-
-    if (userId && plan) {
-      // El importe cobrado tiene que ser el del plan pendiente (el usuario puede tocar su redsys_plan_pending).
-      const importe = parseInt(merchantParams.Ds_Amount ?? "", 10);
-      const esperado = IMPORTE_CENTIMOS[plan];
-      if (esperado === undefined || importe !== esperado) {
-        console.error(`[redsys/notify] Importe ${importe} no corresponde al plan "${plan}" (order ${orderNumber}): no se activa`);
-        return new NextResponse("OK", { status: 200 });
-      }
-
-      // Activate the plan
-      const { error: errorPlan } = await supabase
-        .from("profiles")
-        .update({
-          plan,
-          redsys_order_pending: null,
-          redsys_plan_pending: null,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", userId);
-      if (errorPlan) {
-        console.error("[redsys/notify] No se pudo activar el plan:", errorPlan.message);
+    switch (resultado.estado) {
+      case "sin_pedido":
+        console.warn("[redsys/notify] No profile found for order", orderNumber);
+        break;
+      case "rechazado":
+        console.error(`[redsys/notify] ${resultado.motivo} (order ${orderNumber}): no se activa`);
+        break;
+      case "error":
+        console.error("[redsys/notify] No se pudo activar el plan:", resultado.motivo);
         return new NextResponse("KO", { status: 500 });
-      }
-
-      // Caducidad mensual: cada pago cubre un mes desde la mayor entre ahora y la caducidad vigente. Va aparte
-      // porque, hasta aplicar la migración 20261108100000_plan_caducidad_mensual.sql, la columna no existe: en ese
-      // caso el plan queda activo sin caducidad, como antes, y solo se deja aviso en el log.
-      const caducidad = nuevaCaducidad(perfil.plan_expires_at as string | null | undefined);
-      const { error: errorCaducidad } = await supabase
-        .from("profiles")
-        .update({ plan_expires_at: caducidad.toISOString(), plan_avisos_enviados: [] })
-        .eq("id", userId);
-      if (errorCaducidad) {
-        console.warn("[redsys/notify] Plan activado sin caducidad (¿migración pendiente?):", errorCaducidad.message);
-      }
-
-      console.log(`[redsys/notify] Plan "${plan}" activated for user ${userId}, order ${orderNumber}`);
+      case "aplicado":
+        console.log(`[redsys/notify] Plan "${resultado.plan}" activated for user ${resultado.usuario}, order ${orderNumber}`);
+        break;
     }
 
     return new NextResponse("OK", { status: 200 });

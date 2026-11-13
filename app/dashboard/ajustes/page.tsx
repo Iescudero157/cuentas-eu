@@ -15,10 +15,21 @@ const PLAN_LABELS: Record<string, { label: string; price: string; color: string 
   business: { label: "Plan Business", price: "29,99 EUR/mes", color: "text-brand-blue" },
 };
 
-// Portal de Stripe DESACTIVADO (8-nov-2026): hoy se cobra con el TPV de BBVA (Redsys), que no crea cliente en
-// Stripe, así que «Gestionar suscripción» siempre acababa en error. Se conserva para la fase 2 (Stripe de
-// MILBROTES): para volver a mostrar el botón, poner esta constante a true (ruta /api/stripe/portal intacta).
+// Portal de Stripe DESACTIVADO (8-nov-2026): sin suscripciones no hay nada que gestionar en él. Desde el 13-nov-2026
+// se cobra con Stripe Checkout en pago único (un mes por pago, sin crear cliente en Stripe) o, según
+// lib/pasarela.ts, con el TPV de BBVA (Redsys), y con ninguno de los dos tendría sentido «Gestionar suscripción».
+// Para volver a mostrar el botón, poner esta constante a true (ruta /api/stripe/portal intacta).
 const PORTAL_STRIPE_ACTIVO: boolean = false;
+
+// Vuelta de Stripe Checkout: Ajustes confirma el pago (/api/stripe/confirmar) y enseña el resultado.
+type AvisoPago = "confirmando" | "ok" | "pendiente" | "error";
+const TEXTO_AVISO_PAGO: Record<AvisoPago, string> = {
+  confirmando: "Confirmando tu pago...",
+  ok: "Pago recibido: tu plan está activo. Aquí abajo ves hasta cuándo está pagado.",
+  pendiente: "Tu pago está pendiente de confirmar. En cuanto se confirme, tu plan se activará solo.",
+  error:
+    "Todavía no podemos confirmar tu pago. Si se te ha cobrado, tu plan se activará en cuanto nos llegue la confirmación; si en unos minutos no lo ves, escríbenos a kuentas@mercadonet.es.",
+};
 
 const MAILTO_PLAN = `mailto:kuentas@mercadonet.es?subject=${encodeURIComponent("Cambio de plan o baja en KUENTAS.EU")}`;
 
@@ -53,6 +64,40 @@ function PlanCard() {
     }
   }, []);
 
+  // Vuelta de Stripe Checkout (?pago=stripe&session_id=…, 13-nov-2026): se confirma el pago sin esperar al webhook
+  // (es la misma aplicación y no duplica) y se recarga Ajustes con el resultado (?pago=ok|pendiente|error), para
+  // ver el plan ya al día.
+  const [avisoPago, setAvisoPago] = useState<AvisoPago | null>(null);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const pago = params.get("pago");
+    if (pago === "ok" || pago === "pendiente" || pago === "error") {
+      setAvisoPago(pago);
+      window.history.replaceState(null, "", "/dashboard/ajustes");
+      document.getElementById("tu-plan")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
+    const sesion = params.get("session_id");
+    if (pago !== "stripe" || !sesion) return;
+    setAvisoPago("confirmando");
+    (async () => {
+      let resultado: AvisoPago = "error";
+      try {
+        const res = await fetch("/api/stripe/confirmar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: sesion }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && (data.estado === "aplicado" || data.estado === "ya_aplicado")) resultado = "ok";
+        else if (res.ok && data.estado === "pendiente") resultado = "pendiente";
+      } catch {
+        // Sin conexión: se queda en «error»; el webhook de Stripe activará el plan igualmente.
+      }
+      window.location.replace(`/dashboard/ajustes?pago=${resultado}`);
+    })();
+  }, []);
+
   async function handleManageBilling() {
     setLoading(true);
     try {
@@ -76,6 +121,21 @@ function PlanCard() {
         <CreditCard className="w-5 h-5 text-brand-blue" />
         <h3 className="font-semibold text-brand-text">Tu plan</h3>
       </div>
+      {avisoPago && (
+        <div
+          role="status"
+          className={`mb-4 rounded-lg px-4 py-3 text-sm ${
+            avisoPago === "ok"
+              ? "bg-brand-success/10 text-brand-success"
+              : avisoPago === "error"
+                ? "bg-amber-100 text-amber-800"
+                : "bg-brand-blue/5 text-brand-blue"
+          }`}
+        >
+          {avisoPago === "confirmando" && <Loader2 className="inline w-4 h-4 mr-1.5 -mt-0.5 animate-spin" />}
+          {TEXTO_AVISO_PAGO[avisoPago]}
+        </div>
+      )}
       <div className="bg-brand-blue/5 rounded-lg p-4 flex items-center justify-between">
         <div>
           <p className={`font-semibold ${planInfo.color}`}>{planInfo.label}</p>

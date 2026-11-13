@@ -1,10 +1,11 @@
 // Planes de KUENTAS.EU y caducidad mensual (8-nov-2026).
 //
-// Cada pago confirmado por el TPV de BBVA (Redsys) cubre UN mes: la nueva caducidad es la mayor entre «ahora»
-// y la caducidad vigente, más un mes. No hay cargos automáticos: antes de caducar se avisa por email con el
-// enlace para renovar. Una cuenta caducada conserva las funciones de pago DIAS_GRACIA días y después la app la
+// Cada pago confirmado cubre UN mes, lo cobre Stripe (desde el 13-nov-2026) o el TPV de BBVA (Redsys), según
+// lib/pasarela.ts; los dos avisos aplican el pago con lib/pago-plan.ts. La nueva caducidad es la mayor entre
+// «ahora» y la caducidad vigente, más un mes. No hay cargos automáticos: antes de caducar se avisa por email con
+// el enlace para renovar. Una cuenta caducada conserva las funciones de pago DIAS_GRACIA días y después la app la
 // trata como Gratis (sin borrar nada). Sin caducidad (null o columna aún sin crear) = cuenta anterior a este
-// sistema o gestionada por Stripe: no caduca, como hasta ahora.
+// sistema o con una suscripción de Stripe de las de antes: no caduca, como hasta ahora.
 //
 // Sin dependencias: lo importan la app y los tests de Node (type-stripping), así que solo sintaxis borrable.
 
@@ -12,7 +13,7 @@ export type Plan = "gratis" | "autonomo" | "creator" | "business";
 
 export const PLANES_DE_PAGO: readonly Plan[] = ["autonomo", "creator", "business"];
 
-/** Importe de cada plan en céntimos, IVA incluido: lo que se cobra en el TPV de BBVA (Redsys). */
+/** Importe de cada plan en céntimos, IVA incluido: lo que se cobra por cada mes, con Stripe o con el TPV de BBVA. */
 export const IMPORTE_CENTIMOS: Record<string, number> = {
   autonomo: 999,
   creator: 1999,

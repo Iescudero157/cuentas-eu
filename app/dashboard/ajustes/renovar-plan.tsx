@@ -1,11 +1,15 @@
 "use client";
 
-// Caducidad mensual (8-nov-2026): renueva un mes el plan contratado con el mismo pago que /precios
-// (/api/redsys/checkout + formulario al TPV de BBVA). Cada pago cubre un mes; no hay cargo automático.
+// Caducidad mensual (8-nov-2026): renueva un mes el plan contratado con el mismo pago que /precios, según la
+// pasarela de lib/pasarela.ts: Stripe Checkout (/api/stripe/checkout, desde el 13-nov-2026) o el TPV de BBVA
+// (/api/redsys/checkout + formulario al banco). Cada pago cubre un mes; no hay cargo automático.
 // El formulario hacia el banco se crea en document.body: este botón vive dentro del <form> de Ajustes y un
 // <form> anidado no es HTML válido.
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Loader2, RefreshCw } from "lucide-react";
+import { PASARELA_COBRO } from "@/lib/pasarela";
+
+const CON_STRIPE = PASARELA_COBRO === "stripe";
 
 function enviarAlBanco(url: string, campos: Record<string, string>) {
   const form = document.createElement("form");
@@ -26,9 +30,29 @@ function enviarAlBanco(url: string, campos: Record<string, string>) {
 export default function RenovarPlan({ plan, texto }: { plan: string; texto: string }) {
   const [cargando, setCargando] = useState(false);
 
+  // Al volver atrás desde la página de pago, el navegador puede restaurar Ajustes tal cual (bfcache): sin esto, el
+  // botón se quedaría en «Redirigiendo...».
+  useEffect(() => {
+    const alVolver = (e: PageTransitionEvent) => { if (e.persisted) setCargando(false); };
+    window.addEventListener("pageshow", alVolver);
+    return () => window.removeEventListener("pageshow", alVolver);
+  }, []);
+
   async function pagar() {
     setCargando(true);
     try {
+      if (CON_STRIPE) {
+        const res = await fetch("/api/stripe/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ plan, origen: "ajustes" }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.url) throw new Error(data.error ?? "No se pudo iniciar el pago");
+        window.location.href = data.url;
+        return;
+      }
+
       const res = await fetch("/api/redsys/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -55,7 +79,7 @@ export default function RenovarPlan({ plan, texto }: { plan: string; texto: stri
       className="flex-1 flex items-center justify-center gap-2 bg-brand-blue text-white text-sm font-semibold py-2 rounded-lg hover:opacity-90 transition disabled:opacity-60"
     >
       {cargando ? (
-        <><Loader2 className="w-4 h-4 animate-spin" /> Redirigiendo al banco...</>
+        <><Loader2 className="w-4 h-4 animate-spin" /> {CON_STRIPE ? "Redirigiendo al pago seguro..." : "Redirigiendo al banco..."}</>
       ) : (
         <><RefreshCw className="w-4 h-4" /> {texto}</>
       )}

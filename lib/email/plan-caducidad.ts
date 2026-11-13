@@ -1,7 +1,9 @@
 // Aviso por email de caducidad del plan (8-nov-2026): 7 días antes, el día antes y el día de la caducidad (o
 // durante la gracia si ese día no salió). Lo envía /api/cron/plan-caducidad. No hay cargo automático: el
-// correo lleva el enlace para renovar el mismo plan desde Ajustes (pago con tarjeta en el TPV de BBVA).
+// correo lleva el enlace para renovar el mismo plan desde Ajustes (pago con tarjeta en la pasarela de
+// lib/pasarela.ts: Stripe desde el 13-nov-2026; antes, el TPV de BBVA).
 import { IMPORTE_CENTIMOS, NOMBRE_PLAN, type Plan } from "@/lib/plan";
+import { PASARELA_COBRO } from "@/lib/pasarela";
 
 export interface DatosAvisoCaducidad {
   nombre: string | null;
@@ -62,7 +64,7 @@ export function avisoCaducidadEmail(d: DatosAvisoCaducidad): { subject: string; 
   const parrafos = [
     `Hola${d.nombre ? ` ${d.nombre.trim()}` : ""}:`,
     `Tu plan ${plan} de KUENTAS.EU ${cuando}.`,
-    `Para seguir con él otro mes, renuévalo pagando ${precio} € (IVA incluido) con tarjeta en el TPV de BBVA. Cada pago cubre un mes y no hay cargos automáticos.`,
+    `Para seguir con él otro mes, renuévalo pagando ${precio} € (IVA incluido) con tarjeta ${PASARELA_COBRO === "stripe" ? "a través de Stripe" : "en el TPV de BBVA"}. Cada pago cubre un mes y no hay cargos automáticos.`,
     d.dias > 0
       ? `Si no lo renuevas, mantendrás las funciones de pago hasta el ${finGracia} y después tu cuenta pasará al plan Gratis. Tus datos no se borran.`
       : `Si no lo renuevas antes del ${finGracia}, tu cuenta pasará al plan Gratis. Tus datos no se borran.`,

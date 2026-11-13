@@ -1,9 +1,13 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Check, Loader2, ArrowLeft, Sparkles, Zap, Building2, Star, ShieldCheck, Lock } from "lucide-react";
+import { PASARELA_COBRO } from "@/lib/pasarela";
+
+// Pasarela de cobro (interruptor en lib/pasarela.ts): Stripe Checkout desde el 13-nov-2026; antes, el TPV de BBVA.
+const CON_STRIPE = PASARELA_COBRO === "stripe";
 
 const plans = [
   {
@@ -94,9 +98,35 @@ export default function PreciosPage() {
     url: string; sig: string; params: string; sigVer: string;
   } | null>(null);
 
+  // Si se vuelve atrás desde la página de pago, el navegador puede restaurar esta tal cual (bfcache): sin esto, el
+  // botón se quedaría en «Redirigiendo...».
+  useEffect(() => {
+    const alVolver = (e: PageTransitionEvent) => { if (e.persisted) setLoading(null); };
+    window.addEventListener("pageshow", alVolver);
+    return () => window.removeEventListener("pageshow", alVolver);
+  }, []);
+
   async function handleCheckout(planId: string) {
     setLoading(planId);
+    let redirigiendo = false;
     try {
+      if (CON_STRIPE) {
+        // Stripe Checkout: pago único de un mes (sin suscripción ni cargo automático).
+        const res = await fetch("/api/stripe/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ plan: planId, origen: "precios" }),
+        });
+        const data = await res.json().catch(() => ({}));
+
+        if (res.status === 401) { router.push(`/registro?plan=${planId}`); return; }
+        if (!res.ok || !data.url) throw new Error(data.error ?? "No se pudo iniciar el pago. Inténtalo de nuevo.");
+
+        redirigiendo = true;
+        window.location.href = data.url;
+        return;
+      }
+
       const res  = await fetch("/api/redsys/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -120,7 +150,7 @@ export default function PreciosPage() {
       const msg = err instanceof Error ? err.message : "No se pudo iniciar el pago. Inténtalo de nuevo.";
       alert(msg);
     } finally {
-      setLoading(null);
+      if (!redirigiendo) setLoading(null);
     }
   }
 
@@ -161,14 +191,22 @@ export default function PreciosPage() {
             La IA incluye: categorización automática de gastos y OCR de facturas y tickets
           </div>
 
-          {/* Sello de seguridad BBVA */}
+          {/* Sello de seguridad de la pasarela de pago */}
           <div className="mt-5 inline-flex items-center gap-3 bg-white border border-brand-border px-5 py-3 rounded-xl shadow-sm">
             <Lock className="w-4 h-4 text-brand-blue shrink-0" />
-            <span className="text-sm text-brand-muted">
-              Pago seguro a través del{" "}
-              <span className="font-semibold text-brand-text">TPV Virtual BBVA</span>
-              {" "}(Redsys SHA-256) · Visa · Mastercard · Amex
-            </span>
+            {CON_STRIPE ? (
+              <span className="text-sm text-brand-muted">
+                Pago seguro a través de{" "}
+                <span className="font-semibold text-brand-text">Stripe</span>
+                {" "}· Visa · Mastercard · Amex
+              </span>
+            ) : (
+              <span className="text-sm text-brand-muted">
+                Pago seguro a través del{" "}
+                <span className="font-semibold text-brand-text">TPV Virtual BBVA</span>
+                {" "}(Redsys SHA-256) · Visa · Mastercard · Amex
+              </span>
+            )}
             <ShieldCheck className="w-4 h-4 text-brand-success shrink-0" />
           </div>
         </div>
@@ -248,7 +286,7 @@ export default function PreciosPage() {
                     }`}
                   >
                     {loading === plan.id ? (
-                      <><Loader2 className="w-4 h-4 animate-spin" /> Redirigiendo al banco...</>
+                      <><Loader2 className="w-4 h-4 animate-spin" /> {CON_STRIPE ? "Redirigiendo al pago seguro..." : "Redirigiendo al banco..."}</>
                     ) : (
                       plan.cta
                     )}
@@ -262,7 +300,7 @@ export default function PreciosPage() {
         {/* Pie de página */}
         <div className="mt-10 text-center space-y-2">
           <p className="text-sm text-brand-muted">
-            Pago procesado por el TPV Virtual BBVA (Redsys) · Cifrado SSL 256 bits · Factura en EUR · IVA incluido
+            Pago procesado por {CON_STRIPE ? "Stripe" : "el TPV Virtual BBVA (Redsys)"} · Cifrado SSL 256 bits · Factura en EUR · IVA incluido
           </p>
           <p className="text-sm text-brand-muted">
             <a href="mailto:kuentas@mercadonet.es" className="text-brand-blue hover:underline">

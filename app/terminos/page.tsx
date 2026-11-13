@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { PASARELA_COBRO } from "@/lib/pasarela";
 
 export const metadata = {
   title: "Términos de Servicio - KUENTAS.EU",
@@ -18,7 +19,7 @@ export default function TerminosPage() {
         </Link>
 
         <h1 className="text-3xl font-bold text-brand-text mb-2">Términos de Servicio</h1>
-        <p className="text-brand-muted mb-8">Última actualización: 8 de noviembre de 2026</p>
+        <p className="text-brand-muted mb-8">Última actualización: 13 de noviembre de 2026</p>
 
         <div className="prose prose-sm max-w-none text-brand-text space-y-6">
           <section>
@@ -84,9 +85,12 @@ export default function TerminosPage() {
               reembolsos por periodos parciales.
             </p>
             <p className="text-brand-muted leading-relaxed mt-2">
-              Los pagos se procesan a través del TPV Virtual de BBVA (Redsys). KUENTAS.EU no almacena
-              datos de tarjetas. Hasta que MILBROTES, S.L. active sus propias cuentas de cobro, los cobros
-              y las facturas de los planes de pago los emite MERCADONET GLOBAL S.L. (NIF B98407901).
+              {PASARELA_COBRO === "stripe"
+                ? "Los pagos se procesan a través de Stripe Payments Europe, Ltd. (Irlanda), como encargado del pago."
+                : "Los pagos se procesan a través del TPV Virtual de BBVA (Redsys)."}{" "}
+              KUENTAS.EU no almacena datos de tarjetas. Hasta que MILBROTES, S.L. active sus propias cuentas de
+              cobro, los cobros y las facturas de los planes de pago los emite MERCADONET GLOBAL S.L. (NIF
+              B98407901).
             </p>
           </section>
 

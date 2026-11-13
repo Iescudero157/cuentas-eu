@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { PASARELA_COBRO } from "@/lib/pasarela";
 
 export const metadata = {
   title: "Política de Privacidad - KUENTAS.EU",
@@ -20,7 +21,7 @@ export default function PrivacidadPage() {
 
       <main className="max-w-4xl mx-auto px-4 py-12">
         <h1 className="text-3xl font-bold text-brand-text mb-2">Política de Privacidad</h1>
-        <p className="text-brand-muted mb-8">Última actualización: 1 de noviembre de 2026</p>
+        <p className="text-brand-muted mb-8">Última actualización: 13 de noviembre de 2026</p>
 
         <section className="border-l-4 border-brand-blue bg-slate-50 rounded-md px-4 py-3 mb-8 text-sm text-brand-text leading-relaxed">
           <h2 className="font-bold mb-2">Cambio de responsable del tratamiento</h2>
@@ -107,9 +108,11 @@ export default function PrivacidadPage() {
               <li>OpenAI, para categorizar gastos y extraer los datos de los tickets y facturas que escaneas (OCR)</li>
               <li>Resend, para el envío por correo electrónico de las facturas que tú decides enviar</li>
               <li>
-                TPV Virtual de BBVA (Redsys), para el cobro de los planes de pago. Hasta que MILBROTES, S.L.
-                active sus propias cuentas de cobro, los cobros y las facturas de los planes de pago los
-                emite MERCADONET GLOBAL S.L. (NIF B98407901)
+                {PASARELA_COBRO === "stripe"
+                  ? "Stripe Payments Europe, Ltd. (Irlanda), como encargado del pago, para el cobro de los planes de pago."
+                  : "TPV Virtual de BBVA (Redsys), para el cobro de los planes de pago."}{" "}
+                Hasta que MILBROTES, S.L. active sus propias cuentas de cobro, los cobros y las facturas de
+                los planes de pago los emite MERCADONET GLOBAL S.L. (NIF B98407901)
               </li>
               <li>
                 La AEAT, a la que se remiten de forma continua, segura y automática los registros de

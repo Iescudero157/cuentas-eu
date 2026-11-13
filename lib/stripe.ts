@@ -1,12 +1,8 @@
 import Stripe from "stripe";
 
-// Map plan names to Stripe Price IDs (set these in Vercel env vars after creating products in Stripe dashboard)
-export const STRIPE_PRICE_IDS: Record<string, string> = {
-  autonomo: process.env.STRIPE_PRICE_AUTONOMO ?? "",   // 9,99 EUR/mes
-  creator:  process.env.STRIPE_PRICE_CREATOR ?? "",    // 19,99 EUR/mes
-  business: process.env.STRIPE_PRICE_BUSINESS ?? "",   // 29,99 EUR/mes
-};
-
+// Cliente de Stripe. Solo depende de STRIPE_SECRET_KEY (y el webhook, de STRIPE_WEBHOOK_SECRET): desde el
+// 13-nov-2026 cada pago lleva su importe en la sesión (lib/pago-stripe.ts), así que las STRIPE_PRICE_* de las
+// antiguas suscripciones ya no se usan.
 export function getStripe(): Stripe {
   if (!process.env.STRIPE_SECRET_KEY) {
     throw new Error("STRIPE_SECRET_KEY not configured");
