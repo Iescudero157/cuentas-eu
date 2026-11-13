@@ -91,7 +91,10 @@ export default function RegistroPage() {
   return <PlanSelector />;
 }
 
-function _RegistroPageOriginal() {
+// Formulario original, sin usar (la página enseña PlanSelector). Con nombre de componente para que el lint de los hooks
+// no dé error; no se exporta, así que no cambia nada en la web.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function RegistroPageOriginal() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
