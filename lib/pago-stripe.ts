@@ -57,7 +57,7 @@ export function parametrosSesion(d: DatosSesion): Stripe.Checkout.SessionCreateP
 
   return {
     mode: "payment",
-    payment_method_types: ["card"],
+    payment_method_types: ["card", "paypal"],
     line_items: [
       {
         quantity: 1,
