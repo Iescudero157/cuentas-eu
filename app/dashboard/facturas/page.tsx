@@ -125,6 +125,8 @@ export default function FacturasPage() {
   // Export dropdown
   const [showExport, setShowExport] = useState(false);
   const exportRef = useRef<HTMLDivElement>(null);
+  // Menú de acciones de una fila (para no cerrarlo con los clics hechos dentro)
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Export ClassicConta (AIG) — V22, plan Business (ZIP de servidor: diario
   // 869 c/registro + subcuentas 444 según el protocolo Conta6 de AIG)
@@ -182,10 +184,13 @@ export default function FacturasPage() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Close row menu on outside click
+  // Close row menu on outside click. Un clic DENTRO del menú no lo cierra: si
+  // se cerrara en el mousedown, el botón pulsado desaparecería antes de recibir
+  // el clic y la acción (rectificar, anular, PDF, cobro…) no llegaría a ejecutarse.
   useEffect(() => {
     if (!openMenuId) return;
-    function handler() {
+    function handler(e: globalThis.MouseEvent) {
+      if (menuRef.current && menuRef.current.contains(e.target as Node)) return;
       setOpenMenuId(null);
       setMenuPos(null);
     }
@@ -516,9 +521,9 @@ export default function FacturasPage() {
                   return (
                     <tr key={inv.id} className="hover:bg-brand-gray/30 transition">
                       <td className="px-5 py-4">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-x-2 gap-y-1 flex-wrap">
                           <FileText className="w-4 h-4 text-brand-muted flex-shrink-0" />
-                          <span className="font-medium text-brand-blue">{inv.number}</span>
+                          <span className="font-medium text-brand-blue whitespace-nowrap">{inv.number}</span>
                           {(inv.verifactuEstado === "emitida" || inv.verifactuEstado === "rectificada") && (
                             <span
                               title="Factura emitida bajo VERI*FACTU: su contenido es inmutable (art. 8.2 RD 1007/2023). Para corregirla, emite una rectificativa o anúlala."
@@ -637,8 +642,10 @@ export default function FacturasPage() {
                                 setMenuPos(null);
                               } else {
                                 const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                                // El menú va en position: fixed → coordenadas de la
+                                // ventana, sin sumar el desplazamiento de la página.
                                 setMenuPos({
-                                  top: rect.bottom + window.scrollY + 4,
+                                  top: rect.bottom + 4,
                                   right: window.innerWidth - rect.right,
                                 });
                                 setOpenMenuId(inv.id);
@@ -665,6 +672,7 @@ export default function FacturasPage() {
         if (!inv) return null;
         return (
           <div
+            ref={menuRef}
             style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999 }}
             onMouseDown={(e) => e.stopPropagation()}
           >
