@@ -20,6 +20,34 @@ export const IMPORTE_CENTIMOS: Record<string, number> = {
   business: 2999,
 };
 
+// Rebaja de Black Friday 2026 (decisión de Iván del 20-nov-2026): del 26 al 29 de noviembre, el mes que se pague
+// cuesta un 30 % menos. La ventana va aquí dentro: antes del 26 y desde el 30 a las 00:00 (hora de Madrid) se cobra
+// IMPORTE_CENTIMOS, sin que nadie tenga que retirar nada. El importe de la tabla no cambia.
+export const REBAJA_BF = {
+  /** Marca que llevan en metadata las sesiones de pago abiertas con la rebaja. */
+  id: "bf26",
+  desde: "2026-11-26T00:00:00+01:00",
+  /** Exclusivo: el 30-nov a las 00:00 ya no hay rebaja. */
+  hasta: "2026-11-30T00:00:00+01:00",
+  porcentaje: 30,
+  texto: "Black Friday, del 26 al 29 de noviembre",
+} as const;
+
+export function rebajaVigente(ahora: Date = new Date()): boolean {
+  const t = ahora.getTime();
+  return t >= Date.parse(REBAJA_BF.desde) && t < Date.parse(REBAJA_BF.hasta);
+}
+
+/** Importe del plan con la rebaja aplicada, en céntimos (699 / 1399 / 2099). */
+export function importeRebajado(plan: string): number {
+  return Math.round((IMPORTE_CENTIMOS[plan] * (100 - REBAJA_BF.porcentaje)) / 100);
+}
+
+/** Lo que se cobra por un mes del plan en un instante dado: rebajado dentro de la ventana, el de siempre fuera. */
+export function importeDelPlan(plan: string, ahora: Date = new Date()): number {
+  return rebajaVigente(ahora) ? importeRebajado(plan) : IMPORTE_CENTIMOS[plan];
+}
+
 export const NOMBRE_PLAN: Record<Plan, string> = {
   gratis: "Gratis",
   autonomo: "Autónomo",

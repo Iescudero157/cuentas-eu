@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Check, Loader2, ArrowLeft, Sparkles, Zap, Building2, Star, ShieldCheck, Lock } from "lucide-react";
 import { PASARELA_COBRO } from "@/lib/pasarela";
+import { rebajaVigente } from "@/lib/plan";
 
 // Pasarela de cobro (interruptor en lib/pasarela.ts): Stripe Checkout desde el 13-nov-2026; antes, el TPV de BBVA.
 const CON_STRIPE = PASARELA_COBRO === "stripe";
@@ -97,6 +98,14 @@ export default function PreciosPage() {
   const [redsysParams, setRedsysParams] = useState<{
     url: string; sig: string; params: string; sigVer: string;
   } | null>(null);
+
+  // Rebaja de Black Friday (26 a 29-nov-2026; la ventana está en lib/plan.ts). Se decide en el navegador, después
+  // de pintar, para que el HTML generado al compilar no la lleve dentro: fuera de plazo no aparece nada.
+  const [enRebaja, setEnRebaja] = useState(false);
+  useEffect(() => {
+    const id = setTimeout(() => setEnRebaja(rebajaVigente()), 0);
+    return () => clearTimeout(id);
+  }, []);
 
   // Si se vuelve atrás desde la página de pago, el navegador puede restaurar esta tal cual (bfcache): sin esto, el
   // botón se quedaría en «Redirigiendo...».
@@ -210,6 +219,14 @@ export default function PreciosPage() {
             <ShieldCheck className="w-4 h-4 text-brand-success shrink-0" />
           </div>
         </div>
+
+        {enRebaja && (
+          <div className="mb-10 mx-auto max-w-3xl rounded-xl border border-amber-300 bg-amber-50 px-5 py-4 text-sm text-brand-text text-center">
+            <strong>Black Friday, del 26 al 29 de noviembre:</strong> el mes que pagues estos días cuesta un 30 % menos.
+            Autónomo, 6,99 € (precio de los últimos 30 días: 9,99 €); Creator, 13,99 € (19,99 €); Business, 20,99 €
+            (29,99 €). El descuento se aplica solo en la página de pago. Los meses siguientes se pagan al precio habitual.
+          </div>
+        )}
 
         {/* Tarjetas de planes */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

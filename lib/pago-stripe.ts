@@ -14,7 +14,15 @@
 
 import type Stripe from "stripe";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { IMPORTE_CENTIMOS, NOMBRE_PLAN, esPlanDePago, type Plan } from "./plan.ts";
+import {
+  IMPORTE_CENTIMOS,
+  NOMBRE_PLAN,
+  REBAJA_BF,
+  esPlanDePago,
+  importeRebajado,
+  rebajaVigente,
+  type Plan,
+} from "./plan.ts";
 import { aplicarPagoDePlan, type ResultadoPago } from "./pago-plan.ts";
 
 /** Marca de las sesiones de Kuentas en la cuenta de Stripe compartida (metadata.app). */
@@ -41,11 +49,18 @@ export interface DatosSesion {
   appUrl: string;
   /** Desde dónde se paga: si se cancela el pago, se vuelve ahí. */
   origen?: "precios" | "ajustes";
+  /** Instante en que se abre la sesión (por defecto, ahora): decide si entra en la rebaja de Black Friday. */
+  ahora?: Date;
+}
+
+function euros(centimos: number): string {
+  return (centimos / 100).toFixed(2).replace(".", ",");
 }
 
 /** Parámetros de la Checkout Session de un mes de plan. */
 export function parametrosSesion(d: DatosSesion): Stripe.Checkout.SessionCreateParams {
-  const importe = d.prueba ? IMPORTE_PRUEBA_CENTIMOS : IMPORTE_CENTIMOS[d.plan];
+  const conRebaja = !d.prueba && rebajaVigente(d.ahora ?? new Date());
+  const importe = d.prueba ? IMPORTE_PRUEBA_CENTIMOS : conRebaja ? importeRebajado(d.plan) : IMPORTE_CENTIMOS[d.plan];
   const concepto = `KUENTAS.EU · Plan ${NOMBRE_PLAN[d.plan]} · 1 mes${d.prueba ? " (pago de prueba)" : ""}`;
   const metadata: Record<string, string> = {
     app: APP_STRIPE,
@@ -54,6 +69,7 @@ export function parametrosSesion(d: DatosSesion): Stripe.Checkout.SessionCreateP
     tipo: "plan_un_mes",
   };
   if (d.prueba) metadata.prueba = "1";
+  if (conRebaja) metadata.rebaja = REBAJA_BF.id;
 
   return {
     mode: "payment",
@@ -66,7 +82,9 @@ export function parametrosSesion(d: DatosSesion): Stripe.Checkout.SessionCreateP
           unit_amount: importe,
           product_data: {
             name: concepto,
-            description: "Pago único que cubre un mes del plan. Sin cargos automáticos. IVA incluido.",
+            description: conRebaja
+              ? `${REBAJA_BF.texto}: ${REBAJA_BF.porcentaje} % de descuento en este mes (precio habitual, ${euros(IMPORTE_CENTIMOS[d.plan])} €; los meses siguientes, ${euros(IMPORTE_CENTIMOS[d.plan])} €). Pago único que cubre un mes del plan. Sin cargos automáticos. IVA incluido.`
+              : "Pago único que cubre un mes del plan. Sin cargos automáticos. IVA incluido.",
           },
         },
       },
@@ -91,7 +109,18 @@ export function parametrosSesion(d: DatosSesion): Stripe.Checkout.SessionCreateP
 export type SesionStripe = Pick<
   Stripe.Checkout.Session,
   "id" | "mode" | "status" | "payment_status" | "amount_total" | "currency" | "metadata"
->;
+> & {
+  /** Segundos Unix de creación de la sesión (lo da Stripe): con él se comprueba que la rebaja se abrió en plazo. */
+  created?: number;
+};
+
+/** Importe que debe haber cobrado una sesión pagada: el de prueba, el rebajado (solo si se abrió en plazo) o el del plan. */
+export function importeEsperadoDeSesion(s: Pick<SesionStripe, "metadata" | "created">, plan: Plan): number {
+  const md = s.metadata ?? {};
+  if (md.prueba === "1") return IMPORTE_PRUEBA_CENTIMOS;
+  const abiertaEnPlazo = typeof s.created === "number" && rebajaVigente(new Date(s.created * 1000));
+  return md.rebaja === REBAJA_BF.id && abiertaEnPlazo ? importeRebajado(plan) : IMPORTE_CENTIMOS[plan];
+}
 
 export type ResultadoSesion =
   | ResultadoPago
@@ -123,7 +152,7 @@ export async function aplicarSesionStripe(supabase: SupabaseClient, s: SesionStr
     usuario: md.supabase_user_id,
     plan,
     importeCentimos: s.amount_total ?? -1,
-    importeEsperado: md.prueba === "1" ? IMPORTE_PRUEBA_CENTIMOS : IMPORTE_CENTIMOS[plan],
+    importeEsperado: importeEsperadoDeSesion(s, plan),
   });
 }
 
