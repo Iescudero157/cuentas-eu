@@ -11,6 +11,16 @@ import { useAuth } from "@/lib/hooks/useAuth";
 import { useClients } from "@/lib/hooks/useClients";
 import PlanLimitBanner from "@/components/PlanLimitBanner";
 import type { Invoice, InvoiceItem, PaymentMethod } from "@/lib/types";
+import {
+  CAUSAS_EXENCION_IVA,
+  LIMITE_SIMPLIFICADA_ART_4_2,
+  LIMITE_SIMPLIFICADA_GENERAL,
+  MAX_DETALLE_EXENCION,
+  esCausaExencionIva,
+  mencionExencion,
+  situacionNifCliente,
+  validarExencion,
+} from "@/lib/verifactu/factura-fiscal";
 
 const InvoicePDFButton = dynamic(() => import("@/components/InvoicePDF"), { ssr: false });
 
@@ -43,6 +53,8 @@ function buildInvoice(
   daysUntilDue: number,
   notes: string,
   today: string,
+  operacionExenta: string,
+  exencionDetalle: string,
 ): Invoice {
   const invoiceItems: InvoiceItem[] = items.map((item) => ({
     description: item.description,
@@ -76,6 +88,9 @@ function buildInvoice(
     status: "pendiente",
     paymentMethod,
     notes: notes || undefined,
+    // Solo con IVA al 0 %: causa de exención y precepto que se imprimen en la factura
+    operacionExenta: ivaRate === 0 && operacionExenta ? operacionExenta : undefined,
+    exencionDetalle: ivaRate === 0 && exencionDetalle.trim() ? exencionDetalle.trim() : undefined,
   };
 }
 
@@ -98,6 +113,9 @@ export default function NuevaFacturaPage() {
 
   // Invoice fields
   const [ivaRate, setIvaRate] = useState(21);
+  // Con IVA al 0 %: causa de exención (lista L10 de VERI*FACTU) y precepto concreto
+  const [operacionExenta, setOperacionExenta] = useState("");
+  const [exencionDetalle, setExencionDetalle] = useState("");
   const [irpfRate, setIrpfRate] = useState(15);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("transferencia");
   const [daysUntilDue, setDaysUntilDue] = useState(30);
@@ -109,6 +127,7 @@ export default function NuevaFacturaPage() {
   // State
   const [savedInvoice, setSavedInvoice] = useState<Invoice | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [sendingEmail, setSendingEmail] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [emailError, setEmailError] = useState("");
@@ -176,6 +195,16 @@ export default function NuevaFacturaPage() {
   const irpf = subtotal * (irpfRate / 100);
   const total = subtotal + iva - irpf;
 
+  // Exención (IVA 0 %) y clase de factura según el NIF del cliente: las mismas
+  // reglas que aplican el servidor, el PDF y el registro VERI*FACTU.
+  const exenta = ivaRate === 0;
+  const exencion = validarExencion(ivaRate, operacionExenta, exencionDetalle);
+  const mencion = exenta && esCausaExencionIva(operacionExenta)
+    ? mencionExencion(operacionExenta, exencionDetalle)
+    : "";
+  const nifSituacion = situacionNifCliente(clientNif);
+  const totalConIva = subtotal + iva;
+
   const existingInvoices = loadData<Invoice[]>("kuentas_facturas", []);
   const nextSeq = existingInvoices.length + 6;
   const nextNumber = `FACT-2026-${String(nextSeq).padStart(3, "0")}`;
@@ -197,6 +226,11 @@ export default function NuevaFacturaPage() {
   }
 
   async function handleSave() {
+    setSaveError("");
+    if (!exencion.ok) {
+      setSaveError(exencion.error);
+      return;
+    }
     setSaving(true);
     const invoice = buildInvoice(
       nextNumber,
@@ -212,6 +246,8 @@ export default function NuevaFacturaPage() {
       daysUntilDue,
       notes,
       today,
+      operacionExenta,
+      exencionDetalle,
     );
 
     if (!isDemo && user) {
@@ -238,15 +274,17 @@ export default function NuevaFacturaPage() {
             status: "pendiente",
             payment_method: invoice.paymentMethod,
             notes: invoice.notes || null,
+            operacion_exenta: invoice.operacionExenta || null,
+            exencion_detalle: invoice.exencionDetalle || null,
           }),
         });
-        const data = await res.json();
+        const data = await res.json().catch(() => null);
         if (res.status === 402) {
           // Plan limit reached — show upsell
           router.push("/precios?limit=1");
           return;
         }
-        if (res.ok && data.invoice) {
+        if (res.ok && data?.invoice) {
           // V08: recoger número fiscal y estado Verifactu del servidor (si el
           // módulo está activo, el POST emite y asigna número correlativo);
           // así el botón de PDF usa la ruta de servidor con QR + leyenda.
@@ -255,12 +293,20 @@ export default function NuevaFacturaPage() {
             id: data.invoice.id,
             number: data.invoice.number || invoice.number,
             verifactuEstado: data.invoice.verifactu_estado || undefined,
+            tipoFactura: data.invoice.tipo_factura || undefined,
           });
         } else {
-          setSavedInvoice(invoice);
+          // El servidor NO ha guardado la factura (validación fiscal, emisión
+          // rechazada…): se enseña el motivo en vez de darla por guardada.
+          const detalles = Array.isArray(data?.detalles) ? (data.detalles as unknown[]).map(String) : [];
+          const mensaje =
+            (typeof data?.message === "string" && data.message) ||
+            (typeof data?.error === "string" && data.error) ||
+            "No se pudo guardar la factura";
+          setSaveError(detalles.length > 0 ? `${mensaje}: ${detalles.join(" · ")}` : mensaje);
         }
       } catch {
-        setSavedInvoice(invoice);
+        setSaveError("No se pudo guardar la factura: error de red. No se ha emitido nada.");
       }
     } else {
       const existing = loadData<Invoice[]>("kuentas_facturas", []);
@@ -346,6 +392,13 @@ export default function NuevaFacturaPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {saveError && (
+        <div className="bg-brand-danger/10 border border-brand-danger/30 text-brand-danger rounded-xl px-4 py-3 text-sm flex items-start gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+          <span>{saveError}</span>
         </div>
       )}
 
@@ -438,6 +491,28 @@ export default function NuevaFacturaPage() {
                 />
               </div>
             </div>
+            {nifSituacion === "vacio" && (
+              <p className="text-xs text-brand-muted leading-relaxed">
+                Sin NIF del cliente la factura es <strong>simplificada</strong>: lleva su propia numeración,
+                separada de las facturas completas. Solo puede expedirse hasta {LIMITE_SIMPLIFICADA_GENERAL} € (IVA
+                incluido), o hasta {LIMITE_SIMPLIFICADA_ART_4_2.toLocaleString("es-ES")} € en las actividades del art. 4.2
+                del Reglamento de facturación (comercio al por menor, hostelería, transporte de personas…).
+              </p>
+            )}
+            {nifSituacion === "vacio" && totalConIva > LIMITE_SIMPLIFICADA_GENERAL && (
+              <p className="text-xs text-brand-warning leading-relaxed">
+                Esta factura supera los {LIMITE_SIMPLIFICADA_GENERAL} € sin NIF del cliente
+                {totalConIva > LIMITE_SIMPLIFICADA_ART_4_2
+                  ? ` y los ${LIMITE_SIMPLIFICADA_ART_4_2.toLocaleString("es-ES")} €: como simplificada no puede emitirse con VERI*FACTU. Indica el NIF del cliente.`
+                  : ": comprueba que tu actividad está entre las del art. 4.2 o indica el NIF del cliente."}
+              </p>
+            )}
+            {nifSituacion === "invalido" && (
+              <p className="text-xs text-brand-danger leading-relaxed">
+                Ese NIF no es un NIF español válido. Corrígelo o déjalo vacío. Kuentas todavía no admite documentos
+                de identificación extranjeros (NIF-IVA, pasaporte…).
+              </p>
+            )}
             <div>
               <label className="block text-sm font-medium text-brand-text mb-1">Dirección</label>
               <input
@@ -480,6 +555,48 @@ export default function NuevaFacturaPage() {
                 </select>
               </div>
             </div>
+            {exenta && (
+              <div className="rounded-xl border border-brand-border/70 bg-brand-gray/40 p-4 space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-brand-text mb-1">
+                    Causa de exención del IVA
+                  </label>
+                  <select
+                    value={operacionExenta}
+                    onChange={(e) => setOperacionExenta(e.target.value)}
+                    className="w-full px-3 py-2.5 border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 text-sm bg-white"
+                  >
+                    <option value="">Elige el artículo de la Ley del IVA…</option>
+                    {CAUSAS_EXENCION_IVA.map((c) => (
+                      <option key={c.clave} value={c.clave} disabled={!c.disponible}>
+                        {c.articulos ? `Art. ${c.articulos.replace(/^artículos? /, "")}` : "Otros"} · {c.rubrica}
+                        {c.disponible ? "" : " (todavía no disponible)"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-brand-text mb-1">
+                    Precepto concreto{" "}
+                    <span className="text-brand-muted font-normal">
+                      {operacionExenta === "E6" ? "(obligatorio)" : "(opcional)"}
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    value={exencionDetalle}
+                    onChange={(e) => setExencionDetalle(e.target.value.slice(0, MAX_DETALLE_EXENCION))}
+                    placeholder="Por ejemplo: Art. 20.Uno.23.º (arrendamiento de vivienda)"
+                    className="w-full px-3 py-2.5 border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 text-sm bg-white"
+                  />
+                </div>
+                <p className="text-xs text-brand-muted leading-relaxed">
+                  La causa se imprime en la factura y viaja en su registro VERI*FACTU. «Exenta» no es lo mismo que «no
+                  sujeta»: las operaciones no sujetas (por ejemplo, muchos servicios a empresas de otros países) y las de
+                  inversión del sujeto pasivo todavía no se pueden facturar correctamente con Kuentas.
+                </p>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-brand-text mb-1">Forma de cobro</label>
@@ -611,6 +728,9 @@ export default function NuevaFacturaPage() {
                 <p className="text-xs text-brand-muted">{issuerProfile.address || "—"}</p>
               </div>
               <div className="text-right">
+                <p className="text-xs font-semibold uppercase tracking-wide text-brand-muted">
+                  {nifSituacion === "vacio" ? "Factura simplificada" : "Factura"}
+                </p>
                 <p className="text-lg font-bold text-brand-blue">{nextNumber}</p>
                 <p className="text-xs text-brand-muted">Fecha: {today}</p>
                 <p className="text-xs text-brand-muted">Vence: {dueDateStr}</p>
@@ -660,8 +780,8 @@ export default function NuevaFacturaPage() {
                 <span>{formatCurrency(subtotal)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-brand-muted">IVA ({ivaRate}%)</span>
-                <span>{formatCurrency(iva)}</span>
+                <span className="text-brand-muted">{exenta ? "IVA" : `IVA (${ivaRate}%)`}</span>
+                <span>{exenta ? "Exento" : formatCurrency(iva)}</span>
               </div>
               {irpfRate > 0 && (
                 <div className="flex justify-between">
@@ -673,6 +793,11 @@ export default function NuevaFacturaPage() {
                 <span>TOTAL</span>
                 <span className="text-brand-blue">{formatCurrency(total)}</span>
               </div>
+              {exenta && (
+                <p className="text-xs text-brand-muted leading-relaxed pt-1">
+                  {mencion || "Falta indicar la causa de exención del IVA."}
+                </p>
+              )}
             </div>
           </div>
         </div>

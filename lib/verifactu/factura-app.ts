@@ -3,8 +3,9 @@
 //
 // La UI v1 maneja UN tipo de IVA por factura (iva_rate) y retención IRPF
 // (auditoría V01, R7): el adaptador produce una única línea de desglose S1
-// en régimen general (o la operación exenta que se indique) y deja el modelo
-// preparado para el desglose multi-tipo (el generador ya admite 12 líneas).
+// en régimen general, o la operación exenta con la causa guardada en la
+// factura (`operacion_exenta`), y deja el modelo preparado para el desglose
+// multi-tipo (el generador ya admite 12 líneas).
 //
 // IMPORTANTE (criterio AEAT, FAQ Veri*factu/SII): la retención IRPF NO minora
 // el `ImporteTotal` del registro (ImporteTotal = Σ bases + cuotas). El campo
@@ -17,9 +18,16 @@ import {
   type LineaDesglose,
   type OperacionExenta,
   type TipoFactura,
-  esNifValido,
+  ErrorValidacionRegistro,
 } from './registro-alta.ts'
 import { type EntradaRegistroAnulacion } from './registro-anulacion.ts'
+import {
+  claveRegimenParaExenta,
+  esCausaExencionIva,
+  esSimplificada,
+  normalizarNif,
+  situacionNifCliente,
+} from './factura-fiscal.ts'
 
 /** Línea de concepto tal como se guarda en `invoices.items` (JSONB). */
 export interface ItemFacturaApp {
@@ -43,6 +51,11 @@ export interface FacturaApp {
   irpf: number
   irpf_rate: number
   total: number
+  /**
+   * Causa de exención guardada con la factura (lista L10, E1-E6). Obligatoria
+   * cuando iva_rate = 0: el 0 % de la app significa «exento», no «sujeto al 0 %».
+   */
+  operacion_exenta?: string | null
 }
 
 /** Datos del emisor tomados de `profiles` (nunca del cliente HTTP). */
@@ -59,9 +72,9 @@ export interface OpcionesFacturaApp {
    */
   tipoFactura?: TipoFactura
   /**
-   * Si la factura va exenta de IVA, causa de exención E1-E8 (art. 20 LIVA → E1,
-   * exportación → E2…). Exige iva_rate = 0. Si no se indica y iva_rate = 0,
-   * la operación se registra como sujeta S1 al tipo 0 %.
+   * Causa de exención E1-E8 (art. 20 LIVA → E1, exportación → E2…). Si no se
+   * indica se usa la guardada en la factura (`operacion_exenta`). Exige
+   * iva_rate = 0; y con iva_rate = 0 es obligatoria.
    */
   operacionExenta?: OperacionExenta
   /** Destinatario extranjero/UE (sustituye al par client_name/client_nif). */
@@ -88,17 +101,27 @@ export function facturaAppARegistroAlta(
   emisor: EmisorApp,
   opciones: OpcionesFacturaApp = {}
 ): EntradaRegistroAlta {
-  const exenta = opciones.operacionExenta
+  const guardada = esCausaExencionIva(factura.operacion_exenta) ? factura.operacion_exenta : undefined
+  const exenta: OperacionExenta | undefined = opciones.operacionExenta ?? guardada
   if (exenta && factura.iva_rate !== 0) {
-    throw new Error(
-      `Factura marcada exenta (${exenta}) pero iva_rate=${factura.iva_rate}: una operación exenta no puede repercutir IVA`
-    )
+    throw new ErrorValidacionRegistro([
+      `Factura marcada exenta (${exenta}) pero iva_rate=${factura.iva_rate}: una operación exenta no puede repercutir IVA`,
+    ])
+  }
+  if (!exenta && factura.iva_rate === 0) {
+    // Antes se registraba como sujeta (S1) al tipo 0 %, sin causa de exención:
+    // el registro no decía lo mismo que la factura. Ahora no se emite sin causa.
+    throw new ErrorValidacionRegistro([
+      'IVA al 0 % sin causa de exención: indica por qué artículo de la Ley del IVA está exenta la operación ' +
+        '(operacion_exenta, claves E1 a E6). Kuentas no registra operaciones «sujetas al 0 %»',
+    ])
   }
 
   const linea: LineaDesglose = exenta
     ? {
         impuesto: '01',
-        claveRegimen: exenta === 'E2' ? '02' : '01',
+        // E2 y E3 no son admisibles con la clave 01 (doc. «Validaciones» AEAT §15.5).
+        claveRegimen: esCausaExencionIva(exenta) ? claveRegimenParaExenta(exenta) : '01',
         operacionExenta: exenta,
         baseImponible: factura.subtotal,
       }
@@ -114,13 +137,13 @@ export function facturaAppARegistroAlta(
   let destinatarios: Destinatario[] | undefined
   if (opciones.destinatario) {
     destinatarios = [opciones.destinatario]
-  } else if (factura.client_nif && esNifValido(factura.client_nif)) {
-    destinatarios = [
-      { nombreRazon: factura.client_name ?? '', nif: factura.client_nif.trim().toUpperCase() },
-    ]
+  } else if (situacionNifCliente(factura.client_nif) === 'valido') {
+    destinatarios = [{ nombreRazon: factura.client_name ?? '', nif: normalizarNif(factura.client_nif) }]
   }
 
   const tipoFactura: TipoFactura = opciones.tipoFactura ?? (destinatarios ? 'F1' : 'F2')
+  // En F2 y R5 el bloque Destinatarios no puede ir relleno (doc. «Validaciones» §13).
+  if (esSimplificada(tipoFactura)) destinatarios = undefined
 
   return {
     emisor: { nif: emisor.nif, nombreRazon: emisor.nombreRazon },

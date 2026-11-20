@@ -4,6 +4,12 @@ import { Document, Page, Text, View, StyleSheet, PDFDownloadLink } from "@react-
 import type { Invoice } from "@/lib/types";
 import { Download } from "lucide-react";
 import { useState } from "react";
+import {
+  esCausaExencionIva,
+  mencionExencion,
+  tipoFacturaDeDocumento,
+  tituloDocumento,
+} from "@/lib/verifactu/factura-fiscal";
 
 const styles = StyleSheet.create({
   page: {
@@ -154,6 +160,13 @@ interface InvoiceDocProps {
 }
 
 function InvoiceDoc({ invoice, issuerName, issuerNif, issuerAddress }: InvoiceDocProps) {
+  // Mismo título y misma mención de exención que el PDF de servidor
+  const titulo = tituloDocumento(
+    tipoFacturaDeDocumento({ tipo_factura: invoice.tipoFactura, client_nif: invoice.clientNif })
+  );
+  const mencion = esCausaExencionIva(invoice.operacionExenta)
+    ? mencionExencion(invoice.operacionExenta, invoice.exencionDetalle)
+    : null;
   return (
     <Document>
       <Page size="A4" style={styles.page}>
@@ -166,7 +179,9 @@ function InvoiceDoc({ invoice, issuerName, issuerNif, issuerAddress }: InvoiceDo
             <Text style={{ fontSize: 9, color: "#999" }}>{issuerAddress}</Text>
           </View>
           <View>
-            <Text style={styles.invoiceLabel}>FACTURA</Text>
+            <Text style={titulo.length > 14 ? { ...styles.invoiceLabel, fontSize: 12 } : styles.invoiceLabel}>
+              {titulo}
+            </Text>
             <Text style={styles.invoiceNumber}>{invoice.number}</Text>
             <Text style={{ fontSize: 9, color: "#999", textAlign: "right", marginTop: 2 }}>
               Fecha: {invoice.date}
@@ -221,8 +236,8 @@ function InvoiceDoc({ invoice, issuerName, issuerNif, issuerAddress }: InvoiceDo
             <Text style={styles.totalValue}>{invoice.subtotal.toFixed(2)} EUR</Text>
           </View>
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>IVA ({invoice.ivaRate}%)</Text>
-            <Text style={styles.totalValue}>+{invoice.iva.toFixed(2)} EUR</Text>
+            <Text style={styles.totalLabel}>{mencion ? "IVA" : `IVA (${invoice.ivaRate}%)`}</Text>
+            <Text style={styles.totalValue}>{mencion ? "Exento" : `+${invoice.iva.toFixed(2)} EUR`}</Text>
           </View>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>IRPF (-{invoice.irpfRate}%)</Text>
@@ -233,6 +248,11 @@ function InvoiceDoc({ invoice, issuerName, issuerNif, issuerAddress }: InvoiceDo
             <Text style={styles.totalFinalValue}>{invoice.total.toFixed(2)} EUR</Text>
           </View>
         </View>
+
+        {/* Mención de exención (art. 6.1.j y 7.1.i RD 1619/2012) */}
+        {mencion && (
+          <Text style={{ fontSize: 9, color: "#1a1a2e", marginTop: 14, lineHeight: 1.35 }}>{mencion}</Text>
+        )}
 
         {/* Footer */}
         <View style={styles.footer}>

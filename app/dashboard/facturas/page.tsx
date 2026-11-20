@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Plus, FileText, CheckCircle, Mail, Download, MoreHorizontal, Clock, AlertTriangle, ChevronDown, X, CalendarCheck } from "lucide-react";
+import { Plus, FileText, CheckCircle, Mail, Download, MoreHorizontal, Clock, AlertTriangle, ChevronDown, X, CalendarCheck, FilePenLine, Ban, Loader2 } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useState, useCallback, useEffect, useRef, type MouseEvent } from "react";
 import dynamic from "next/dynamic";
@@ -9,6 +9,14 @@ import { useInvoices } from "@/lib/hooks/useInvoices";
 import { useAuth } from "@/lib/hooks/useAuth";
 import type { Invoice, PaymentMethod } from "@/lib/types";
 import PlanLimitBanner from "@/components/PlanLimitBanner";
+import { TIPOS_RECTIFICATIVA } from "@/lib/verifactu/factura-fiscal";
+
+/** Longitud máxima del motivo de una rectificativa (la misma que valida el servidor). */
+const MAX_MOTIVO = 300;
+
+function redondear(valor: number): number {
+  return Math.round((valor + Math.sign(valor) * Number.EPSILON) * 100) / 100;
+}
 
 const InvoicePDFButton = dynamic(() => import("@/components/InvoicePDF"), { ssr: false });
 
@@ -97,8 +105,10 @@ function downloadFile(content: string, filename: string, mime: string) {
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function FacturasPage() {
-  const { invoices, loading, error: invoiceError, updateInvoiceStatus } = useInvoices();
-  const { user, isDemo, profile } = useAuth();
+  const {
+    invoices, loading, error: invoiceError, updateInvoiceStatus, rectificarInvoice, anularInvoice,
+  } = useInvoices();
+  const { isDemo, profile } = useAuth();
   const [markingId, setMarkingId] = useState<string | null>(null);
   const [monthlyInvoiceCount, setMonthlyInvoiceCount] = useState(0);
   const [showLimitModal, setShowLimitModal] = useState(false);
@@ -126,20 +136,39 @@ export default function FacturasPage() {
   const [ccError, setCcError] = useState<string | null>(null);
   const isBusiness = profile?.plan === "business";
 
-  const totalFacturado = invoices.reduce((s, i) => s + i.total, 0);
-  const pendiente = invoices.filter((i) => i.status === "pendiente").reduce((s, i) => s + i.total, 0);
-  const cobrado = invoices.filter((i) => i.status === "cobrada").reduce((s, i) => s + i.total, 0);
-  const vencidas = invoices.filter((i) => i.status === "vencida").length;
+  // Rectificativa (art. 15 RD 1619/2012) y anulación (art. 11 RD 1007/2023)
+  const [rectModal, setRectModal] = useState<Invoice | null>(null);
+  const [rectModo, setRectModo] = useState<"total" | "importe">("total");
+  const [rectBase, setRectBase] = useState("");
+  const [rectTipo, setRectTipo] = useState("");
+  const [rectMotivo, setRectMotivo] = useState("");
+  const [rectLoading, setRectLoading] = useState(false);
+  const [rectError, setRectError] = useState<string | null>(null);
+  const [anularModal, setAnularModal] = useState<Invoice | null>(null);
+  const [anularConfirmado, setAnularConfirmado] = useState(false);
+  const [anularLoading, setAnularLoading] = useState(false);
+  const [anularError, setAnularError] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
 
-  const filtered = filter === "all" ? invoices : invoices.filter((i) => i.status === filter);
+  // Una factura anulada no tiene efectos: no cuenta en los totales ni se
+  // exporta a contabilidad. Las rectificativas sí cuentan, con su signo.
+  const vigentes = invoices.filter((i) => i.verifactuEstado !== "anulada");
+  const totalFacturado = vigentes.reduce((s, i) => s + i.total, 0);
+  const pendiente = vigentes.filter((i) => i.status === "pendiente").reduce((s, i) => s + i.total, 0);
+  const cobrado = vigentes.filter((i) => i.status === "cobrada").reduce((s, i) => s + i.total, 0);
+  const vencidas = vigentes.filter((i) => i.status === "vencida").length;
+
+  // Las anuladas solo se listan en «Todas»: ya no tienen estado de cobro.
+  const filtered = filter === "all" ? invoices : vigentes.filter((i) => i.status === filter);
 
   useEffect(() => {
     if (!invoices.length || profile?.plan !== "gratis") return;
     const now = new Date();
     const thisMonth = now.getFullYear() * 100 + now.getMonth();
+    // Las rectificativas no consumen cupo del plan (igual que en el servidor).
     const count = invoices.filter(inv => {
       const d = new Date(inv.date);
-      return d.getFullYear() * 100 + d.getMonth() === thisMonth;
+      return !inv.rectificaInvoiceId && d.getFullYear() * 100 + d.getMonth() === thisMonth;
     }).length;
     setMonthlyInvoiceCount(count);
   }, [invoices, profile?.plan]);
@@ -233,6 +262,95 @@ export default function FacturasPage() {
     }
   }, [ccDesde, ccHasta, ccAsiento]);
 
+  // ─── Rectificativa y anulación ─────────────────────────────────────────────
+
+  const cerrarMenu = useCallback(() => {
+    setOpenMenuId(null);
+    setMenuPos(null);
+  }, []);
+
+  const abrirRectificativa = useCallback((inv: Invoice) => {
+    setRectModo("total");
+    setRectBase("");
+    setRectTipo("");
+    setRectMotivo("");
+    setRectError(null);
+    setAnularModal(null);
+    setRectModal(inv);
+    cerrarMenu();
+  }, [cerrarMenu]);
+
+  const abrirAnulacion = useCallback((inv: Invoice) => {
+    setAnularConfirmado(false);
+    setAnularError(null);
+    setAnularModal(inv);
+    cerrarMenu();
+  }, [cerrarMenu]);
+
+  // Importes que siguen vigentes de la factura que se rectifica: los suyos más
+  // las rectificativas ya emitidas sobre ella (el servidor hace la misma cuenta).
+  const rectPrevias = rectModal
+    ? invoices.filter((i) => i.rectificaInvoiceId === rectModal.id && i.verifactuEstado !== "anulada")
+    : [];
+  const rectVigente = rectModal
+    ? {
+        subtotal: redondear(rectModal.subtotal + rectPrevias.reduce((s, i) => s + i.subtotal, 0)),
+        iva: redondear(rectModal.iva + rectPrevias.reduce((s, i) => s + i.iva, 0)),
+        irpf: redondear(rectModal.irpf + rectPrevias.reduce((s, i) => s + i.irpf, 0)),
+      }
+    : { subtotal: 0, iva: 0, irpf: 0 };
+  const rectEsSimplificada = rectModal?.tipoFactura === "F2" || rectModal?.tipoFactura === "R5";
+  const rectBaseNum = rectModo === "total" ? 0 : Number(rectBase.replace(",", "."));
+  const rectBaseValida = rectModo === "total" || (rectBase.trim() !== "" && Number.isFinite(rectBaseNum) && rectBaseNum >= 0);
+  const rectDif = rectModal && rectBaseValida
+    ? {
+        subtotal: redondear(rectBaseNum - rectVigente.subtotal),
+        iva: redondear(redondear((rectBaseNum * rectModal.ivaRate) / 100) - rectVigente.iva),
+        irpf: redondear(redondear((rectBaseNum * rectModal.irpfRate) / 100) - rectVigente.irpf),
+      }
+    : null;
+  const rectSinDiferencias = rectDif !== null && rectDif.subtotal === 0 && rectDif.iva === 0 && rectDif.irpf === 0;
+  const rectListo =
+    rectDif !== null &&
+    !rectSinDiferencias &&
+    rectMotivo.trim().length >= 5 &&
+    (rectEsSimplificada || rectTipo !== "");
+
+  const handleEmitirRectificativa = useCallback(async () => {
+    if (!rectModal) return;
+    setRectLoading(true);
+    setRectError(null);
+    const res = await rectificarInvoice(rectModal.id, {
+      modo: rectModo,
+      baseCorrecta: rectModo === "importe" ? Number(rectBase.replace(",", ".")) : undefined,
+      motivo: rectMotivo.trim(),
+      tipoFactura: rectTipo || undefined,
+    });
+    setRectLoading(false);
+    if (!res.ok) {
+      setRectError(res.error ?? "No se pudo emitir la factura rectificativa");
+      return;
+    }
+    setAviso(
+      `Factura rectificativa ${res.numero ?? ""} emitida. Rectifica a ${rectModal.number}, que queda como rectificada.`
+    );
+    setRectModal(null);
+  }, [rectModal, rectModo, rectBase, rectMotivo, rectTipo, rectificarInvoice]);
+
+  const handleAnular = useCallback(async () => {
+    if (!anularModal) return;
+    setAnularLoading(true);
+    setAnularError(null);
+    const res = await anularInvoice(anularModal.id);
+    setAnularLoading(false);
+    if (!res.ok) {
+      setAnularError(res.error ?? "No se pudo anular la factura");
+      return;
+    }
+    setAviso(`Factura ${anularModal.number} anulada. Su registro de anulación queda en cola para la AEAT.`);
+    setAnularModal(null);
+  }, [anularModal, anularInvoice]);
+
   // Issuer profile (simple fallback)
   const issuer = { name: "Tu empresa", nif: "", address: "" };
 
@@ -242,6 +360,18 @@ export default function FacturasPage() {
       {invoiceError && (
         <div className="bg-brand-danger/10 border border-brand-danger/30 text-brand-danger rounded-xl px-4 py-3 text-sm font-medium">
           ⚠️ {invoiceError}
+        </div>
+      )}
+      {/* Resultado de una rectificativa o de una anulación */}
+      {aviso && (
+        <div className="bg-brand-success/10 border border-brand-success/30 text-brand-text rounded-xl px-4 py-3 text-sm flex items-start justify-between gap-3">
+          <span className="flex items-start gap-2">
+            <CheckCircle className="w-4 h-4 text-brand-success shrink-0 mt-0.5" />
+            {aviso}
+          </span>
+          <button onClick={() => setAviso(null)} className="text-brand-muted hover:text-brand-text" aria-label="Cerrar aviso">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
       {/* Header */}
@@ -263,10 +393,10 @@ export default function FacturasPage() {
               <div className="absolute right-0 top-10 z-50 bg-white border border-brand-border rounded-xl shadow-lg w-52 py-1">
                 <p className="px-4 py-2 text-xs text-brand-muted font-medium uppercase tracking-wide">Formato</p>
                 {[
-                  { label: "CSV genérico", fn: () => exportGenericCSV(invoices) },
-                  { label: "Sage / ContaPlus", fn: () => exportSageCSV(invoices) },
-                  { label: "ContaPlus / A3", fn: () => exportContaplusCSV(invoices) },
-                  { label: "A3 / AccountExpert", fn: () => exportA3CSV(invoices) },
+                  { label: "CSV genérico", fn: () => exportGenericCSV(vigentes) },
+                  { label: "Sage / ContaPlus", fn: () => exportSageCSV(vigentes) },
+                  { label: "ContaPlus / A3", fn: () => exportContaplusCSV(vigentes) },
+                  { label: "A3 / AccountExpert", fn: () => exportA3CSV(vigentes) },
                 ].map(({ label, fn }) => (
                   <button
                     key={label}
@@ -338,7 +468,7 @@ export default function FacturasPage() {
             {f === "all" ? "Todas" : f.charAt(0).toUpperCase() + f.slice(1)}
             {f !== "all" && (
               <span className="ml-1.5 text-xs opacity-70">
-                ({invoices.filter((i) => i.status === f).length})
+                ({vigentes.filter((i) => i.status === f).length})
               </span>
             )}
           </button>
@@ -378,6 +508,11 @@ export default function FacturasPage() {
                   const isMarking = markingId === inv.id;
                   const isSending = sendingEmailId === inv.id;
                   const sentEmail = emailSentIds.has(inv.id);
+                  const anulada = inv.verifactuEstado === "anulada";
+                  const esRectificativa = Boolean(inv.rectificaInvoiceId) || (inv.tipoFactura ?? "").startsWith("R");
+                  const rectificada = inv.rectificaInvoiceId
+                    ? invoices.find((i) => i.id === inv.rectificaInvoiceId)
+                    : undefined;
                   return (
                     <tr key={inv.id} className="hover:bg-brand-gray/30 transition">
                       <td className="px-5 py-4">
@@ -400,7 +535,34 @@ export default function FacturasPage() {
                               Anulada
                             </span>
                           )}
+                          {inv.tipoFactura === "F2" && (
+                            <span
+                              title="Factura simplificada (sin NIF del cliente): se numera en su propia serie, separada de las facturas completas (art. 7.1 RD 1619/2012)."
+                              className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-brand-gray text-brand-muted whitespace-nowrap"
+                            >
+                              Simplificada
+                            </span>
+                          )}
+                          {esRectificativa && (
+                            <span
+                              title={`Factura rectificativa${rectificada ? ` de ${rectificada.number}` : ""} (art. 15 RD 1619/2012), en la serie de rectificativas.`}
+                              className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-brand-warning/10 text-brand-warning whitespace-nowrap"
+                            >
+                              Rectificativa
+                            </span>
+                          )}
+                          {inv.verifactuEstado === "rectificada" && (
+                            <span
+                              title="Esta factura tiene al menos una factura rectificativa emitida."
+                              className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-brand-gray text-brand-muted whitespace-nowrap"
+                            >
+                              Rectificada
+                            </span>
+                          )}
                         </div>
+                        {rectificada && (
+                          <p className="text-[11px] text-brand-muted mt-0.5 ml-6">Rectifica a {rectificada.number}</p>
+                        )}
                       </td>
                       <td className="px-5 py-4">
                         <p className="font-medium text-brand-text">{inv.clientName}</p>
@@ -415,9 +577,15 @@ export default function FacturasPage() {
                         )}
                       </td>
                       <td className="px-5 py-4">
-                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full ${status.bg} ${status.text}`}>
-                          {status.icon}{status.label}
-                        </span>
+                        {anulada ? (
+                          <span className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-brand-gray text-brand-muted">
+                            Sin efectos
+                          </span>
+                        ) : (
+                          <span className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full ${status.bg} ${status.text}`}>
+                            {status.icon}{status.label}
+                          </span>
+                        )}
                       </td>
                       <td className="px-5 py-4 text-right font-semibold text-brand-text whitespace-nowrap">
                         {formatCurrency(inv.total)}
@@ -425,7 +593,7 @@ export default function FacturasPage() {
                       <td className="px-5 py-4">
                         <div className="flex items-center justify-end gap-1">
                           {/* Quick mark as paid — opens modal */}
-                          {inv.status === "pendiente" && (
+                          {!anulada && inv.status === "pendiente" && (
                             <button
                               onClick={() => handleMarkCobradaClick(inv)}
                               disabled={isMarking}
@@ -435,7 +603,7 @@ export default function FacturasPage() {
                               <CheckCircle className="w-4 h-4" />
                             </button>
                           )}
-                          {inv.status === "cobrada" && (
+                          {!anulada && inv.status === "cobrada" && (
                             <button
                               onClick={() => handleMarkPendiente(inv)}
                               disabled={isMarking}
@@ -500,12 +668,30 @@ export default function FacturasPage() {
             style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9999 }}
             onMouseDown={(e) => e.stopPropagation()}
           >
-            <div className="bg-white border border-brand-border rounded-xl shadow-lg w-44 py-1">
+            <div className="bg-white border border-brand-border rounded-xl shadow-lg w-52 py-1">
               {(inv.verifactuEstado === "emitida" || inv.verifactuEstado === "rectificada") && (
                 <p className="px-4 py-2 text-[11px] leading-snug text-brand-muted border-b border-brand-border/50">
                   Emitida bajo VERI*FACTU: contenido inmutable. Corrección solo por
                   rectificativa o anulación.
                 </p>
+              )}
+              {(inv.verifactuEstado === "emitida" || inv.verifactuEstado === "rectificada") && (
+                <button
+                  onClick={() => abrirRectificativa(inv)}
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-brand-gray transition flex items-center gap-2 text-brand-text"
+                >
+                  <FilePenLine className="w-4 h-4 text-brand-muted" />
+                  Emitir rectificativa
+                </button>
+              )}
+              {inv.verifactuEstado === "emitida" && (
+                <button
+                  onClick={() => abrirAnulacion(inv)}
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-brand-gray transition flex items-center gap-2 text-brand-danger"
+                >
+                  <Ban className="w-4 h-4" />
+                  Anular factura
+                </button>
               )}
               <InvoicePDFButton
                 invoice={inv}
@@ -514,7 +700,7 @@ export default function FacturasPage() {
                 issuerAddress={issuer.address}
                 compact
               />
-              {inv.status !== "cobrada" && (
+              {inv.verifactuEstado !== "anulada" && inv.status !== "cobrada" && (
                 <button
                   onClick={() => handleMarkCobradaClick(inv)}
                   className="w-full text-left px-4 py-2 text-sm hover:bg-brand-gray transition text-brand-success"
@@ -522,7 +708,7 @@ export default function FacturasPage() {
                   Marcar cobrada
                 </button>
               )}
-              {inv.status !== "pendiente" && (
+              {inv.verifactuEstado !== "anulada" && inv.status !== "pendiente" && (
                 <button
                   onClick={() => handleMarkPendiente(inv)}
                   className="w-full text-left px-4 py-2 text-sm hover:bg-brand-gray transition text-brand-muted"
@@ -530,7 +716,7 @@ export default function FacturasPage() {
                   Marcar pendiente
                 </button>
               )}
-              {inv.status !== "vencida" && (
+              {inv.verifactuEstado !== "anulada" && inv.status !== "vencida" && (
                 <button
                   onClick={async () => {
                     await updateInvoiceStatus(inv.id, "vencida");
@@ -638,6 +824,256 @@ export default function FacturasPage() {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Factura rectificativa (art. 15 RD 1619/2012) ───────────────────── */}
+      {rectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 space-y-4 max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FilePenLine className="w-5 h-5 text-brand-blue" />
+                <h3 className="font-semibold text-brand-text">Emitir factura rectificativa</h3>
+              </div>
+              <button onClick={() => setRectModal(null)} className="text-brand-muted hover:text-brand-text" aria-label="Cerrar">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-brand-gray rounded-xl p-4 text-sm">
+              <p className="font-medium text-brand-text">
+                {rectModal.number} · {formatDate(rectModal.date)}
+              </p>
+              <p className="text-brand-muted mt-0.5">{rectModal.clientName}</p>
+              <p className="text-xs text-brand-muted mt-2">
+                Base {formatCurrency(rectModal.subtotal)} ·{" "}
+                {rectModal.operacionExenta ? "IVA exento" : `IVA ${rectModal.ivaRate} %: ${formatCurrency(rectModal.iva)}`}
+                {rectModal.irpfRate > 0 && ` · IRPF ${rectModal.irpfRate} %: -${formatCurrency(rectModal.irpf)}`} ·{" "}
+                Total {formatCurrency(rectModal.total)}
+              </p>
+              {rectPrevias.length > 0 && (
+                <p className="text-xs text-brand-text mt-2">
+                  Ya rectificada por {rectPrevias.map((p) => p.number).join(", ")}. Base que sigue vigente:{" "}
+                  <strong>{formatCurrency(rectVigente.subtotal)}</strong>.
+                </p>
+              )}
+            </div>
+
+            <p className="text-xs text-brand-muted leading-relaxed">
+              Se emite una factura nueva, con fecha de hoy y numeración propia en la serie de rectificativas
+              ({rectEsSimplificada ? "RS" : "R"}), que identifica a la factura rectificada y recoge solo la diferencia.
+              La factura original no se modifica. Su registro se envía a la AEAT como el de cualquier factura.
+            </p>
+
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-brand-text">¿Qué hay que corregir?</p>
+              <label className="flex items-start gap-2 text-sm text-brand-text cursor-pointer">
+                <input
+                  type="radio"
+                  name="rect-modo"
+                  checked={rectModo === "total"}
+                  onChange={() => setRectModo("total")}
+                  className="mt-1"
+                />
+                <span>
+                  Dejar sin efecto todo el importe
+                  <span className="block text-xs text-brand-muted">
+                    Por ejemplo, la operación quedó sin efecto después de facturarla o se devolvió por completo.
+                  </span>
+                </span>
+              </label>
+              <label className="flex items-start gap-2 text-sm text-brand-text cursor-pointer">
+                <input
+                  type="radio"
+                  name="rect-modo"
+                  checked={rectModo === "importe"}
+                  onChange={() => setRectModo("importe")}
+                  className="mt-1"
+                />
+                <span>
+                  Corregir el importe
+                  <span className="block text-xs text-brand-muted">
+                    Indica la base imponible que debería tener la operación (sin IVA).
+                  </span>
+                </span>
+              </label>
+              {rectModo === "importe" && (
+                <input
+                  type="number"
+                  min={0}
+                  step={0.01}
+                  value={rectBase}
+                  onChange={(e) => setRectBase(e.target.value)}
+                  placeholder="Base imponible correcta"
+                  className="w-full px-3 py-2.5 border border-brand-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+                />
+              )}
+            </div>
+
+            {rectDif && !rectSinDiferencias && (
+              <div className="border border-brand-border rounded-xl p-3 text-xs text-brand-text space-y-1">
+                <p className="font-medium">Importes de la rectificativa</p>
+                <div className="flex justify-between"><span className="text-brand-muted">Base imponible</span><span>{formatCurrency(rectDif.subtotal)}</span></div>
+                <div className="flex justify-between">
+                  <span className="text-brand-muted">{rectModal.operacionExenta ? "IVA (exento)" : `IVA (${rectModal.ivaRate} %)`}</span>
+                  <span>{formatCurrency(rectDif.iva)}</span>
+                </div>
+                {rectModal.irpfRate > 0 && (
+                  <div className="flex justify-between"><span className="text-brand-muted">IRPF ({rectModal.irpfRate} %)</span><span>{formatCurrency(-rectDif.irpf)}</span></div>
+                )}
+                <div className="flex justify-between font-semibold border-t border-brand-border/60 pt-1">
+                  <span>Total</span><span>{formatCurrency(redondear(rectDif.subtotal + rectDif.iva - rectDif.irpf))}</span>
+                </div>
+              </div>
+            )}
+            {rectSinDiferencias && (
+              <p className="text-xs text-brand-warning">
+                {rectModo === "total"
+                  ? "La factura ya no tiene importe vigente que dejar sin efecto."
+                  : "Esa base es la que ya está vigente: no hay nada que rectificar."}
+              </p>
+            )}
+
+            {rectEsSimplificada ? (
+              <p className="text-xs text-brand-muted">
+                La factura rectificada es simplificada: su rectificativa se registra como «factura rectificativa en
+                facturas simplificadas» (tipo R5).
+              </p>
+            ) : (
+              <div>
+                <label className="block text-sm font-medium text-brand-text mb-1">Tipo de rectificativa</label>
+                <select
+                  value={rectTipo}
+                  onChange={(e) => setRectTipo(e.target.value)}
+                  className="w-full px-3 py-2.5 border border-brand-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue"
+                >
+                  <option value="">Elige la causa…</option>
+                  {TIPOS_RECTIFICATIVA.map((t) => (
+                    <option key={t.clave} value={t.clave}>
+                      {t.clave} · {t.descripcionOficial}
+                    </option>
+                  ))}
+                </select>
+                {rectTipo && (
+                  <p className="text-xs text-brand-muted mt-1.5">
+                    {TIPOS_RECTIFICATIVA.find((t) => t.clave === rectTipo)?.ayuda}
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-brand-text mb-1">Qué se rectifica y por qué</label>
+              <textarea
+                value={rectMotivo}
+                onChange={(e) => setRectMotivo(e.target.value.slice(0, MAX_MOTIVO))}
+                rows={2}
+                placeholder="Se imprime en la factura rectificativa"
+                className="w-full px-3 py-2.5 border border-brand-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 focus:border-brand-blue resize-none"
+              />
+            </div>
+
+            {rectError && (
+              <div className="bg-brand-danger/10 border border-brand-danger/30 text-brand-danger rounded-xl px-3 py-2 text-xs font-medium">
+                {rectError}
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={handleEmitirRectificativa}
+                disabled={!rectListo || rectLoading}
+                className="flex-1 bg-brand-blue text-white font-semibold py-2.5 rounded-xl hover:opacity-90 transition disabled:opacity-60 flex items-center justify-center gap-2 text-sm"
+              >
+                {rectLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                {rectLoading ? "Emitiendo…" : "Emitir rectificativa"}
+              </button>
+              <button
+                onClick={() => setRectModal(null)}
+                className="px-4 py-2.5 rounded-xl border border-brand-border text-brand-muted hover:bg-brand-gray text-sm transition"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Anulación (art. 11 RD 1007/2023) ───────────────────────────────── */}
+      {anularModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 space-y-4 max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Ban className="w-5 h-5 text-brand-danger" />
+                <h3 className="font-semibold text-brand-text">Anular factura</h3>
+              </div>
+              <button onClick={() => setAnularModal(null)} className="text-brand-muted hover:text-brand-text" aria-label="Cerrar">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-brand-gray rounded-xl p-4 text-sm">
+              <p className="font-medium text-brand-text">
+                {anularModal.number} · {formatDate(anularModal.date)}
+              </p>
+              <p className="text-brand-muted mt-0.5">{anularModal.clientName}</p>
+              <p className="text-brand-blue font-semibold mt-1">{formatCurrency(anularModal.total)}</p>
+            </div>
+
+            <div className="text-xs text-brand-text leading-relaxed space-y-2">
+              <p>
+                La anulación es para una factura <strong>emitida por error</strong>: por ejemplo, la de una operación
+                que no se ha realizado o una factura de prueba. Genera un registro de anulación que se envía a la
+                AEAT; la factura no se borra, queda marcada como anulada y deja de tener efectos.
+              </p>
+              <p>
+                Si la operación es real y lo que hay que corregir es el importe, el IVA o los datos, lo que procede
+                es una <strong>factura rectificativa</strong>, no la anulación.
+              </p>
+              <p className="text-brand-danger font-medium">Anular no se puede deshacer.</p>
+            </div>
+
+            <label className="flex items-start gap-2 text-sm text-brand-text cursor-pointer">
+              <input
+                type="checkbox"
+                checked={anularConfirmado}
+                onChange={(e) => setAnularConfirmado(e.target.checked)}
+                className="mt-1"
+              />
+              <span>Esta factura se emitió por error y no corresponde a una operación realizada.</span>
+            </label>
+
+            {anularError && (
+              <div className="bg-brand-danger/10 border border-brand-danger/30 text-brand-danger rounded-xl px-3 py-2 text-xs font-medium">
+                {anularError}
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-1 flex-wrap">
+              <button
+                onClick={handleAnular}
+                disabled={!anularConfirmado || anularLoading}
+                className="flex-1 bg-brand-danger text-white font-semibold py-2.5 rounded-xl hover:opacity-90 transition disabled:opacity-60 flex items-center justify-center gap-2 text-sm"
+              >
+                {anularLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                {anularLoading ? "Anulando…" : "Anular factura"}
+              </button>
+              <button
+                onClick={() => abrirRectificativa(anularModal)}
+                className="px-4 py-2.5 rounded-xl border border-brand-border text-brand-text hover:bg-brand-gray text-sm transition"
+              >
+                Mejor rectificar
+              </button>
+              <button
+                onClick={() => setAnularModal(null)}
+                className="px-4 py-2.5 rounded-xl border border-brand-border text-brand-muted hover:bg-brand-gray text-sm transition"
+              >
+                Cancelar
+              </button>
+            </div>
           </div>
         </div>
       )}

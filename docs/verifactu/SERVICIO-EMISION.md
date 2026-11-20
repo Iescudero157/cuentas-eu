@@ -32,12 +32,15 @@ Antes de llamar a la RPC, `emitirFactura()` construye la entrada con `prepararEn
 | Endpoint | Comportamiento con `sif_config.activo` |
 |---|---|
 | `POST /api/invoices` | Crea y **emite** (ignora la numeración del cliente). `borrador: true` para guardar sin emitir. Si la emisión falla, retira el borrador y responde 422 con `detalles`. Sin config o `activo=false` → flujo legacy intacto. |
-| `POST /api/invoices/{id}/emitir` | Emite un borrador. Body opcional: `serie`, `tipo_factura` (F1-F3/R1-R5), `operacion_exenta` (E1-E8). |
+| `POST /api/invoices/{id}/emitir` | Emite un borrador. Body opcional: `serie`, `tipo_factura` (F1-F3/R1-R5), `operacion_exenta` (E1-E6) y `exencion_detalle`, que se guardan en el borrador antes de emitir. |
+| `POST /api/invoices/{id}/rectificar` | Emite la rectificativa por diferencias de una emitida (20-nov-2026). Body: `modo` (`total`/`importe`), `base_correcta`, `motivo`, `tipo_factura` (R1-R4). |
 | `POST /api/invoices/{id}/anular` | Anula una emitida. Body opcional: `ref_externa`. |
 | `PATCH /api/invoices/{id}` | Cobro siempre; contenido solo en borradores (409 si emitida). |
 | `DELETE /api/invoices/{id}` | Solo borradores (409 si emitida, con indicación de usar anulación). |
 
 Rectificativas: borrador con `rectifica_invoice_id` (+ `tipo_rectificativa` S/I) → emitir con `tipo_factura` R1-R5; usa serie `R` y marca la original como `rectificada`. La UI llegará en V13; la API y el motor quedan completos.
+
+**Actualización 20-nov-2026** (`CUMPLIMIENTO-20261120.md`): una serie por clase de factura (`F` completas, `S` simplificadas, `R` rectificativas, `RS` rectificativas de simplificadas), causa de exención guardada en la factura (`operacion_exenta`) y pantalla de rectificativa y anulación en `/dashboard/facturas`.
 
 ## 5. UI (ajuste mínimo, D-11 intacto)
 

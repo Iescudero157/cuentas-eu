@@ -323,8 +323,12 @@ try {
 } catch (e) { ko('emisión de la rectificativa ejecutada', e.message) }
 
 if (r3 && ra) {
+  // Esta batería aplica solo las migraciones hasta V07: la serie de las
+  // rectificativas es R. Desde 20261120100000 la rectificativa de una
+  // simplificada va en la serie RS (ver v28-cumplimiento.test.mjs).
   check('  serie rectificativa R-2026-000001', r3.num_serie_factura === 'R-2026-000001', r3.num_serie_factura)
-  check('  tipo R1', r3.tipo_factura === 'R1')
+  // La factura #2 es simplificada (F2, sin NIF): su rectificativa es R5 (lista L2).
+  check('  tipo R5 (rectifica a una simplificada)', r3.tipo_factura === 'R5', r3.tipo_factura)
   check('  correlativo = 4, encadenada tras la anulación',
     Number(r3.correlativo) === 4 && r3.huella_anterior === ra.huella)
   const inv2 = await filaInvoice(INV2)

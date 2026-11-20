@@ -27,6 +27,7 @@ import {
   cadenaEntradaAlta,
 } from './huella.ts'
 import { PRODUCTOR_SIF, exigirProductorSifConfigurado, type ProductorSif } from './productor-sif.ts'
+import { esNifValido, LIMITE_SIMPLIFICADA_ART_4_2 } from './factura-fiscal.ts'
 
 // ---------------------------------------------------------------------------
 // Espacios de nombres oficiales (targetNamespace de los XSD descargados)
@@ -298,51 +299,9 @@ export class ErrorValidacionRegistro extends Error {
 // Validadores de identificadores y formatos
 // ---------------------------------------------------------------------------
 
-const LETRAS_DNI = 'TRWAGMYFPDXBNJZSQVHLCKE'
-
-/**
- * Validación de NIF español con dígito de control (D-09): DNI, NIE, K/L/M y
- * CIF de entidad (letra inicial + 7 dígitos + control dígito/letra según tipo).
- */
-export function esNifValido(nif: string): boolean {
-  const v = nif.trim().toUpperCase()
-  if (!/^[A-Z0-9]{9}$/.test(v)) return false
-
-  // DNI: 8 dígitos + letra de control.
-  if (/^\d{8}[A-Z]$/.test(v)) {
-    return v[8] === LETRAS_DNI[Number(v.slice(0, 8)) % 23]
-  }
-  // NIE: X/Y/Z + 7 dígitos + letra (X→0, Y→1, Z→2).
-  if (/^[XYZ]\d{7}[A-Z]$/.test(v)) {
-    const num = Number(String('XYZ'.indexOf(v[0])) + v.slice(1, 8))
-    return v[8] === LETRAS_DNI[num % 23]
-  }
-  // K (menores 14 años), L (no residentes), M (extranjeros sin NIE): letra + 7 dígitos + control.
-  if (/^[KLM]\d{7}[A-Z]$/.test(v)) {
-    return v[8] === LETRAS_DNI[Number(v.slice(1, 8)) % 23]
-  }
-  // CIF de entidad: letra de tipo + 7 dígitos + control.
-  if (/^[ABCDEFGHJNPQRSUVW]\d{7}[0-9A-J]$/.test(v)) {
-    const digitos = v.slice(1, 8)
-    let suma = 0
-    for (let i = 0; i < 7; i++) {
-      const d = Number(digitos[i])
-      if (i % 2 === 0) {
-        const doble = d * 2
-        suma += doble > 9 ? doble - 9 : doble
-      } else {
-        suma += d
-      }
-    }
-    const digitoControl = (10 - (suma % 10)) % 10
-    const letraControl = 'JABCDEFGHI'[digitoControl]
-    // P, Q, R, S, W y N: control alfabético. A, B, E, H: numérico. Resto: ambos válidos.
-    if ('PQRSWN'.includes(v[0])) return v[8] === letraControl
-    if ('ABEH'.includes(v[0])) return v[8] === String(digitoControl)
-    return v[8] === String(digitoControl) || v[8] === letraControl
-  }
-  return false
-}
+// La validación del NIF vive en factura-fiscal.ts (módulo puro, importable
+// también desde las pantallas); se reexporta aquí para no cambiar la API.
+export { esNifValido }
 
 /** `dd-mm-aaaa` oficial desde `aaaa-mm-dd`, `dd-mm-aaaa` o Date, validando el calendario. */
 export function fechaOficial(valor: string | Date, campo: string, errores: string[]): string {
@@ -556,6 +515,10 @@ export function construirRegistroAlta(
       `destinatarios: obligatorios en facturas ${e.tipoFactura} (solo F2/R5 o art. 6.1.d pueden omitirlos)`
     )
   }
+  if (destinatarios.length > 0 && (e.tipoFactura === 'F2' || e.tipoFactura === 'R5')) {
+    // doc. «Validaciones» AEAT §13: en F2 y R5 el bloque Destinatarios no puede ir relleno.
+    errores.push(`destinatarios: no admisibles en facturas ${e.tipoFactura} (simplificadas, sin destinatario identificado)`)
+  }
   if (destinatarios.length > 1000) errores.push('destinatarios: máximo 1000 por registro')
   const nodosDestinatarios: Nodo[] = destinatarios.map((d, i) => {
     const campo = `destinatarios[${i}]`
@@ -603,6 +566,9 @@ export function construirRegistroAlta(
   }
   let cuotaTotalCent = 0
   let importeTotalCent = 0
+  // Σ (base + cuota) de todas las líneas, sin recargo: es la magnitud que la
+  // AEAT compara con el límite de las simplificadas (doc. «Validaciones» §15.8).
+  let baseMasCuotaCent = 0
   const nodosDesglose: Nodo[] = (e.desglose ?? []).slice(0, 12).map((linea, i) => {
     const campo = `desglose[${i}]`
     const impuesto = linea.impuesto ?? '01'
@@ -630,6 +596,38 @@ export function construirRegistroAlta(
     }
     if (tieneExenta && !OPERACIONES_EXENTAS.includes(linea.operacionExenta!)) {
       errores.push(`${campo}.operacionExenta: valor «${linea.operacionExenta}» inválido (E1-E8)`)
+    }
+    // Reglas de negocio de las operaciones exentas (doc. «Validaciones» AEAT
+    // v1.2.2, §15.5, §15.5.1 y §15.6.1): la AEAT rechaza el registro si no se
+    // cumplen, así que se cortan aquí, antes de reservar número.
+    const esIvaOIgic = impuesto === '01' || impuesto === '03'
+    if (tieneExenta) {
+      const exenta = linea.operacionExenta as OperacionExenta
+      if ((exenta === 'E7' || exenta === 'E8') && impuesto !== '03') {
+        errores.push(
+          `${campo}.operacionExenta: «${exenta}» solo existe para IGIC (impuesto 03); con IVA la causa debe ser de la lista L10 (E1-E6)`
+        )
+      }
+      if (esIvaOIgic && linea.claveRegimen === '01' && (exenta === 'E2' || exenta === 'E3')) {
+        errores.push(
+          `${campo}.operacionExenta: «${exenta}» no es admisible con claveRegimen=01 (use 02, exportación)`
+        )
+      }
+      if (impuesto === '01' && exenta === 'E5') {
+        if (e.tipoFactura === 'F2' || e.tipoFactura === 'R5') {
+          errores.push(
+            `${campo}.operacionExenta: una entrega a otro Estado miembro (E5, art. 25 LIVA) no puede documentarse en factura simplificada (art. 4.4.a RD 1619/2012)`
+          )
+        }
+        if (destinatarios.some((d) => esDestinatarioNIF(d))) {
+          errores.push(
+            `${campo}.operacionExenta: con E5 el destinatario debe identificarse con IDOtro (NIF-IVA de otro Estado miembro), no con NIF español`
+          )
+        }
+      }
+    }
+    if (esIvaOIgic && linea.claveRegimen === '02' && !tieneExenta) {
+      errores.push(`${campo}.claveRegimen: la clave 02 (exportación) solo admite operaciones exentas`)
     }
 
     validarImporte(linea.baseImponible, `${campo}.baseImponible`, errores)
@@ -694,6 +692,7 @@ export function construirRegistroAlta(
 
     cuotaTotalCent += cuotaCent + recargoCent
     importeTotalCent += baseCent + cuotaCent + recargoCent
+    baseMasCuotaCent += baseCent + cuotaCent
 
     return [
       'DetalleDesglose',
@@ -726,6 +725,20 @@ export function construirRegistroAlta(
   // (el «total a pagar» con retención es un dato de la factura, no del registro).
   if (Math.abs(importeTotalCent) >= 1e14) {
     errores.push('importeTotal: excede los 12 dígitos enteros admitidos por el XSD')
+  }
+  // Factura simplificada: 3.000 € IVA incluido como máximo (art. 4.2 RD
+  // 1619/2012). La AEAT rechaza el registro F2 que lo supera (doc.
+  // «Validaciones» §15.8, con 10 € de margen), salvo acuerdo de facturación
+  // (no soportado) o factura sin identificación del destinatario del art. 6.1.d).
+  if (
+    e.tipoFactura === 'F2' &&
+    e.facturaSinIdentifDestinatarioArt61d !== 'S' &&
+    baseMasCuotaCent > LIMITE_SIMPLIFICADA_ART_4_2 * 100
+  ) {
+    errores.push(
+      `importeTotal: una factura simplificada (F2) no puede superar los ${LIMITE_SIMPLIFICADA_ART_4_2} € IVA incluido ` +
+        `(art. 4.2 RD 1619/2012); base + cuota = ${importeDesdeCentimos(baseMasCuotaCent)}. Identifica al cliente con su NIF para emitir factura completa`
+    )
   }
   if (
     e.cuotaTotalDeclarada !== undefined &&

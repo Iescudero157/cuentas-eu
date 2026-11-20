@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { generateInvoicePDFBuffer } from "@/lib/pdf/invoice-pdf-server";
-import { invoicePDFDataFromRow } from "@/lib/pdf/invoice-pdf-data";
+import { invoicePDFDataFromRow, rectificadaParaPDF } from "@/lib/pdf/invoice-pdf-data";
 import { bloqueQRParaInvoice } from "@/lib/verifactu/qr-factura";
 import { ErrorQR } from "@/lib/verifactu/qr";
 import { limitarTasa, respuesta429 } from "@/lib/verifactu/seguridad-http";
@@ -45,8 +45,10 @@ export async function GET(
 
   try {
     const verifactu = await bloqueQRParaInvoice(supabase, user.id, invoice);
+    // Rectificativa: número y fecha de la factura rectificada (art. 15.4 RD 1619/2012)
+    const rectificada = await rectificadaParaPDF(supabase, user.id, invoice);
     const pdfBuffer = await generateInvoicePDFBuffer(
-      invoicePDFDataFromRow(invoice, profile, verifactu)
+      invoicePDFDataFromRow(invoice, profile, verifactu, rectificada)
     );
     return new NextResponse(new Uint8Array(pdfBuffer), {
       status: 200,

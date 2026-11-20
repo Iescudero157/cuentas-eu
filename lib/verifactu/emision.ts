@@ -43,6 +43,7 @@ import {
   facturaAppARegistroAnulacion,
   type FacturaApp,
 } from './factura-app.ts'
+import { situacionNifCliente, tipoRectificativaPara } from './factura-fiscal.ts'
 
 // ---------------------------------------------------------------------------
 // Tipos de fila (columnas usadas de las tablas reales)
@@ -68,6 +69,14 @@ export interface FilaInvoice {
   tipo_factura: string | null
   rectifica_invoice_id: string | null
   tipo_rectificativa: 'S' | 'I' | null
+  /** Causa de exención (lista L10, E1-E6) guardada con la factura; obligatoria si iva_rate = 0. */
+  operacion_exenta?: string | null
+}
+
+/** Datos de la factura rectificada que necesita el registro de la rectificativa. */
+export type FilaRectificada = Pick<FilaInvoice, 'numero_fiscal' | 'date' | 'subtotal' | 'iva'> & {
+  /** Tipo con el que se registró la rectificada: si es F2 o R5, la rectificativa es R5. */
+  tipo_factura?: string | null
 }
 
 /** Columnas de `sif_config` que usa la emisión. */
@@ -126,11 +135,16 @@ interface FilaRpcAnulacion {
 }
 
 export interface OpcionesEmision {
-  /** Serie a usar (por defecto `F`, o `R` si la factura es rectificativa). */
+  /**
+   * Serie a usar. Por defecto la de la clase de factura: `F` completas, `S`
+   * simplificadas, `R` rectificativas y `RS` rectificativas de simplificadas
+   * (arts. 6.1.a y 7.1.a RD 1619/2012). La base de datos rechaza una serie
+   * que ya contenga facturas de otra clase.
+   */
   serie?: string
   /** Fuerza el tipo (por defecto F1/F2 según destinatario; R* si rectificativa). */
   tipoFactura?: TipoFactura
-  /** Causa de exención E1-E8 si la operación va exenta de IVA. */
+  /** Causa de exención; por defecto, la guardada en la factura (`operacion_exenta`). */
   operacionExenta?: OperacionExenta
   /** Solo tests: «hoy» en España (`aaaa-mm-dd`). Por defecto, hoyEnEspana(). */
   hoy?: string
@@ -214,6 +228,7 @@ export function filaAFacturaApp(inv: FilaInvoice, numSerie: string): FacturaApp 
     irpf: Number(inv.irpf),
     irpf_rate: Number(inv.irpf_rate),
     total: Number(inv.total),
+    operacion_exenta: inv.operacion_exenta ?? null,
   }
 }
 
@@ -225,7 +240,7 @@ export function prepararEntradaAlta(
   invoice: FilaInvoice,
   config: FilaSifConfig,
   opciones: OpcionesEmision = {},
-  rectificada?: Pick<FilaInvoice, 'numero_fiscal' | 'date' | 'subtotal' | 'iva'> | null
+  rectificada?: FilaRectificada | null
 ): EntradaRegistroAlta {
   // La AEAT rechaza el registro si la fecha de expedición es posterior a la
   // fecha actual (error 1112), y el registro ya habría entrado en la cadena:
@@ -245,11 +260,29 @@ export function prepararEntradaAlta(
     ? (invoice.tipo_factura as TipoFactura)
     : undefined
 
+  // Un NIF escrito pero no válido (errata o documento extranjero) convertía la
+  // factura en simplificada sin avisar: ahora se corta. En una subsanación el
+  // tipo viene fijado por el registro previo y no se vuelve a juzgar.
+  if (!opciones.tipoFactura && !esRectificativa && situacionNifCliente(invoice.client_nif) === 'invalido') {
+    throw new ErrorEmision(
+      'nif_cliente_invalido',
+      `El NIF del cliente («${String(invoice.client_nif).trim()}») no es un NIF español válido. Corrígelo o, si el cliente ` +
+        'no se identifica, déjalo vacío para emitir una factura simplificada. Kuentas todavía no admite ' +
+        'documentos de identificación extranjeros (NIF-IVA, pasaporte…).'
+    )
+  }
+
+  // Tipo de la rectificativa: R5 si rectifica a una simplificada (F2/R5); si
+  // no, el elegido al crearla (R1-R4), y R1 por defecto (lista L2).
+  const tipoRectificativaFinal = esRectificativa
+    ? (opciones.tipoFactura ?? tipoRectificativaPara(rectificada?.tipo_factura, tipoGuardado))
+    : undefined
+
   const entrada = facturaAppARegistroAlta(
     filaAFacturaApp(invoice, NUM_PROVISIONAL),
     { nif: config.nif_obligado, nombreRazon: config.nombre_razon },
     {
-      tipoFactura: esRectificativa ? (opciones.tipoFactura ?? tipoGuardado ?? 'R1') : opciones.tipoFactura,
+      tipoFactura: esRectificativa ? tipoRectificativaFinal : opciones.tipoFactura,
       operacionExenta: opciones.operacionExenta,
     }
   )
@@ -324,8 +357,10 @@ export function reconstruirRegistroAnulacion(
 // Acceso a datos
 // ---------------------------------------------------------------------------
 
+// `operacion_exenta` existe desde la migración 20261120100000 (aplicarla ANTES
+// de desplegar este código: sin la columna, la lectura de la factura falla).
 const COLUMNAS_INVOICE =
-  'id, user_id, number, date, client_name, client_nif, items, subtotal, iva, iva_rate, irpf, irpf_rate, total, verifactu_estado, numero_fiscal, tipo_factura, rectifica_invoice_id, tipo_rectificativa'
+  'id, user_id, number, date, client_name, client_nif, items, subtotal, iva, iva_rate, irpf, irpf_rate, total, verifactu_estado, numero_fiscal, tipo_factura, rectifica_invoice_id, tipo_rectificativa, operacion_exenta'
 
 export async function cargarConfig(supabase: SupabaseClient, userId: string): Promise<FilaSifConfig | null> {
   const { data, error } = await supabase

@@ -37,6 +37,23 @@ export interface InvoicePDFServerData {
    * servidor con `construirBloqueQR` (lib/verifactu/qr.ts).
    */
   verifactu?: BloqueQRFactura | null;
+  /**
+   * Título del documento según el tipo de factura: «FACTURA», «FACTURA
+   * SIMPLIFICADA», «FACTURA RECTIFICATIVA» o «FACTURA SIMPLIFICADA
+   * RECTIFICATIVA» (lib/verifactu/factura-fiscal.ts). Por defecto, «FACTURA».
+   */
+  titulo?: string;
+  /** Mención de exención del IVA con su artículo (art. 6.1.j y 7.1.i RD 1619/2012). */
+  mencionExencion?: string | null;
+  /** Factura rectificada: número y fecha (`aaaa-mm-dd`), art. 15.4 RD 1619/2012. */
+  rectifica?: { numero: string; fecha: string } | null;
+  /** La factura tiene registro de anulación: el documento lo dice de forma destacada. */
+  anulada?: boolean;
+}
+
+function fechaLegible(iso: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : iso;
 }
 
 // Lado del QR impreso: 35 mm (rango legal 30-40 mm, art. 21 Orden). 1 mm = 72/25.4 pt.
@@ -166,11 +183,53 @@ const styles = StyleSheet.create({
     marginTop: 2,
     textAlign: "center",
   },
+  // Título largo («FACTURA SIMPLIFICADA RECTIFICATIVA»): cuerpo menor para que quepa.
+  invoiceLabelLargo: {
+    fontSize: 12,
+    fontFamily: "Helvetica-Bold",
+    color: "#2A5AAE",
+    textAlign: "right",
+    maxWidth: 260,
+  },
+  rectificaTexto: {
+    fontSize: 9,
+    fontFamily: "Helvetica-Bold",
+    color: "#1a1a2e",
+    textAlign: "right",
+    marginTop: 4,
+    maxWidth: 260,
+  },
+  anuladaBanda: {
+    borderWidth: 1.5,
+    borderColor: "#ef4444",
+    borderRadius: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    marginBottom: 12,
+  },
+  anuladaTexto: {
+    fontSize: 11,
+    fontFamily: "Helvetica-Bold",
+    color: "#ef4444",
+    textAlign: "center",
+  },
+  mencionCaja: {
+    marginTop: 14,
+    padding: 8,
+    backgroundColor: "#f8fafc",
+    borderRadius: 4,
+  },
+  mencionTexto: { fontSize: 9, color: "#1a1a2e", lineHeight: 1.35 },
 });
 
 function InvoiceDocument({ data }: { data: InvoicePDFServerData }) {
   const statusColor =
-    data.status === "cobrada" ? "#4ECB71" : data.status === "vencida" ? "#ef4444" : "#f59e0b";
+    data.anulada || data.status === "vencida"
+      ? "#ef4444"
+      : data.status === "cobrada"
+        ? "#4ECB71"
+        : "#f59e0b";
+  const titulo = data.titulo || "FACTURA";
 
   return (
     <Document>
@@ -189,6 +248,15 @@ function InvoiceDocument({ data }: { data: InvoicePDFServerData }) {
           </View>
         )}
 
+        {/* Factura anulada: el documento no puede pasar por una factura en vigor */}
+        {data.anulada && (
+          <View style={styles.anuladaBanda}>
+            <Text style={styles.anuladaTexto}>
+              FACTURA ANULADA - sin validez (registro de anulación, art. 11 RD 1007/2023)
+            </Text>
+          </View>
+        )}
+
         {/* Header */}
         <View style={styles.header}>
           <View>
@@ -202,8 +270,16 @@ function InvoiceDocument({ data }: { data: InvoicePDFServerData }) {
             )}
           </View>
           <View>
-            <Text style={styles.invoiceLabel}>FACTURA</Text>
+            <Text style={titulo.length > 14 ? styles.invoiceLabelLargo : styles.invoiceLabel}>
+              {titulo}
+            </Text>
             <Text style={styles.invoiceNumber}>{data.number}</Text>
+            {/* Datos identificativos de la factura rectificada (art. 15.4 y 7.1.h RD 1619/2012) */}
+            {data.rectifica && (
+              <Text style={styles.rectificaTexto}>
+                Rectifica a la factura {data.rectifica.numero} de {fechaLegible(data.rectifica.fecha)}
+              </Text>
+            )}
             <Text style={{ fontSize: 9, color: "#999", textAlign: "right", marginTop: 2 }}>
               Fecha: {data.date}
             </Text>
@@ -234,7 +310,7 @@ function InvoiceDocument({ data }: { data: InvoicePDFServerData }) {
             <Text
               style={{ ...styles.colValue, fontFamily: "Helvetica-Bold", color: statusColor }}
             >
-              {data.status.toUpperCase()}
+              {data.anulada ? "ANULADA" : data.status.toUpperCase()}
             </Text>
           </View>
         </View>
@@ -266,15 +342,26 @@ function InvoiceDocument({ data }: { data: InvoicePDFServerData }) {
             <Text style={styles.totalLabel}>Subtotal</Text>
             <Text style={styles.totalValue}>{Number(data.subtotal).toFixed(2)} EUR</Text>
           </View>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>IVA ({data.ivaRate}%)</Text>
-            <Text style={styles.totalValue}>+{Number(data.iva).toFixed(2)} EUR</Text>
-          </View>
+          {data.mencionExencion ? (
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>IVA</Text>
+              <Text style={styles.totalValue}>Exento</Text>
+            </View>
+          ) : (
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>IVA ({data.ivaRate}%)</Text>
+              <Text style={styles.totalValue}>
+                {Number(data.iva) < 0 ? "" : "+"}
+                {Number(data.iva).toFixed(2)} EUR
+              </Text>
+            </View>
+          )}
           {data.irpfRate > 0 && (
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>IRPF (-{data.irpfRate}%)</Text>
               <Text style={{ ...styles.totalValue, color: "#ef4444" }}>
-                -{Number(data.irpf).toFixed(2)} EUR
+                {Number(data.irpf) < 0 ? "+" : "-"}
+                {Math.abs(Number(data.irpf)).toFixed(2)} EUR
               </Text>
             </View>
           )}
@@ -283,6 +370,13 @@ function InvoiceDocument({ data }: { data: InvoicePDFServerData }) {
             <Text style={styles.totalFinalValue}>{Number(data.total).toFixed(2)} EUR</Text>
           </View>
         </View>
+
+        {/* Mención de exención (art. 6.1.j y 7.1.i RD 1619/2012) */}
+        {data.mencionExencion && (
+          <View style={styles.mencionCaja}>
+            <Text style={styles.mencionTexto}>{data.mencionExencion}</Text>
+          </View>
+        )}
 
         {/* Footer */}
         <View style={styles.footer}>
