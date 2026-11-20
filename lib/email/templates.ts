@@ -80,6 +80,10 @@ export interface InvoiceEmailData {
   irpf: number;
   irpfRate: number;
   notes?: string;
+  /** Clase de documento en minúsculas («factura», «factura simplificada», «factura rectificativa»…). */
+  documento?: string;
+  /** Mención de exención del IVA (la misma que lleva el PDF). */
+  mencionExencion?: string | null;
 }
 
 function formatEur(n: number) {
@@ -100,7 +104,11 @@ function escapeHtml(v: unknown): string {
 }
 
 export function invoiceEmailTemplate(data: InvoiceEmailData) {
-  const subject = `Factura ${data.invoiceNumber} de ${data.issuerName}`;
+  const documento = data.documento || "factura";
+  const subject = `${documento.charAt(0).toUpperCase()}${documento.slice(1)} ${data.invoiceNumber} de ${data.issuerName}`;
+  const filaIva = data.mencionExencion
+    ? `<tr><td style="padding:4px 0;font-size:14px;color:#666;">IVA</td><td style="padding:4px 0;font-size:14px;color:#666;text-align:right;">Exento</td></tr>`
+    : `<tr><td style="padding:4px 0;font-size:14px;color:#666;">IVA (${data.ivaRate}%)</td><td style="padding:4px 0;font-size:14px;color:#666;text-align:right;">${formatEur(data.iva)}</td></tr>`;
 
   const itemsRows = data.items.map(item => `
     <tr style="border-bottom:1px solid #f0f0f0;">
@@ -123,7 +131,7 @@ export function invoiceEmailTemplate(data: InvoiceEmailData) {
   <tr><td style="padding:36px 40px 28px;">
     <p style="margin:0 0 8px;font-size:15px;color:#444;">Hola <strong>${escapeHtml(data.clientName)}</strong>,</p>
     <p style="margin:0 0 24px;font-size:15px;color:#444;line-height:1.7;">
-      Te enviamos la factura <strong>${escapeHtml(data.invoiceNumber)}</strong> con fecha ${escapeHtml(data.invoiceDate)}.<br>
+      Te enviamos la ${escapeHtml(documento)} <strong>${escapeHtml(data.invoiceNumber)}</strong> con fecha ${escapeHtml(data.invoiceDate)}.<br>
       El vencimiento para el pago es el <strong>${data.dueDate}</strong>.
     </p>
     <table width="100%" cellpadding="0" cellspacing="0" style="border-top:2px solid #2A5AAE;margin-bottom:16px;">
@@ -139,11 +147,12 @@ export function invoiceEmailTemplate(data: InvoiceEmailData) {
     </table>
     <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;">
       <tr><td style="padding:4px 0;font-size:14px;color:#666;">Subtotal</td><td style="padding:4px 0;font-size:14px;color:#666;text-align:right;">${formatEur(data.subtotal)}</td></tr>
-      <tr><td style="padding:4px 0;font-size:14px;color:#666;">IVA (${data.ivaRate}%)</td><td style="padding:4px 0;font-size:14px;color:#666;text-align:right;">${formatEur(data.iva)}</td></tr>
+      ${filaIva}
       ${data.irpf > 0 ? `<tr><td style="padding:4px 0;font-size:14px;color:#666;">IRPF (-${data.irpfRate}%)</td><td style="padding:4px 0;font-size:14px;color:#e53e3e;text-align:right;">-${formatEur(data.irpf)}</td></tr>` : ""}
       <tr><td style="padding:12px 0 4px;font-size:18px;color:#1a1a2e;font-weight:700;border-top:2px solid #e0e0e0;">TOTAL</td>
           <td style="padding:12px 0 4px;font-size:18px;color:#2A5AAE;font-weight:700;text-align:right;border-top:2px solid #e0e0e0;">${formatEur(data.total)}</td></tr>
     </table>
+    ${data.mencionExencion ? `<p style="margin:12px 0 0;font-size:12px;color:#666;line-height:1.5;">${escapeHtml(data.mencionExencion)}</p>` : ""}
     ${data.notes ? `<div style="margin-top:20px;padding:12px 16px;background:#f8f9fb;border-radius:8px;font-size:13px;color:#666;">${escapeHtml(data.notes)}</div>` : ""}
     <p style="margin-top:24px;font-size:13px;color:#888;line-height:1.6;">
       Para cualquier consulta sobre esta factura, responde a este email o contacta con ${escapeHtml(data.issuerName)}.

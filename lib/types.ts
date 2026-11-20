@@ -53,6 +53,14 @@ export interface Invoice {
   // Verifactu (V07): estado fiscal y número asignado por el servidor al emitir
   verifactuEstado?: VerifactuEstado;
   numeroFiscal?: string;
+  /** Tipo con el que se registró (lista L2: F1, F2, R1…R5); solo en facturas emitidas. */
+  tipoFactura?: string;
+  /** Si es una rectificativa: id de la factura que rectifica. */
+  rectificaInvoiceId?: string;
+  /** Causa de exención del IVA (lista L10: E1…E6) cuando el IVA es 0 %. */
+  operacionExenta?: string;
+  /** Precepto o aclaración de la exención que se imprime en la factura. */
+  exencionDetalle?: string;
 }
 
 export type VerifactuEstado = "borrador" | "emitida" | "rectificada" | "anulada";

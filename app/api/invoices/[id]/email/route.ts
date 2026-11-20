@@ -3,8 +3,14 @@ import { createClient } from "@/lib/supabase/server";
 import { Resend } from "resend";
 import { invoiceEmailTemplate } from "@/lib/email/templates";
 import { generateInvoicePDFBuffer } from "@/lib/pdf/invoice-pdf-server";
-import { invoicePDFDataFromRow } from "@/lib/pdf/invoice-pdf-data";
+import { invoicePDFDataFromRow, rectificadaParaPDF } from "@/lib/pdf/invoice-pdf-data";
 import { bloqueQRParaInvoice } from "@/lib/verifactu/qr-factura";
+import {
+  esCausaExencionIva,
+  mencionExencion,
+  tipoFacturaDeDocumento,
+  tituloDocumento,
+} from "@/lib/verifactu/factura-fiscal";
 import { limitarTasa, respuesta429 } from "@/lib/verifactu/seguridad-http";
 
 // Lazy-initialize so build doesn't fail when RESEND_API_KEY is absent
@@ -103,6 +109,11 @@ export async function POST(
     irpf: Number(invoice.irpf),
     irpfRate: Number(invoice.irpf_rate),
     notes: customMessage,
+    // Mismo título y misma mención de exención que el PDF adjunto
+    documento: tituloDocumento(tipoFacturaDeDocumento(invoice)).toLowerCase(),
+    mencionExencion: esCausaExencionIva(invoice.operacion_exenta)
+      ? mencionExencion(invoice.operacion_exenta, invoice.exencion_detalle)
+      : null,
   };
 
   const { subject, html } = invoiceEmailTemplate(emailData);
@@ -112,8 +123,9 @@ export async function POST(
   let pdfBuffer: Buffer | null = null;
   try {
     const verifactu = await bloqueQRParaInvoice(supabase, user.id, invoice);
+    const rectificada = await rectificadaParaPDF(supabase, user.id, invoice);
     pdfBuffer = await generateInvoicePDFBuffer(
-      invoicePDFDataFromRow(invoice, profile, verifactu)
+      invoicePDFDataFromRow(invoice, profile, verifactu, rectificada)
     );
   } catch (pdfErr) {
     console.error("Error generando PDF:", pdfErr);

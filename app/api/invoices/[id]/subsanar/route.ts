@@ -43,8 +43,9 @@ export async function POST(
           })
         : await subsanarFactura(supabase, user.id, id, {
             destinatario: esDestinatario(body.destinatario) ? body.destinatario : undefined,
+            // Lista L10 para IVA: E1-E6 (E7 y E8 son solo de IGIC).
             operacionExenta:
-              typeof body.operacion_exenta === "string" && /^E[1-8]$/.test(body.operacion_exenta)
+              typeof body.operacion_exenta === "string" && /^E[1-6]$/.test(body.operacion_exenta)
                 ? (body.operacion_exenta as "E1")
                 : undefined,
           });

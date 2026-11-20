@@ -13,7 +13,33 @@ interface UseInvoicesReturn {
   addInvoice: (inv: Invoice) => Promise<boolean>;
   updateInvoiceStatus: (id: string, status: Invoice["status"], paymentDate?: string) => Promise<boolean>;
   sendInvoiceEmail: (id: string) => Promise<{ ok: boolean; sentTo?: string; error?: string }>;
+  rectificarInvoice: (id: string, datos: DatosRectificativa) => Promise<ResultadoAccionFiscal>;
+  anularInvoice: (id: string) => Promise<ResultadoAccionFiscal>;
   refresh: () => Promise<void>;
+}
+
+/** Lo que pide la pantalla para emitir una rectificativa (POST /api/invoices/{id}/rectificar). */
+export interface DatosRectificativa {
+  modo: "total" | "importe";
+  baseCorrecta?: number;
+  motivo: string;
+  /** R1-R4; no se envía si la factura rectificada es simplificada (siempre R5). */
+  tipoFactura?: string;
+}
+
+export interface ResultadoAccionFiscal {
+  ok: boolean;
+  /** Número de la factura rectificativa emitida o de la factura anulada. */
+  numero?: string;
+  error?: string;
+}
+
+/** Mensaje legible de una respuesta de error de las rutas Verifactu. */
+function mensajeDeError(data: Record<string, unknown> | null, porDefecto: string): string {
+  if (!data) return porDefecto;
+  const detalles = Array.isArray(data.detalles) ? (data.detalles as unknown[]).map(String) : [];
+  const mensaje = typeof data.message === "string" ? data.message : typeof data.error === "string" ? data.error : porDefecto;
+  return detalles.length > 0 ? `${mensaje}: ${detalles.join(" · ")}` : mensaje;
 }
 
 export function useInvoices(): UseInvoicesReturn {
@@ -72,6 +98,10 @@ export function useInvoices(): UseInvoicesReturn {
         notes: (inv.notes || undefined) as string | undefined,
         verifactuEstado: (inv.verifactu_estado || undefined) as Invoice["verifactuEstado"],
         numeroFiscal: (inv.numero_fiscal || undefined) as string | undefined,
+        tipoFactura: (inv.tipo_factura || undefined) as string | undefined,
+        rectificaInvoiceId: (inv.rectifica_invoice_id || undefined) as string | undefined,
+        operacionExenta: (inv.operacion_exenta || undefined) as string | undefined,
+        exencionDetalle: (inv.exencion_detalle || undefined) as string | undefined,
       }));
 
       setInvoices(mapped);
@@ -120,12 +150,14 @@ export function useInvoices(): UseInvoicesReturn {
           payment_method: inv.paymentMethod || null,
           payment_date: inv.paymentDate || null,
           notes: inv.notes || null,
+          operacion_exenta: inv.operacionExenta || null,
+          exencion_detalle: inv.exencionDetalle || null,
         }),
       });
 
       if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Error creando factura");
+        const data = await res.json().catch(() => null);
+        throw new Error(mensajeDeError(data, "Error creando factura"));
       }
 
       await fetchInvoices();
@@ -221,5 +253,59 @@ export function useInvoices(): UseInvoicesReturn {
     }
   }, [user, isDemo]);
 
-  return { invoices, loading, error, addInvoice, updateInvoiceStatus, sendInvoiceEmail, refresh: fetchInvoices };
+  // Rectificativa de una factura emitida: la emite el servidor (serie R o RS,
+  // registro de alta R1-R5 encadenado). La original pasa a «rectificada».
+  const rectificarInvoice = useCallback(async (id: string, datos: DatosRectificativa): Promise<ResultadoAccionFiscal> => {
+    if (isDemo || !user) {
+      return { ok: false, error: "Las rectificativas no están disponibles en modo demo" };
+    }
+    try {
+      const res = await fetch(`/api/invoices/${id}/rectificar`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          modo: datos.modo,
+          base_correcta: datos.modo === "importe" ? datos.baseCorrecta : undefined,
+          motivo: datos.motivo,
+          tipo_factura: datos.tipoFactura,
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        return { ok: false, error: mensajeDeError(data, "No se pudo emitir la factura rectificativa") };
+      }
+      await fetchInvoices();
+      return { ok: true, numero: data?.invoice?.number as string | undefined };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : "Error de red" };
+    }
+  }, [user, isDemo, fetchInvoices]);
+
+  // Anulación de una factura emitida por error: genera el registro de
+  // anulación (art. 11 RD 1007/2023). La factura no se borra: queda «anulada».
+  const anularInvoice = useCallback(async (id: string): Promise<ResultadoAccionFiscal> => {
+    if (isDemo || !user) {
+      return { ok: false, error: "La anulación no está disponible en modo demo" };
+    }
+    try {
+      const res = await fetch(`/api/invoices/${id}/anular`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok) {
+        return { ok: false, error: mensajeDeError(data, "No se pudo anular la factura") };
+      }
+      await fetchInvoices();
+      return { ok: true, numero: data?.invoice?.number as string | undefined };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : "Error de red" };
+    }
+  }, [user, isDemo, fetchInvoices]);
+
+  return {
+    invoices, loading, error, addInvoice, updateInvoiceStatus, sendInvoiceEmail,
+    rectificarInvoice, anularInvoice, refresh: fetchInvoices,
+  };
 }

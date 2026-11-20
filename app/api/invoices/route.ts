@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { emitirFactura, ErrorEmision } from "@/lib/verifactu/emision";
 import { ErrorValidacionRegistro } from "@/lib/verifactu/registro-alta";
+import { normalizarNif, situacionNifCliente, validarExencion } from "@/lib/verifactu/factura-fiscal";
 import { planEfectivo } from "@/lib/plan";
 
 export async function GET(request: Request) {
@@ -74,6 +75,20 @@ export async function POST(request: Request) {
     );
   }
 
+  // Operación exenta: con IVA al 0 % la causa de exención es obligatoria y se
+  // guarda con la factura (mención del art. 6.1.j RD 1619/2012 en el PDF y
+  // OperacionExenta en el registro VERI*FACTU). El 0 % sin causa se rechaza.
+  const exencion = validarExencion(Number(iva_rate ?? 21), body.operacion_exenta, body.exencion_detalle);
+  if (!exencion.ok) {
+    return NextResponse.json(
+      { error: "exencion_invalida", message: exencion.error },
+      { status: 422 }
+    );
+  }
+  // El NIF español válido se guarda en su forma canónica (sin espacios ni guiones).
+  const nifCliente =
+    situacionNifCliente(client_nif) === "valido" ? normalizarNif(client_nif) : client_nif;
+
   // ── Plan limit: gratis users can create max 5 invoices/month ──────────────
   const { data: profileData } = await supabase
     .from("profiles")
@@ -91,10 +106,13 @@ export async function POST(request: Request) {
       .toISOString()
       .slice(0, 10);
 
+    // Las rectificativas no consumen cupo: corregir una factura emitida es una
+    // obligación legal (art. 15 RD 1619/2012), no una venta nueva.
     const { count } = await supabase
       .from("invoices")
       .select("*", { count: "exact", head: true })
       .eq("user_id", user.id)
+      .is("rectifica_invoice_id", null)
       .gte("date", firstDay)
       .lte("date", lastDay);
 
@@ -119,7 +137,7 @@ export async function POST(request: Request) {
       user_id: user.id,
       number,
       client_name,
-      client_nif,
+      client_nif: nifCliente,
       client_address,
       items: items ?? [],
       subtotal: subtotal ?? 0,
@@ -136,6 +154,11 @@ export async function POST(request: Request) {
       payment_method,
       payment_date,
       notes,
+      // Solo viajan si la factura es exenta: así la creación de facturas con
+      // IVA no depende de que la migración 20261120100000 esté ya aplicada.
+      ...(exencion.operacion_exenta
+        ? { operacion_exenta: exencion.operacion_exenta, exencion_detalle: exencion.exencion_detalle }
+        : {}),
     })
     .select()
     .single();
@@ -179,7 +202,10 @@ export async function POST(request: Request) {
         );
       }
       const message = e instanceof ErrorEmision ? e.message : "Error emitiendo la factura";
-      return NextResponse.json({ error: "verifactu_emision", message }, { status: 422 });
+      return NextResponse.json(
+        { error: e instanceof ErrorEmision ? e.codigo : "verifactu_emision", message },
+        { status: 422 }
+      );
     }
   }
 

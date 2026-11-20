@@ -256,6 +256,57 @@ const FAQ: { pregunta: string; respuesta: React.ReactNode }[] = [
     ),
   },
   {
+    pregunta: "¿Cómo emito una rectificativa o anulo una factura?",
+    respuesta: (
+      <>
+        <p>
+          En <strong>Facturas</strong>, abre el menú de la factura emitida (los tres
+          puntos). <strong>Emitir rectificativa</strong> crea una factura nueva, con
+          fecha de hoy y numeración propia (serie R), que identifica a la factura
+          rectificada y recoge solo la diferencia: todo el importe, si la operación
+          quedó sin efecto, o la parte que cambia. Tienes que indicar el motivo y el
+          tipo de rectificativa (art. 15 RD 1619/2012).
+        </p>
+        <p>
+          <strong>Anular factura</strong> es solo para una factura emitida por error
+          (art. 11 RD 1007/2023), por ejemplo la de una operación que no se ha
+          realizado. Si la operación es real y hay que corregir el importe, el IVA o
+          los datos, lo que procede es la rectificativa. Para cambiar el tipo de IVA o
+          el cliente, emite una rectificativa por todo el importe y después una
+          factura nueva.
+        </p>
+      </>
+    ),
+  },
+  {
+    pregunta: "¿Cómo facturo una operación exenta de IVA?",
+    respuesta: (
+      <p>
+        Elige IVA 0 % e indica la <strong>causa de exención</strong>: el artículo de
+        la Ley del IVA que ampara la operación (por ejemplo, el artículo 20 para las
+        exenciones en operaciones interiores). La causa se imprime en la factura
+        (art. 6.1.j RD 1619/2012) y viaja en el registro que se envía a la AEAT. Sin
+        causa de exención la factura no se emite. Todavía no se pueden facturar con
+        Kuentas las entregas de bienes a otros países de la Unión Europea, las
+        operaciones no sujetas ni las de inversión del sujeto pasivo.
+      </p>
+    ),
+  },
+  {
+    pregunta: "¿Qué es una factura simplificada y por qué tiene otra numeración?",
+    respuesta: (
+      <p>
+        Es la factura que se emite sin el NIF del cliente. Solo puede expedirse hasta
+        400 € (IVA incluido), o hasta 3.000 € en las actividades del artículo 4.2 del
+        Reglamento de facturación (comercio al por menor, hostelería, transporte de
+        personas y otras). Si en el mismo año emites facturas completas y
+        simplificadas, la norma obliga a numerarlas en series separadas (art. 7.1 RD
+        1619/2012): por eso Kuentas numera las completas en la serie F y las
+        simplificadas en la serie S, y sus rectificativas en las series R y RS.
+      </p>
+    ),
+  },
+  {
     pregunta: "¿Qué certificado digital necesito?",
     respuesta: (
       <p>
@@ -415,7 +466,8 @@ export default function AyudaVerifactuPage() {
             <strong>Importante:</strong> una vez emitida bajo VERI*FACTU, una factura
             no se puede editar ni borrar (es un requisito legal, no una limitación de
             Kuentas). Para corregirla, emite una rectificativa; si no debió
-            emitirse, anúlala.
+            emitirse, anúlala. Las dos acciones están en Facturas, en el menú de
+            cada factura emitida.
           </p>
         </div>
       </div>
