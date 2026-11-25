@@ -1,7 +1,7 @@
 # V19 · Declaración responsable del SIF Kuentas
 
-**Estado: SUSCRITA el 1-nov-2026 en Madrid por Iván Escudero Salas, administrador solidario de
-MILBROTES, S.L. (versión 1.0.0).** Ver «Historial» al final.
+**Estado: versión 1.1.0 SUSCRITA el 25-nov-2026 en Madrid por Claudia Ana Núñez Buttiglione, administradora
+solidaria de MILBROTES, S.L., con firma electrónica (la 1.0.0, el 1-nov-2026, por Iván Escudero Salas).** Ver «Historial» al final.
 
 ## Base legal
 
@@ -64,7 +64,8 @@ anterior (13.3: hay que conservar las declaraciones de TODAS las versiones).
   declaración vuelve a salir como borrador aunque el indicador esté a false (test V19).
 - 25-nov-2026: **versión 1.1.0** (causa de exención, rectificativas y anulación desde la app,
   series F, S, R y RS). Declaración nueva, decisión de Iván del 25-nov-2026 (art. 13.2-13.3 RRSIF:
-  una declaración por versión). Suscrita: Madrid, 2026-11-25, Iván Escudero Salas, administrador
-  solidario. Archivar su PDF junto al de la 1.0.0.
+  una declaración por versión). Suscrita: Madrid, 2026-11-25, Claudia Ana Núñez Buttiglione, administradora
+  solidaria, con firma electrónica (certificado de representante de MILBROTES). Archivar el PDF firmado
+  junto al de la 1.0.0.
 - Pendiente: archivar el PDF suscrito de la v1.0.0 (13.3 RRSIF) y publicar `verifactu.html` en
   kuentas.eu con el mismo texto al salir de mantenimiento.

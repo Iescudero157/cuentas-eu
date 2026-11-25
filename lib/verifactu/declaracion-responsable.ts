@@ -37,12 +37,14 @@ export interface SuscripcionDeclaracion {
   cargo: string
 }
 
-// Firmante y fecha confirmados por Iván en el chat: 1-nov-2026 (v1.0.0) y 25-nov-2026 (v1.1.0).
+// v1.0.0: Iván Escudero Salas, administrador solidario (1-nov-2026). v1.1.0: Claudia Ana Núñez Buttiglione,
+// administradora solidaria, que la firma con el certificado de representante de MILBROTES (25-nov-2026;
+// confirmado por Iván en el chat).
 export const SUSCRIPCION_DECLARACION: Readonly<SuscripcionDeclaracion> = Object.freeze({
   lugar: 'Madrid',
   fecha: '2026-11-25',
-  firmante: 'Iván Escudero Salas',
-  cargo: 'administrador solidario',
+  firmante: 'Claudia Ana Núñez Buttiglione',
+  cargo: 'administradora solidaria',
 })
 
 const MESES = [
