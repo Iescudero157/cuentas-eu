@@ -62,5 +62,9 @@ anterior (13.3: hay que conservar las declaraciones de TODAS las versiones).
   23-oct-2026). Suscrita: `SUSCRIPCION_DECLARACION` (Madrid, 2026-11-01, Iván Escudero Salas,
   administrador solidario) y `DECLARACION_ES_BORRADOR = false`. Sin suscripción completa la
   declaración vuelve a salir como borrador aunque el indicador esté a false (test V19).
+- 25-nov-2026: **versión 1.1.0** (causa de exención, rectificativas y anulación desde la app,
+  series F, S, R y RS). Declaración nueva, decisión de Iván del 25-nov-2026 (art. 13.2-13.3 RRSIF:
+  una declaración por versión). Suscrita: Madrid, 2026-11-25, Iván Escudero Salas, administrador
+  solidario. Archivar su PDF junto al de la 1.0.0.
 - Pendiente: archivar el PDF suscrito de la v1.0.0 (13.3 RRSIF) y publicar `verifactu.html` en
   kuentas.eu con el mismo texto al salir de mantenimiento.

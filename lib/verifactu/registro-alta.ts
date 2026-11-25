@@ -181,7 +181,7 @@ export function sistemaInformaticoKuentas(
     nif: productor.nif,
     nombreSistemaInformatico: 'Kuentas',
     idSistemaInformatico: '01',
-    version: '1.0.0',
+    version: '1.1.0',
     numeroInstalacion,
     tipoUsoPosibleSoloVerifactu: 'S',
     tipoUsoPosibleMultiOT: 'S',

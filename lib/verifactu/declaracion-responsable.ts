@@ -5,6 +5,8 @@
 // garantizar la coincidencia 1:1 con el bloque SistemaInformatico que viaja en
 // cada registro de facturación (art. 10.1.l RRSIF).
 //
+// ESTADO: versión 1.1.0 SUSCRITA el 25-nov-2026 (la 1.0.0, el 1-nov-2026). La 1.1.0 añade la
+// causa de exención, las rectificativas y la anulación desde la app y las series por clase de factura.
 // ESTADO (1-nov-2026): SUSCRITA. Texto revisado por el asesor (OK comunicado
 // por Iván el 23-oct-2026), productor con NIF e inscripción y suscripción en
 // SUSCRIPCION_DECLARACION. Si un cambio la devolviera a borrador (suscripción
@@ -35,10 +37,10 @@ export interface SuscripcionDeclaracion {
   cargo: string
 }
 
-// Firmante y fecha confirmados por Iván en el chat el 1-nov-2026.
+// Firmante y fecha confirmados por Iván en el chat: 1-nov-2026 (v1.0.0) y 25-nov-2026 (v1.1.0).
 export const SUSCRIPCION_DECLARACION: Readonly<SuscripcionDeclaracion> = Object.freeze({
   lugar: 'Madrid',
-  fecha: '2026-11-01',
+  fecha: '2026-11-25',
   firmante: 'Iván Escudero Salas',
   cargo: 'administrador solidario',
 })
