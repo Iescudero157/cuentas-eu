@@ -62,3 +62,13 @@ export function notasImprimibles(valor: unknown): string | null {
   const t = valor.replace(/^\s*\[TPV [^\]]*\]\s*/, '').trim()
   return t === '' ? null : t.slice(0, 600)
 }
+
+/**
+ * Importe en euros con formato español y separador de millares SIEMPRE: «1.290,00 €» (Iván, 26-nov-2026).
+ * No se usa Intl es-ES: su agrupación mínima de 2 cifras deja «1290,00» hasta 9.999.
+ */
+export function formatearEuros(n: number): string {
+  const v = Math.round((Number(n) || 0) * 100) / 100
+  const [entero, decimales] = Math.abs(v).toFixed(2).split('.')
+  return (v < 0 ? '-' : '') + entero.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + decimales + ' €'
+}

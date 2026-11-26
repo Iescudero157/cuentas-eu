@@ -5,6 +5,7 @@
 import React from "react";
 import { Document, Page, Text, View, StyleSheet, Image, pdf } from "@react-pdf/renderer";
 import type { MarcaFactura } from "./marca-factura.ts";
+import { formatearEuros } from "./marca-factura.ts";
 import type { BloqueQRFactura } from "../verifactu/qr.ts";
 
 export interface InvoicePDFServerItem {
@@ -342,10 +343,10 @@ function InvoiceDocument({ data }: { data: InvoicePDFServerData }) {
             <Text style={{ ...styles.colDesc, fontSize: 10 }}>{item.description}</Text>
             <Text style={{ ...styles.colQty, fontSize: 10 }}>{item.quantity}</Text>
             <Text style={{ ...styles.colPrice, fontSize: 10 }}>
-              {Number(item.unitPrice).toFixed(2)} EUR
+              {formatearEuros(item.unitPrice)}
             </Text>
             <Text style={{ ...styles.colTotal, fontSize: 10, fontFamily: "Helvetica-Bold" }}>
-              {Number(item.total).toFixed(2)} EUR
+              {formatearEuros(item.total)}
             </Text>
           </View>
         ))}
@@ -354,7 +355,7 @@ function InvoiceDocument({ data }: { data: InvoicePDFServerData }) {
         <View style={styles.totalsBox}>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Subtotal</Text>
-            <Text style={styles.totalValue}>{Number(data.subtotal).toFixed(2)} EUR</Text>
+            <Text style={styles.totalValue}>{formatearEuros(data.subtotal)}</Text>
           </View>
           {data.mencionExencion ? (
             <View style={styles.totalRow}>
@@ -366,7 +367,7 @@ function InvoiceDocument({ data }: { data: InvoicePDFServerData }) {
               <Text style={styles.totalLabel}>IVA ({data.ivaRate}%)</Text>
               <Text style={styles.totalValue}>
                 {Number(data.iva) < 0 ? "" : "+"}
-                {Number(data.iva).toFixed(2)} EUR
+                {formatearEuros(data.iva)}
               </Text>
             </View>
           )}
@@ -375,13 +376,13 @@ function InvoiceDocument({ data }: { data: InvoicePDFServerData }) {
               <Text style={styles.totalLabel}>IRPF (-{data.irpfRate}%)</Text>
               <Text style={{ ...styles.totalValue, color: "#ef4444" }}>
                 {Number(data.irpf) < 0 ? "+" : "-"}
-                {Math.abs(Number(data.irpf)).toFixed(2)} EUR
+                {formatearEuros(Math.abs(Number(data.irpf)))}
               </Text>
             </View>
           )}
           <View style={styles.totalFinalRow}>
             <Text style={styles.totalFinalLabel}>TOTAL</Text>
-            <Text style={styles.totalFinalValue}>{Number(data.total).toFixed(2)} EUR</Text>
+            <Text style={styles.totalFinalValue}>{formatearEuros(data.total)}</Text>
           </View>
         </View>
 
@@ -411,8 +412,7 @@ function InvoiceDocument({ data }: { data: InvoicePDFServerData }) {
 // VERI*FACTU siguen yendo al principio de la primera página (arts. 20-21 Orden HAC/1177/2024).
 // ---------------------------------------------------------------------------
 
-const euros = (n: number) =>
-  `${new Intl.NumberFormat("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(n))} €`;
+const euros = formatearEuros;
 
 function estilosMarca(m: MarcaFactura) {
   const principal = m.colorPrincipal || "#2A5AAE";
