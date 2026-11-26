@@ -51,6 +51,8 @@ import { situacionNifCliente, tipoRectificativaPara } from './factura-fiscal.ts'
 
 /** Columnas de `invoices` que usa la emisión (V03 §invoices_estados_fiscales). */
 export interface FilaInvoice {
+  /** Fecha de la operación si es distinta de la de expedición (migración 20261126100000). */
+  fecha_operacion?: string | null
   id: string
   user_id: string
   number: string
@@ -229,6 +231,7 @@ export function filaAFacturaApp(inv: FilaInvoice, numSerie: string): FacturaApp 
     irpf_rate: Number(inv.irpf_rate),
     total: Number(inv.total),
     operacion_exenta: inv.operacion_exenta ?? null,
+    fecha_operacion: inv.fecha_operacion ?? null,
   }
 }
 
@@ -252,6 +255,13 @@ export function prepararEntradaAlta(
       'fecha_futura',
       `La fecha de la factura (${fecha}) es posterior a hoy (${hoy}). La AEAT no admite facturas con fecha ` +
         'de expedición futura: emítela el día que corresponda.'
+    )
+  }
+  const fechaOp = invoice.fecha_operacion ? String(invoice.fecha_operacion).slice(0, 10) : ''
+  if (fechaOp && fechaOp > hoy) {
+    throw new ErrorEmision(
+      'fecha_operacion_futura',
+      'La fecha de la operación (' + fechaOp + ') es posterior a hoy (' + hoy + '): la AEAT la rechaza (error 1125).'
     )
   }
 
@@ -357,10 +367,11 @@ export function reconstruirRegistroAnulacion(
 // Acceso a datos
 // ---------------------------------------------------------------------------
 
-// `operacion_exenta` existe desde la migración 20261120100000 (aplicarla ANTES
+// `fecha_operacion` existe desde la migración 20261126100000 y `operacion_exenta` desde la 20261120100000
+// (aplicarlas ANTES
 // de desplegar este código: sin la columna, la lectura de la factura falla).
 const COLUMNAS_INVOICE =
-  'id, user_id, number, date, client_name, client_nif, items, subtotal, iva, iva_rate, irpf, irpf_rate, total, verifactu_estado, numero_fiscal, tipo_factura, rectifica_invoice_id, tipo_rectificativa, operacion_exenta'
+  'id, user_id, number, date, client_name, client_nif, items, subtotal, iva, iva_rate, irpf, irpf_rate, total, verifactu_estado, numero_fiscal, tipo_factura, rectifica_invoice_id, tipo_rectificativa, operacion_exenta, fecha_operacion'
 
 export async function cargarConfig(supabase: SupabaseClient, userId: string): Promise<FilaSifConfig | null> {
   const { data, error } = await supabase

@@ -35,6 +35,7 @@ export interface InvoiceRowForPDF {
   verifactu_estado?: string | null;
   /** Causa de exención (lista L10) y detalle del precepto: mención del art. 6.1.j RD 1619/2012. */
   operacion_exenta?: string | null;
+  fecha_operacion?: string | null;
   exencion_detalle?: string | null;
   rectifica_invoice_id?: string | null;
 }
@@ -107,5 +108,6 @@ export function invoicePDFDataFromRow(
       : null,
     rectifica: esRectificativa(tipo) || invoice.rectifica_invoice_id ? rectificada : null,
     anulada: invoice.verifactu_estado === "anulada",
+    fechaOperacion: invoice.fecha_operacion ?? null,
   };
 }

@@ -4,7 +4,7 @@ import { emitirFactura, ErrorEmision } from "@/lib/verifactu/emision";
 import { ErrorValidacionRegistro } from "@/lib/verifactu/registro-alta";
 import { normalizarNif, situacionNifCliente, validarExencion } from "@/lib/verifactu/factura-fiscal";
 import { planEfectivo } from "@/lib/plan";
-import { anioDeFecha, siguienteNumeroFactura } from "@/lib/invoices/numeracion";
+import { anioDeFecha, fechaHoyEspana, siguienteNumeroFactura, validarFechaOperacion } from "@/lib/invoices/numeracion";
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -73,6 +73,11 @@ export async function POST(request: Request) {
   const anio = anioDeFecha(date);
   if (anio === null) {
     return NextResponse.json({ error: "La fecha de la factura no es válida (aaaa-mm-dd)" }, { status: 400 });
+  }
+  // Fecha de la operación (art. 6.1.k RD 1619/2012): solo si es distinta de la de la factura.
+  const fechaOperacion = validarFechaOperacion(date, body.fecha_operacion, fechaHoyEspana());
+  if (!fechaOperacion.ok) {
+    return NextResponse.json({ error: "fecha_operacion_invalida", message: fechaOperacion.error }, { status: 422 });
   }
   if (items !== undefined && (!Array.isArray(items) || items.length > 500)) {
     return NextResponse.json(
@@ -179,6 +184,8 @@ export async function POST(request: Request) {
       ...(exencion.operacion_exenta
         ? { operacion_exenta: exencion.operacion_exenta, exencion_detalle: exencion.exencion_detalle }
         : {}),
+      // Solo viaja si la hay: crear facturas no depende de que la migración 20261126100000 esté aplicada.
+      ...(fechaOperacion.valor ? { fecha_operacion: fechaOperacion.valor } : {}),
     })
     .select()
     .single();

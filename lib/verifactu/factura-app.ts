@@ -56,6 +56,8 @@ export interface FacturaApp {
    * cuando iva_rate = 0: el 0 % de la app significa «exento», no «sujeto al 0 %».
    */
   operacion_exenta?: string | null
+  /** Fecha de la operación si es distinta de `date` (art. 6.1.k RD 1619/2012); `aaaa-mm-dd`. */
+  fecha_operacion?: string | null
 }
 
 /** Datos del emisor tomados de `profiles` (nunca del cliente HTTP). */
@@ -149,6 +151,7 @@ export function facturaAppARegistroAlta(
     emisor: { nif: emisor.nif, nombreRazon: emisor.nombreRazon },
     numSerieFactura: factura.invoice_number,
     fechaExpedicion: factura.date,
+    fechaOperacion: factura.fecha_operacion ?? undefined,
     tipoFactura,
     descripcionOperacion: descripcionDesdeItems(factura.items ?? []),
     destinatarios,

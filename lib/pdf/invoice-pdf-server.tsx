@@ -49,6 +49,8 @@ export interface InvoicePDFServerData {
   rectifica?: { numero: string; fecha: string } | null;
   /** La factura tiene registro de anulación: el documento lo dice de forma destacada. */
   anulada?: boolean;
+  /** Fecha de la operación si es distinta de la de expedición (art. 6.1.k RD 1619/2012), `aaaa-mm-dd`. */
+  fechaOperacion?: string | null;
 }
 
 function fechaLegible(iso: string): string {
@@ -283,6 +285,11 @@ function InvoiceDocument({ data }: { data: InvoicePDFServerData }) {
             <Text style={{ fontSize: 9, color: "#999", textAlign: "right", marginTop: 2 }}>
               Fecha: {data.date}
             </Text>
+            {data.fechaOperacion && (
+              <Text style={{ fontSize: 9, color: "#999", textAlign: "right" }}>
+                Fecha de la operación: {fechaLegible(data.fechaOperacion)}
+              </Text>
+            )}
             {data.dueDate && (
               <Text style={{ fontSize: 9, color: "#999", textAlign: "right" }}>
                 Vence: {data.dueDate}

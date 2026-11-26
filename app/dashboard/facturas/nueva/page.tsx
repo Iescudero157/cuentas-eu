@@ -117,6 +117,7 @@ export default function NuevaFacturaPage() {
   // Invoice fields
   const [ivaRate, setIvaRate] = useState(21);
   const [ivaIncluido, setIvaIncluido] = useState(false);
+  const [fechaOperacion, setFechaOperacion] = useState("");
   // Con IVA al 0 %: causa de exención (lista L10 de VERI*FACTU) y precepto concreto
   const [operacionExenta, setOperacionExenta] = useState("");
   const [exencionDetalle, setExencionDetalle] = useState("");
@@ -281,6 +282,7 @@ export default function NuevaFacturaPage() {
             notes: invoice.notes || null,
             operacion_exenta: invoice.operacionExenta || null,
             exencion_detalle: invoice.exencionDetalle || null,
+            fecha_operacion: fechaOperacion || null,
           }),
         });
         const data = await res.json().catch(() => null);
@@ -533,6 +535,21 @@ export default function NuevaFacturaPage() {
           {/* Payment & Tax */}
           <div className="bg-white rounded-xl p-6 border border-brand-border/50 shadow-sm space-y-4">
             <h3 className="font-semibold text-brand-text">Impuestos y cobro</h3>
+            <div>
+              <label className="block text-sm font-medium text-brand-text mb-1">
+                Fecha de la operación <span className="font-normal text-brand-muted">(solo si no es la de hoy)</span>
+              </label>
+              <input
+                type="date"
+                value={fechaOperacion}
+                max={today}
+                onChange={(e) => setFechaOperacion(e.target.value)}
+                className="w-full px-3 py-2.5 border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 text-sm"
+              />
+              <p className="text-xs text-brand-muted mt-1">
+                Por ejemplo, el mes del alquiler o el día del servicio. Sale en la factura y en su registro VERI*FACTU.
+              </p>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-brand-text mb-1">IVA %</label>

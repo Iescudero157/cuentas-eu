@@ -43,3 +43,28 @@ export function siguienteNumeroFactura(anio: number, usados: readonly (string | 
   }
   return `FACT-${anio}-${String(mayor + 1).padStart(3, '0')}`
 }
+
+export type FechaOperacionValidada = { ok: true; valor: string | null } | { ok: false; error: string }
+
+/**
+ * Fecha de la operación (art. 6.1.k RD 1619/2012; FechaOperacion del registro VERI*FACTU), 26-nov-2026.
+ * Solo se guarda si es distinta de la fecha de la factura. La AEAT rechaza una posterior a hoy (error 1125)
+ * o anterior a hace veinte años (1134). Vacía = la misma que la de la factura.
+ */
+export function validarFechaOperacion(
+  fechaFactura: unknown,
+  fechaOperacion: unknown,
+  hoy: string = fechaHoyEspana()
+): FechaOperacionValidada {
+  if (fechaOperacion === undefined || fechaOperacion === null || fechaOperacion === '') return { ok: true, valor: null }
+  if (typeof fechaOperacion !== 'string' || anioDeFecha(fechaOperacion) === null) {
+    return { ok: false, error: 'La fecha de la operación no es válida (aaaa-mm-dd).' }
+  }
+  const f = fechaOperacion.trim().slice(0, 10)
+  if (f > hoy) return { ok: false, error: 'La fecha de la operación no puede ser posterior a hoy: la AEAT la rechaza.' }
+  if (f < String(Number(hoy.slice(0, 4)) - 20) + hoy.slice(4)) {
+    return { ok: false, error: 'La fecha de la operación no puede ser de hace más de veinte años.' }
+  }
+  const factura = typeof fechaFactura === 'string' ? fechaFactura.trim().slice(0, 10) : ''
+  return { ok: true, valor: f === factura ? null : f }
+}

@@ -7,6 +7,7 @@
 // las pone sif_emitir_factura al emitir; el número que se guarda antes es provisional.
 
 import { normalizarNif, situacionNifCliente } from '../verifactu/factura-fiscal.ts'
+import { fechaHoyEspana } from '../invoices/numeracion.ts'
 
 export const EMPRESAS_TPV = ['milbrotes', 'mercadonet'] as const
 export type EmpresaTpv = (typeof EMPRESAS_TPV)[number]
@@ -148,7 +149,9 @@ const NOMBRE_PASARELA: Record<PasarelaTpv, string> = {
 }
 
 /** Fila de `invoices` (en borrador) para emitirla después con emitirFactura(). */
-export function filaInvoice(p: PeticionFacturaTpv, userId: string, clase: ClaseFactura) {
+// Se expide hoy (hora de España); si el cobro es de otro día (cola de reintento), su fecha va como fecha de
+// la operación (art. 6.1.k RD 1619/2012), nunca como fecha de expedición atrasada (26-nov-2026).
+export function filaInvoice(p: PeticionFacturaTpv, userId: string, clase: ClaseFactura, hoy: string = fechaHoyEspana()) {
   const { baseCent, cuotaCent, totalCent } = importesIvaIncluido(p.importe_cent)
   const eur = (cent: number) => cent / 100
   const completa = clase === 'completa'
@@ -166,8 +169,9 @@ export function filaInvoice(p: PeticionFacturaTpv, userId: string, clase: ClaseF
     irpf: 0,
     irpf_rate: 0,
     total: eur(totalCent),
-    date: p.fecha,
-    due_date: p.fecha,
+    date: hoy,
+    ...(p.fecha < hoy ? { fecha_operacion: p.fecha } : {}),
+    due_date: hoy,
     status: 'cobrada',
     payment_method: p.metodo ? `${p.pasarela}:${p.metodo}` : p.pasarela,
     payment_date: p.fecha,
