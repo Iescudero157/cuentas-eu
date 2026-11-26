@@ -144,6 +144,18 @@ export function claseFactura(p: PeticionFacturaTpv): { clase: ClaseFactura } | {
   return { error: 'datos_cliente_necesarios' }
 }
 
+/**
+ * Forma de pago que admite la columna `invoices.payment_method` (CHECK de schema-update.sql: transferencia,
+ * tarjeta, efectivo, domiciliacion, cheque, otro). Antes se guardaba «pasarela:método» y la inserción fallaba
+ * (26-nov-2026); la pasarela y el método van ahora en las notas.
+ */
+export function formaPagoTpv(p: PeticionFacturaTpv): 'transferencia' | 'tarjeta' | 'otro' {
+  const metodo = (p.metodo ?? '').toLowerCase()
+  if (p.pasarela === 'transferencia' || metodo === 'transferencia') return 'transferencia'
+  if (metodo === 'bizum' || metodo === 'paypal') return 'otro'
+  return 'tarjeta'
+}
+
 /** Marca con la que empieza `invoices.notes`: un pedido del TPV = una factura. */
 export function marcaPedido(pedido: string): string {
   return `[TPV ${pedido}]`
@@ -181,10 +193,10 @@ export function filaInvoice(p: PeticionFacturaTpv, userId: string, clase: ClaseF
     ...(p.fecha < hoy ? { fecha_operacion: p.fecha } : {}),
     due_date: hoy,
     status: 'cobrada',
-    payment_method: p.metodo ? `${p.pasarela}:${p.metodo}` : p.pasarela,
+    payment_method: formaPagoTpv(p),
     payment_date: p.fecha,
     notes: p.pasarela === 'transferencia'
       ? `${marcaPedido(p.pedido)} Pagada por transferencia bancaria.`
-      : `${marcaPedido(p.pedido)} Cobrado por ${NOMBRE_PASARELA[p.pasarela]}. Precio con el IVA incluido.`,
+      : `${marcaPedido(p.pedido)} Cobrado por ${NOMBRE_PASARELA[p.pasarela]}${p.metodo ? ` (${p.metodo})` : ''}. Precio con el IVA incluido.`,
   }
 }
