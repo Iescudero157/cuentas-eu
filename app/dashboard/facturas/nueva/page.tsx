@@ -22,6 +22,7 @@ import {
   validarExencion,
 } from "@/lib/verifactu/factura-fiscal";
 import { fechaHoyEspana } from "@/lib/invoices/numeracion";
+import { calcularImportes } from "@/lib/invoices/importes";
 
 const InvoicePDFButton = dynamic(() => import("@/components/InvoicePDF"), { ssr: false });
 
@@ -56,17 +57,18 @@ function buildInvoice(
   today: string,
   operacionExenta: string,
   exencionDetalle: string,
+  ivaIncluido: boolean,
 ): Invoice {
-  const invoiceItems: InvoiceItem[] = items.map((item) => ({
-    description: item.description,
-    quantity: item.quantity,
-    unitPrice: item.unitPrice,
-    total: item.quantity * item.unitPrice,
+  // Importes al céntimo; con «precios con IVA incluido», base = total / (1 + tipo) e IVA = total − base
+  // (lib/invoices/importes.ts). Las líneas se guardan con su precio sin IVA.
+  const importes = calcularImportes(items, ivaRate, irpfRate, ivaIncluido);
+  const invoiceItems: InvoiceItem[] = importes.lineas.map((l) => ({
+    description: l.description,
+    quantity: l.quantity,
+    unitPrice: l.unitPrice,
+    total: l.total,
   }));
-  const subtotal = invoiceItems.reduce((s, i) => s + i.total, 0);
-  const iva = subtotal * (ivaRate / 100);
-  const irpf = subtotal * (irpfRate / 100);
-  const total = subtotal + iva - irpf;
+  const { subtotal, iva, irpf, total } = importes;
   const dueDate = new Date(today);
   dueDate.setDate(dueDate.getDate() + daysUntilDue);
   return {
@@ -114,6 +116,7 @@ export default function NuevaFacturaPage() {
 
   // Invoice fields
   const [ivaRate, setIvaRate] = useState(21);
+  const [ivaIncluido, setIvaIncluido] = useState(false);
   // Con IVA al 0 %: causa de exención (lista L10 de VERI*FACTU) y precepto concreto
   const [operacionExenta, setOperacionExenta] = useState("");
   const [exencionDetalle, setExencionDetalle] = useState("");
@@ -191,10 +194,8 @@ export default function NuevaFacturaPage() {
     setClientSearch("");
   }
 
-  const subtotal = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
-  const iva = subtotal * (ivaRate / 100);
-  const irpf = subtotal * (irpfRate / 100);
-  const total = subtotal + iva - irpf;
+  const importes = calcularImportes(items, ivaRate, irpfRate, ivaIncluido);
+  const { subtotal, iva, irpf, total } = importes;
 
   // Exención (IVA 0 %) y clase de factura según el NIF del cliente: las mismas
   // reglas que aplican el servidor, el PDF y el registro VERI*FACTU.
@@ -251,6 +252,7 @@ export default function NuevaFacturaPage() {
       today,
       operacionExenta,
       exencionDetalle,
+      ivaIncluido,
     );
 
     if (!isDemo && user) {
@@ -544,6 +546,17 @@ export default function NuevaFacturaPage() {
                   <option value={4}>4% (Superreducido)</option>
                   <option value={0}>0% (Exento)</option>
                 </select>
+                {ivaRate > 0 && (
+                  <label className="mt-2 flex items-start gap-2 text-xs text-brand-muted cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={ivaIncluido}
+                      onChange={(e) => setIvaIncluido(e.target.checked)}
+                      className="mt-0.5"
+                    />
+                    <span>Los precios llevan el IVA incluido: el total será exactamente lo que escribas.</span>
+                  </label>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-brand-text mb-1">IRPF %</label>
@@ -671,7 +684,7 @@ export default function NuevaFacturaPage() {
                     type="number"
                     value={item.unitPrice || ""}
                     onChange={(e) => updateItem(i, "unitPrice", Number(e.target.value))}
-                    placeholder="Precio"
+                    placeholder={ivaIncluido && ivaRate > 0 ? "Precio con IVA" : "Precio"}
                     min={0}
                     step={0.01}
                     className="w-full px-3 py-2.5 border border-brand-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue/20 text-sm"
@@ -766,12 +779,12 @@ export default function NuevaFacturaPage() {
                 </tr>
               </thead>
               <tbody>
-                {items.map((item, i) => (
+                {importes.lineas.map((item, i) => (
                   <tr key={i} className="border-b border-brand-border/50">
                     <td className="py-2">{item.description || "—"}</td>
                     <td className="py-2 text-center">{item.quantity}</td>
                     <td className="py-2 text-right">{formatCurrency(item.unitPrice)}</td>
-                    <td className="py-2 text-right font-medium">{formatCurrency(item.quantity * item.unitPrice)}</td>
+                    <td className="py-2 text-right font-medium">{formatCurrency(item.total)}</td>
                   </tr>
                 ))}
               </tbody>
