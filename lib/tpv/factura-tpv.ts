@@ -34,11 +34,15 @@ export function usuarioFacturador(idFijado: string | undefined, activasConNif: r
   return activasConNif.length === 1 && UUID.test(activasConNif[0].user_id) ? activasConNif[0].user_id : null
 }
 
-export const PASARELAS_TPV = ['stripe', 'bbva', 'redsys_mercadonet'] as const
+// 'transferencia' (26-nov-2026): cobro ya recibido por transferencia que se factura desde el PC (p. ej. las facturas
+// de 2026 de MERCADONET que se sustituyen por las de VERI*FACTU). El TPV nunca la usa.
+export const PASARELAS_TPV = ['stripe', 'bbva', 'redsys_mercadonet', 'transferencia'] as const
 export type PasarelaTpv = (typeof PASARELAS_TPV)[number]
 
 /** Factura simplificada hasta 400 € con el IVA incluido (art. 4.1.a RD 1619/2012). */
 export const LIMITE_SIMPLIFICADA_CENT = 40000
+/** Ventas al por menor: simplificada hasta 3.000 € con el IVA incluido (art. 4.2.a RD 1619/2012). */
+export const LIMITE_SIMPLIFICADA_MINORISTA_CENT = 300000
 /** Los precios de la web llevan el IVA incluido (Iván, 25-nov-2026); tipo general. */
 export const TIPO_IVA = 21
 
@@ -61,6 +65,8 @@ export interface PeticionFacturaTpv {
   /** Total cobrado, en céntimos, con el IVA incluido. */
   importe_cent: number
   concepto: string
+  /** Venta al por menor (p. ej. Camiseta.Studio): permite la simplificada hasta 3.000 €. */
+  minorista?: boolean
   cliente?: ClienteTpv
 }
 
@@ -113,6 +119,7 @@ export function validarPeticion(body: unknown): ResultadoValidacion {
       importe_cent: importe,
       concepto,
       cliente,
+      ...(b.minorista === true ? { minorista: true } : {}),
     },
   }
 }
@@ -133,7 +140,7 @@ export type ClaseFactura = 'completa' | 'simplificada'
 export function claseFactura(p: PeticionFacturaTpv): { clase: ClaseFactura } | { error: 'datos_cliente_necesarios' } {
   const nif = p.cliente?.nif
   if (p.cliente?.nombre && nif && situacionNifCliente(nif) === 'valido') return { clase: 'completa' }
-  if (p.importe_cent <= LIMITE_SIMPLIFICADA_CENT) return { clase: 'simplificada' }
+  if (p.importe_cent <= (p.minorista ? LIMITE_SIMPLIFICADA_MINORISTA_CENT : LIMITE_SIMPLIFICADA_CENT)) return { clase: 'simplificada' }
   return { error: 'datos_cliente_necesarios' }
 }
 
@@ -146,6 +153,7 @@ const NOMBRE_PASARELA: Record<PasarelaTpv, string> = {
   stripe: 'Stripe',
   bbva: 'TPV virtual de BBVA',
   redsys_mercadonet: 'TPV virtual de MERCADONET (Redsys)',
+  transferencia: 'transferencia bancaria',
 }
 
 /** Fila de `invoices` (en borrador) para emitirla después con emitirFactura(). */
@@ -175,6 +183,8 @@ export function filaInvoice(p: PeticionFacturaTpv, userId: string, clase: ClaseF
     status: 'cobrada',
     payment_method: p.metodo ? `${p.pasarela}:${p.metodo}` : p.pasarela,
     payment_date: p.fecha,
-    notes: `${marcaPedido(p.pedido)} Cobrado por ${NOMBRE_PASARELA[p.pasarela]}. Precio con el IVA incluido.`,
+    notes: p.pasarela === 'transferencia'
+      ? `${marcaPedido(p.pedido)} Pagada por transferencia bancaria.`
+      : `${marcaPedido(p.pedido)} Cobrado por ${NOMBRE_PASARELA[p.pasarela]}. Precio con el IVA incluido.`,
   }
 }
