@@ -11,6 +11,28 @@ import { normalizarNif, situacionNifCliente } from '../verifactu/factura-fiscal.
 export const EMPRESAS_TPV = ['milbrotes', 'mercadonet'] as const
 export type EmpresaTpv = (typeof EMPRESAS_TPV)[number]
 
+/**
+ * NIF del obligado de cada empresa del TPV. La ruta busca con él su cuenta de Kuentas en `sif_config`
+ * (VERI*FACTU activo) cuando no hay TPV_FACTURAS_USUARIO_* en Vercel.
+ */
+export const NIF_EMPRESA_TPV: Readonly<Record<EmpresaTpv, string>> = Object.freeze({
+  milbrotes: 'B05772710',
+  mercadonet: 'B98407901',
+})
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/**
+ * Cuenta de Kuentas que factura los cobros de una empresa. Manda el id fijado en Vercel; si no lo hay,
+ * la única configuración VERI*FACTU activa con el NIF de la empresa. Con cero o más de una, null: no se
+ * adivina a quién facturar.
+ */
+export function usuarioFacturador(idFijado: string | undefined, activasConNif: readonly { user_id: string }[]): string | null {
+  const fijo = (idFijado ?? '').trim()
+  if (fijo !== '') return UUID.test(fijo) ? fijo : null
+  return activasConNif.length === 1 && UUID.test(activasConNif[0].user_id) ? activasConNif[0].user_id : null
+}
+
 export const PASARELAS_TPV = ['stripe', 'bbva', 'redsys_mercadonet'] as const
 export type PasarelaTpv = (typeof PASARELAS_TPV)[number]
 

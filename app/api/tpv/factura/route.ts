@@ -6,7 +6,15 @@ import { ErrorValidacionRegistro } from "@/lib/verifactu/registro-alta";
 import { generateInvoicePDFBuffer } from "@/lib/pdf/invoice-pdf-server";
 import { invoicePDFDataFromRow, rectificadaParaPDF } from "@/lib/pdf/invoice-pdf-data";
 import { bloqueQRParaInvoice } from "@/lib/verifactu/qr-factura";
-import { claseFactura, filaInvoice, marcaPedido, validarPeticion } from "@/lib/tpv/factura-tpv";
+import {
+  claseFactura,
+  filaInvoice,
+  marcaPedido,
+  NIF_EMPRESA_TPV,
+  usuarioFacturador,
+  validarPeticion,
+  type EmpresaTpv,
+} from "@/lib/tpv/factura-tpv";
 
 // Factura VERI*FACTU automática de cada cobro del TPV central (www.ivanescudero.com/tpv), 25-nov-2026.
 // La llama el servidor del TPV (factura_lib.php) con el secreto TPV_FACTURAS_SECRET. Emite la factura en la
@@ -25,12 +33,21 @@ function secretoValido(recibido: string | null): boolean {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-function usuarioDe(empresa: string): string | null {
-  const v =
+// Cuenta que factura: TPV_FACTURAS_USUARIO_* si está en Vercel; si no, la única cuenta con VERI*FACTU activo y
+// el NIF de la empresa (así el alta no exige copiar ids a mano).
+async function usuarioDe(supabase: SupabaseClient, empresa: EmpresaTpv): Promise<string | null> {
+  const fijado =
     empresa === "milbrotes"
       ? process.env.TPV_FACTURAS_USUARIO_MILBROTES
       : process.env.TPV_FACTURAS_USUARIO_MERCADONET;
-  return v && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v.trim()) ? v.trim() : null;
+  if ((fijado ?? "").trim() !== "") return usuarioFacturador(fijado, []);
+  const { data } = await supabase
+    .from("sif_config")
+    .select("user_id")
+    .eq("nif_obligado", NIF_EMPRESA_TPV[empresa])
+    .eq("activo", true)
+    .limit(2);
+  return usuarioFacturador(undefined, data ?? []);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -56,16 +73,16 @@ export async function POST(request: Request) {
   if (!v.ok) return NextResponse.json({ error: "peticion_invalida", message: v.error }, { status: 400 });
   const p = v.peticion;
 
-  const userId = usuarioDe(p.empresa);
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!userId || !url || !serviceKey) {
+  const supabase = url && serviceKey ? createServiceClient(url, serviceKey, { auth: { persistSession: false } }) : null;
+  const userId = supabase ? await usuarioDe(supabase, p.empresa) : null;
+  if (!userId || !supabase) {
     return NextResponse.json(
       { error: "empresa_sin_configurar", message: `Falta la cuenta de Kuentas de ${p.empresa} o la clave de servicio` },
       { status: 503 }
     );
   }
-  const supabase = createServiceClient(url, serviceKey, { auth: { persistSession: false } });
 
   // Un pedido del TPV = una factura (Redsys y Stripe pueden repetir el aviso).
   const { data: previa } = await supabase
