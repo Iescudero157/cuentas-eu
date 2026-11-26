@@ -150,7 +150,7 @@ Otros flujos que tocan facturación indirectamente:
 
 | # | Riesgo | Evidencia |
 |---|---|---|
-| R1 | **Numeración rota en producción**: todos los usuarios reales generan `FACT-2026-006` repetido; sin UNIQUE en BD; sin serie; año hardcodeado; no atómica (localStorage en cliente) | `nueva/page.tsx:179-181`, `schema.sql:107` |
+| R1 | **[ARREGLADO 26-nov-2026, 35589cf: el servidor numera FACT-<año> por cuenta; fecha en hora de España]** **Numeración rota en producción**: todos los usuarios reales generan `FACT-2026-006` repetido; sin UNIQUE en BD; sin serie; año hardcodeado; no atómica (localStorage en cliente) | `nueva/page.tsx:179-181`, `schema.sql:107` |
 | R2 | **Borrado físico de facturas emitidas** (`DELETE /api/invoices/[id]`): incompatible con inalterabilidad/trazabilidad exigidas a un SIF | `[id]/route.ts:42-63` |
 | R3 | **El servidor confía en los importes del cliente**: subtotal/IVA/IRPF/total llegan calculados del navegador y se insertan tal cual (pueden ser incoherentes entre sí y con `items`) | `invoices/route.ts:90-115` |
 | R4 | **Sin fecha-hora de expedición** (`date` es DATE); Verifactu exige fecha, hora y huso del registro de alta | `schema.sql:118` |
