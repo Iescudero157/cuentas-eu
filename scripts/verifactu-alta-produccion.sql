@@ -1,20 +1,22 @@
 -- =====================================================================================================
 -- Kuentas · Alta de MILBROTES, S.L. y MERCADONET GLOBAL S.L. como obligados VERI*FACTU en PRODUCCIÓN
--- 26-nov-2026. Decisión de Iván en el chat: «Kuentas a producción».
+-- 26-nov-2026 (versión 2). Decisión de Iván en el chat: «Kuentas a producción».
 --
 -- Dónde: Supabase → proyecto kuentas-eu → SQL Editor → pegar todo → Run.
--- Cuándo: SOLO después de estos tres pasos (ver el Word de la puesta en marcha):
---   1. existe la cuenta de Kuentas de cada empresa (app.kuentas.eu/registro) con el correo de abajo;
---   2. cada cuenta tiene subido su certificado en Ajustes → Certificado digital (.pfx o .p12);
---   3. la remisión vuelve a ir cada minuto (verifactu-cron-externo.ps1 -Instalar, como administrador).
+-- Se ejecuta DOS VECES (es el mismo SQL):
+--   1.ª vez, en cuanto exista la cuenta de Kuentas de la empresa (app.kuentas.eu/registro, correo de abajo):
+--      deja el perfil y la configuración VERI*FACTU creados, AÚN INACTIVOS. Sin ella, Ajustes no deja subir el
+--      certificado («Antes de subir el certificado debe existir la configuración VERI*FACTU del emisor»).
+--   Después: subir el certificado en Ajustes → Certificado digital, y poner la remisión cada minuto
+--      (verifactu-cron-externo.ps1 -Instalar, como administrador).
+--   2.ª vez: activa VERI*FACTU en el entorno de PRODUCCIÓN de la AEAT, con fecha de inicio de hoy, en la
+--      empresa que ya tenga el certificado subido.
 --
--- Qué hace, por empresa con cuenta y certificado:
---   · perfil del emisor (sale en cada factura): razón social, NIF y domicilio de la escritura; sin retención
---     de IRPF por defecto (sociedad); plan Business sin caducidad (cuentas internas de la productora);
---   · VERI*FACTU activo en el entorno de PRODUCCIÓN de la AEAT desde hoy. Ojo: una vez iniciado, se mantiene
---     al menos hasta el 31 de diciembre (art. 17 Orden HAC/1177/2024); desde el 1-ene-2027 es obligatorio.
--- La empresa a la que le falte la cuenta o el certificado no se toca y sale en la tabla final con el motivo.
--- Se puede ejecutar más de una vez. Si una cuenta se crea con otro correo, cambiar solo ese correo.
+-- Qué pone en el perfil del emisor (sale en cada factura): razón social, NIF y domicilio de la escritura; sin
+-- retención de IRPF por defecto (sociedad); plan Business sin caducidad (cuentas internas de la productora).
+-- Ojo: una vez iniciado VERI*FACTU en producción, se mantiene al menos hasta el 31 de diciembre (art. 17 Orden
+-- HAC/1177/2024); desde el 1-ene-2027 es obligatorio para las sociedades. Este SQL nunca desactiva una
+-- configuración que ya esté activa. Si una cuenta se crea con otro correo, cambiar solo ese correo.
 -- =====================================================================================================
 
 begin;
@@ -24,7 +26,7 @@ insert into alta_obligados values
   ('info@milbrotes.com', 'B05772710', 'MILBROTES, S.L.',        'Calle Belalcázar, 14, 28006 Madrid'),
   ('info@mercadonet.es', 'B98407901', 'MERCADONET GLOBAL S.L.', 'Ptda. Cortixelles, núm. 98, 46900 Torrent (Valencia)');
 
--- 1) Perfil del emisor
+-- 1) Perfil del emisor (en cuanto existe la cuenta)
 update public.profiles p
    set name = a.razon,
        nif = a.nif,
@@ -34,35 +36,39 @@ update public.profiles p
        plan_expires_at = null
   from alta_obligados a
   join auth.users u on lower(u.email) = a.correo
-  join public.sif_certificados c on c.user_id = u.id and c.estado = 'activo'
  where p.id = u.id;
 
--- 2) VERI*FACTU en producción desde hoy (fecha de España)
+-- 2) Configuración VERI*FACTU: se crea inactiva; se activa (producción, fecha de inicio de hoy en España)
+--    cuando la cuenta tiene un certificado activo. Nunca se desactiva aquí.
 insert into public.sif_config as sc
   (user_id, nif_obligado, nombre_razon, numero_instalacion, modalidad, entorno_aeat,
    certificado_ref, fecha_inicio_verifactu, activo)
 select u.id, a.nif, a.razon, 'KU-' || a.nif, 'verifactu', 'produccion',
-       c.id::text, (now() at time zone 'Europe/Madrid')::date, true
+       c.id::text,
+       case when c.id is not null then (now() at time zone 'Europe/Madrid')::date end,
+       c.id is not null
   from alta_obligados a
   join auth.users u on lower(u.email) = a.correo
-  join public.sif_certificados c on c.user_id = u.id and c.estado = 'activo'
+  left join public.sif_certificados c on c.user_id = u.id and c.estado = 'activo'
 on conflict (user_id) do update
    set nif_obligado = excluded.nif_obligado,
        nombre_razon = excluded.nombre_razon,
        modalidad = 'verifactu',
-       certificado_ref = excluded.certificado_ref,
+       certificado_ref = coalesce(excluded.certificado_ref, sc.certificado_ref),
        fecha_inicio_verifactu = case
-         when sc.entorno_aeat = 'produccion' and sc.fecha_inicio_verifactu is not null
+         when sc.activo and sc.entorno_aeat = 'produccion' and sc.fecha_inicio_verifactu is not null
            then sc.fecha_inicio_verifactu
-         else excluded.fecha_inicio_verifactu end,
+         when excluded.activo then excluded.fecha_inicio_verifactu
+         else sc.fecha_inicio_verifactu end,
        entorno_aeat = 'produccion',
-       activo = true;
+       activo = sc.activo or excluded.activo;
 
--- 3) Comprobación: una fila por empresa. Tiene que decir «ALTA HECHA» en las dos.
+-- 3) Comprobación: una fila por empresa. Al final tiene que decir «ALTA HECHA» en las dos.
 select a.razon,
        a.correo,
        case when u.id is null then 'FALTA LA CUENTA'
-            when c.id is null then 'FALTA EL CERTIFICADO'
+            when c.id is null and s.activo then 'ACTIVA PERO SIN CERTIFICADO: sube uno en Ajustes'
+            when c.id is null then 'FALTA EL CERTIFICADO: súbelo en Ajustes y vuelve a ejecutar este SQL'
             when s.activo and s.entorno_aeat = 'produccion' then 'ALTA HECHA'
             else 'REVISAR' end                         as estado,
        s.entorno_aeat,
