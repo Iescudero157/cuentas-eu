@@ -5,12 +5,15 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// useGrouping "always" (26-nov-2026, Iván): es-ES agrupa por defecto solo desde 10.000 («1066,12 €»);
+// así sale siempre «1.066,12 €». Los navegadores antiguos que no lo conocen siguen con su agrupación.
 export function formatCurrency(amount: number, currency = "EUR"): string {
   return new Intl.NumberFormat("es-ES", {
     style: "currency",
     currency,
     minimumFractionDigits: 2,
-  }).format(amount);
+    useGrouping: "always",
+  } as Intl.NumberFormatOptions).format(amount);
 }
 
 export function formatDate(date: Date | string): string {
