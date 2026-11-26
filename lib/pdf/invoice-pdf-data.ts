@@ -5,6 +5,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { BloqueQRFactura } from "../verifactu/qr.ts";
+import { etiquetaFormaPago, normalizarMarca, notasImprimibles } from "./marca-factura.ts";
 import {
   esCausaExencionIva,
   esRectificativa,
@@ -36,6 +37,8 @@ export interface InvoiceRowForPDF {
   /** Causa de exención (lista L10) y detalle del precepto: mención del art. 6.1.j RD 1619/2012. */
   operacion_exenta?: string | null;
   fecha_operacion?: string | null;
+  payment_method?: string | null;
+  notes?: string | null;
   exencion_detalle?: string | null;
   rectifica_invoice_id?: string | null;
 }
@@ -44,6 +47,8 @@ export interface IssuerProfileForPDF {
   name?: string | null;
   nif?: string | null;
   address?: string | null;
+  /** Modelo de factura (migración 20261126100000); se valida con normalizarMarca. */
+  factura_marca?: unknown;
 }
 
 /** Datos identificativos de la factura rectificada (art. 15.4 RD 1619/2012). */
@@ -109,5 +114,8 @@ export function invoicePDFDataFromRow(
     rectifica: esRectificativa(tipo) || invoice.rectifica_invoice_id ? rectificada : null,
     anulada: invoice.verifactu_estado === "anulada",
     fechaOperacion: invoice.fecha_operacion ?? null,
+    marca: normalizarMarca(profile?.factura_marca),
+    formaPago: etiquetaFormaPago(invoice.payment_method),
+    notas: notasImprimibles(invoice.notes),
   };
 }

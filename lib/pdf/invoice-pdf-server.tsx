@@ -4,6 +4,7 @@
  */
 import React from "react";
 import { Document, Page, Text, View, StyleSheet, Image, pdf } from "@react-pdf/renderer";
+import type { MarcaFactura } from "./marca-factura.ts";
 import type { BloqueQRFactura } from "../verifactu/qr.ts";
 
 export interface InvoicePDFServerItem {
@@ -51,6 +52,12 @@ export interface InvoicePDFServerData {
   anulada?: boolean;
   /** Fecha de la operación si es distinta de la de expedición (art. 6.1.k RD 1619/2012), `aaaa-mm-dd`. */
   fechaOperacion?: string | null;
+  /** Modelo de factura de la cuenta (logo, colores y pie). Sin él, diseño de Kuentas. */
+  marca?: MarcaFactura | null;
+  /** Forma de pago legible (plantilla con marca). */
+  formaPago?: string | null;
+  /** Notas de la factura que se imprimen (sin marcas internas). */
+  notas?: string | null;
 }
 
 function fechaLegible(iso: string): string {
@@ -397,6 +404,177 @@ function InvoiceDocument({ data }: { data: InvoicePDFServerData }) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Plantilla con el modelo de factura de la cuenta (26-nov-2026): logo, colores y pie de `profiles.factura_marca`.
+// Disposición del modelo de MERCADONET: emisor con logo a la izquierda; «FACTURA» con fecha, número y fecha de
+// la operación a la derecha; «Factura para:»; líneas; forma de pago y totales; notas; pie. El QR y la leyenda
+// VERI*FACTU siguen yendo al principio de la primera página (arts. 20-21 Orden HAC/1177/2024).
+// ---------------------------------------------------------------------------
+
+const euros = (n: number) =>
+  `${new Intl.NumberFormat("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(n))} €`;
+
+function estilosMarca(m: MarcaFactura) {
+  const principal = m.colorPrincipal || "#2A5AAE";
+  const titulo = m.colorTitulo || principal;
+  const suave = m.colorSuave || "#f5f5f2";
+  return StyleSheet.create({
+    page: { padding: 36, paddingBottom: 64, fontFamily: "Helvetica", fontSize: 9.5, color: "#1a1a1a", backgroundColor: "#ffffff" },
+    cabecera: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 },
+    emisor: { maxWidth: 270 },
+    logo: { width: 170, height: 64, objectFit: "contain", objectPosition: "left", marginBottom: 6 },
+    emisorNombre: { fontSize: 10.5, fontFamily: "Helvetica-Bold" },
+    emisorDato: { fontSize: 9, color: "#333333", marginTop: 1 },
+    titulo: { fontSize: 28, color: titulo, textAlign: "right", marginBottom: 8 },
+    tituloLargo: { fontSize: 15, color: titulo, textAlign: "right", marginBottom: 8, maxWidth: 270 },
+    datosFila: { flexDirection: "row", justifyContent: "flex-end", alignItems: "center", marginBottom: 2 },
+    datosEtiqueta: { fontSize: 8.5, fontFamily: "Helvetica-Bold", color: "#333333", textAlign: "right", marginRight: 6 },
+    datosValor: { fontSize: 8.5, borderWidth: 0.6, borderColor: "#9a9a9a", paddingVertical: 2, paddingHorizontal: 4, width: 104, textAlign: "center" },
+    barra: { backgroundColor: principal, paddingVertical: 3.5, paddingHorizontal: 7 },
+    barraTexto: { color: "#ffffff", fontSize: 8.5, fontFamily: "Helvetica-Bold" },
+    cliente: { borderWidth: 0.6, borderColor: "#9a9a9a", padding: 8, marginTop: 5, marginBottom: 16, lineHeight: 1.4 },
+    clienteNombre: { fontFamily: "Helvetica-Bold" },
+    tablaCab: { flexDirection: "row", backgroundColor: principal, paddingVertical: 4, paddingHorizontal: 7 },
+    tablaCabTexto: { color: "#ffffff", fontSize: 8.5, fontFamily: "Helvetica-Bold" },
+    fila: { flexDirection: "row", paddingVertical: 5, paddingHorizontal: 7 },
+    filaAlt: { backgroundColor: suave },
+    cCant: { width: "10%", textAlign: "center" },
+    cDesc: { width: "54%", paddingRight: 6 },
+    cPrecio: { width: "18%", textAlign: "right" },
+    cImporte: { width: "18%", textAlign: "right" },
+    finTabla: { borderTopWidth: 0.8, borderTopColor: principal, marginTop: 2, marginBottom: 14 },
+    inferior: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+    pago: { width: "52%", borderWidth: 0.6, borderColor: "#9a9a9a", padding: 8, fontSize: 8.5, minHeight: 40 },
+    totales: { width: "40%" },
+    totalFila: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 3, paddingHorizontal: 7, backgroundColor: suave, marginBottom: 1 },
+    totalEtiqueta: { fontFamily: "Helvetica-Bold", fontSize: 8.5 },
+    totalValor: { fontSize: 8.5 },
+    totalFinal: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 5, paddingHorizontal: 7, backgroundColor: principal, marginTop: 2 },
+    totalFinalTexto: { color: "#ffffff", fontFamily: "Helvetica-Bold", fontSize: 10.5 },
+    nota: { marginTop: 14, fontSize: 8, color: "#555555", fontFamily: "Helvetica-Oblique", lineHeight: 1.4 },
+    pie: { position: "absolute", left: 36, right: 36, bottom: 26, fontSize: 7.5, color: "#6b6b6b", textAlign: "center", borderTopWidth: 0.5, borderTopColor: "#cccccc", paddingTop: 6 },
+  });
+}
+
+function InvoiceDocumentMarca({ data, marca }: { data: InvoicePDFServerData; marca: MarcaFactura }) {
+  const s = estilosMarca(marca);
+  const titulo = data.titulo || "FACTURA";
+  return (
+    <Document>
+      <Page size="A4" style={s.page}>
+        {data.verifactu && (
+          <View style={styles.qrBloque}>
+            <Text style={styles.qrTitulo}>{data.verifactu.titulo}</Text>
+            {/* eslint-disable-next-line jsx-a11y/alt-text -- Image de @react-pdf, no acepta alt */}
+            <Image style={styles.qrImagen} src={data.verifactu.qrPngDataUrl} />
+            {data.verifactu.leyenda && <Text style={styles.qrLeyenda}>{data.verifactu.leyenda}</Text>}
+            {data.verifactu.marca && <Text style={styles.qrMarca}>{data.verifactu.marca}</Text>}
+          </View>
+        )}
+
+        {data.anulada && (
+          <View style={styles.anuladaBanda}>
+            <Text style={styles.anuladaTexto}>
+              FACTURA ANULADA - sin validez (registro de anulación, art. 11 RD 1007/2023)
+            </Text>
+          </View>
+        )}
+
+        <View style={s.cabecera}>
+          <View style={s.emisor}>
+            {/* eslint-disable-next-line jsx-a11y/alt-text -- Image de @react-pdf, no acepta alt */}
+            {marca.logo && <Image style={s.logo} src={marca.logo} />}
+            <Text style={s.emisorNombre}>{data.issuerName}</Text>
+            {data.issuerNif && <Text style={s.emisorDato}>NIF: {data.issuerNif}</Text>}
+            {data.issuerAddress && <Text style={s.emisorDato}>{data.issuerAddress}</Text>}
+          </View>
+          <View>
+            <Text style={titulo.length > 14 ? s.tituloLargo : s.titulo}>{titulo}</Text>
+            <View style={s.datosFila}>
+              <Text style={s.datosEtiqueta}>Fecha</Text>
+              <Text style={s.datosValor}>{fechaLegible(data.date)}</Text>
+            </View>
+            <View style={s.datosFila}>
+              <Text style={s.datosEtiqueta}>Factura nº</Text>
+              <Text style={s.datosValor}>{data.number}</Text>
+            </View>
+            {data.fechaOperacion && (
+              <View style={s.datosFila}>
+                <Text style={s.datosEtiqueta}>Fecha de la operación</Text>
+                <Text style={s.datosValor}>{fechaLegible(data.fechaOperacion)}</Text>
+              </View>
+            )}
+            {data.rectifica && (
+              <Text style={styles.rectificaTexto}>
+                Rectifica a la factura {data.rectifica.numero} de {fechaLegible(data.rectifica.fecha)}
+              </Text>
+            )}
+          </View>
+        </View>
+
+        <View style={s.barra}>
+          <Text style={s.barraTexto}>Factura para:</Text>
+        </View>
+        <View style={s.cliente}>
+          <Text style={s.clienteNombre}>{data.clientName}</Text>
+          {data.clientNif && <Text>NIF: {data.clientNif}</Text>}
+          {data.clientAddress && <Text>Dirección: {data.clientAddress}</Text>}
+        </View>
+
+        <View style={s.tablaCab}>
+          <Text style={{ ...s.tablaCabTexto, ...s.cCant }}>Cantidad</Text>
+          <Text style={{ ...s.tablaCabTexto, ...s.cDesc }}>Descripción</Text>
+          <Text style={{ ...s.tablaCabTexto, ...s.cPrecio }}>Precio unitario</Text>
+          <Text style={{ ...s.tablaCabTexto, ...s.cImporte }}>Importe</Text>
+        </View>
+        {(data.items || []).map((item, idx) => (
+          <View key={idx} style={[s.fila, idx % 2 === 1 ? s.filaAlt : {}]} wrap={false}>
+            <Text style={s.cCant}>{item.quantity}</Text>
+            <Text style={s.cDesc}>{item.description}</Text>
+            <Text style={s.cPrecio}>{euros(item.unitPrice)}</Text>
+            <Text style={s.cImporte}>{euros(item.total)}</Text>
+          </View>
+        ))}
+        <View style={s.finTabla} />
+
+        <View style={s.inferior} wrap={false}>
+          <View style={s.pago}>
+            <Text>{data.formaPago ? `Forma de pago: ${data.formaPago}` : " "}</Text>
+          </View>
+          <View style={s.totales}>
+            <View style={s.totalFila}>
+              <Text style={s.totalEtiqueta}>Subtotal</Text>
+              <Text style={s.totalValor}>{euros(data.subtotal)}</Text>
+            </View>
+            <View style={s.totalFila}>
+              <Text style={s.totalEtiqueta}>{data.mencionExencion ? "IVA" : `IVA ${data.ivaRate} %`}</Text>
+              <Text style={s.totalValor}>{data.mencionExencion ? "Exento" : euros(data.iva)}</Text>
+            </View>
+            {data.irpfRate > 0 && (
+              <View style={s.totalFila}>
+                <Text style={s.totalEtiqueta}>IRPF {data.irpfRate} %</Text>
+                <Text style={s.totalValor}>-{euros(Math.abs(Number(data.irpf)))}</Text>
+              </View>
+            )}
+            <View style={s.totalFinal}>
+              <Text style={s.totalFinalTexto}>TOTAL</Text>
+              <Text style={s.totalFinalTexto}>{euros(data.total)}</Text>
+            </View>
+          </View>
+        </View>
+
+        {data.mencionExencion && <Text style={s.nota}>{data.mencionExencion}</Text>}
+        {data.notas && <Text style={s.nota}>{data.notas}</Text>}
+        {marca.pie && (
+          <Text style={s.pie} fixed>
+            {marca.pie}
+          </Text>
+        )}
+      </Page>
+    </Document>
+  );
+}
+
 /**
  * Generates a PDF buffer for an invoice. Safe to call from Node.js API routes.
  *
@@ -405,7 +583,8 @@ function InvoiceDocument({ data }: { data: InvoicePDFServerData }) {
  * We read all chunks and concatenate them into a proper Buffer.
  */
 export async function generateInvoicePDFBuffer(data: InvoicePDFServerData): Promise<Buffer> {
-  const instance = pdf(<InvoiceDocument data={data} />);
+  const doc = data.marca ? <InvoiceDocumentMarca data={data} marca={data.marca} /> : <InvoiceDocument data={data} />;
+  const instance = pdf(doc);
   // toBuffer() returns a ReadableStream in react-pdf v4, despite the name
   const stream = (await instance.toBuffer()) as unknown as NodeJS.ReadableStream;
   return new Promise<Buffer>((resolve, reject) => {

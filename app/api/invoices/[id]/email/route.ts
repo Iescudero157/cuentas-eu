@@ -69,7 +69,7 @@ export async function POST(
   // Get issuer profile
   const { data: profile } = await supabase
     .from("profiles")
-    .select("name, nif, email, address")
+    .select("name, nif, email, address, factura_marca")
     .eq("id", user.id)
     .single();
 

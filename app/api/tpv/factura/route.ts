@@ -52,7 +52,7 @@ async function usuarioDe(supabase: SupabaseClient, empresa: EmpresaTpv): Promise
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function pdfBase64(supabase: SupabaseClient, userId: string, invoice: any): Promise<string> {
-  const { data: profile } = await supabase.from("profiles").select("name, nif, address").eq("id", userId).single();
+  const { data: profile } = await supabase.from("profiles").select("name, nif, address, factura_marca").eq("id", userId).single();
   const verifactu = await bloqueQRParaInvoice(supabase, userId, invoice);
   const rectificada = await rectificadaParaPDF(supabase, userId, invoice);
   const buf = await generateInvoicePDFBuffer(invoicePDFDataFromRow(invoice, profile, verifactu, rectificada));
