@@ -4,6 +4,7 @@ import { emitirFactura, ErrorEmision } from "@/lib/verifactu/emision";
 import { ErrorValidacionRegistro } from "@/lib/verifactu/registro-alta";
 import { normalizarNif, situacionNifCliente, validarExencion } from "@/lib/verifactu/factura-fiscal";
 import { planEfectivo } from "@/lib/plan";
+import { anioDeFecha, siguienteNumeroFactura } from "@/lib/invoices/numeracion";
 
 export async function GET(request: Request) {
   const supabase = await createClient();
@@ -58,15 +59,20 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ error: "Cuerpo JSON inválido" }, { status: 400 });
   }
+  // El número que mande el navegador se ignora: lo asigna el servidor (R1, ver más abajo).
   const {
-    number, client_name, client_nif, client_address,
+    client_name, client_nif, client_address,
     items, subtotal, iva, iva_rate, irpf, irpf_rate, total,
     date, due_date, status,
     client_id, client_email, payment_method, payment_date, notes,
   } = body;
 
-  if (!number || !client_name || !date) {
-    return NextResponse.json({ error: "Campos obligatorios: number, client_name, date" }, { status: 400 });
+  if (!client_name || !date) {
+    return NextResponse.json({ error: "Campos obligatorios: client_name, date" }, { status: 400 });
+  }
+  const anio = anioDeFecha(date);
+  if (anio === null) {
+    return NextResponse.json({ error: "La fecha de la factura no es válida (aaaa-mm-dd)" }, { status: 400 });
   }
   if (items !== undefined && (!Array.isArray(items) || items.length > 500)) {
     return NextResponse.json(
@@ -130,6 +136,20 @@ export async function POST(request: Request) {
     }
   }
   // ─────────────────────────────────────────────────────────────────────────
+
+  // R1 (26-nov-2026): número correlativo por usuario en la serie FACT-<año de la factura>, siguiente al mayor
+  // usado ese año. Antes lo ponía el navegador con el año 2026 fijo y se repetía entre dispositivos. Con
+  // VERI*FACTU activo, la emisión de abajo lo sustituye por el número fiscal de su serie.
+  const { data: usados, error: errorUsados } = await supabase
+    .from("invoices")
+    .select("number")
+    .eq("user_id", user.id)
+    .like("number", `FACT-${anio}-%`);
+  if (errorUsados) {
+    console.error("Error leyendo la numeración:", errorUsados);
+    return NextResponse.json({ error: "No se pudo asignar el número de la factura" }, { status: 500 });
+  }
+  const number = siguienteNumeroFactura(anio, (usados ?? []).map((r: { number: string | null }) => r.number));
 
   const { data, error } = await supabase
     .from("invoices")

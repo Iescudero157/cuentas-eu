@@ -21,6 +21,7 @@ import {
   situacionNifCliente,
   validarExencion,
 } from "@/lib/verifactu/factura-fiscal";
+import { fechaHoyEspana } from "@/lib/invoices/numeracion";
 
 const InvoicePDFButton = dynamic(() => import("@/components/InvoicePDF"), { ssr: false });
 
@@ -207,8 +208,10 @@ export default function NuevaFacturaPage() {
 
   const existingInvoices = loadData<Invoice[]>("kuentas_facturas", []);
   const nextSeq = existingInvoices.length + 6;
-  const nextNumber = `FACT-2026-${String(nextSeq).padStart(3, "0")}`;
-  const today = new Date().toISOString().split("T")[0];
+  // Fecha de expedición en hora de España. El número es una vista previa: el definitivo lo asigna el
+  // servidor al guardar (serie FACT-<año>, correlativa por cuenta; lib/invoices/numeracion.ts).
+  const today = fechaHoyEspana();
+  const nextNumber = `FACT-${today.slice(0, 4)}-${String(nextSeq).padStart(3, "0")}`;
   const dueDate = new Date();
   dueDate.setDate(dueDate.getDate() + daysUntilDue);
   const dueDateStr = dueDate.toISOString().split("T")[0];
@@ -344,7 +347,7 @@ export default function NuevaFacturaPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-bold text-brand-text">Nueva factura</h1>
-          <p className="text-brand-muted text-sm mt-1">Número: {nextNumber}</p>
+          <p className="text-brand-muted text-sm mt-1">Número: {nextNumber} (provisional: el definitivo se asigna al guardar)</p>
         </div>
       </div>
 
