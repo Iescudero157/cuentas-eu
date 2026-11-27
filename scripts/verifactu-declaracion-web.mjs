@@ -80,7 +80,7 @@ artículo 15 de la Orden HAC/1177/2024, de 17 de octubre. Los datos identificati
 con los que se remiten a la AEAT en cada registro de facturación.</p>
 <p>${esc(d.productor.razonSocial)} · NIF ${esc(d.productor.nif)} · ${esc(d.productor.registroMercantil)} ·
 ${esc(d.productor.domicilio)} · <a href="mailto:kuentas@mercadonet.es">kuentas@mercadonet.es</a></p>
-</footer>
+<p style="text-align:center;margin:16px 0 0;padding:0 16px 16px;font-size:14px"><a href="/ayuda/" style="color:inherit;text-decoration:underline">Ayuda y preguntas frecuentes</a></p></footer>
 </main>
 </body>
 </html>

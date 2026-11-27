@@ -1,7 +1,8 @@
 # V19 · Declaración responsable del SIF Kuentas
 
-**Estado: versión 1.1.0 SUSCRITA el 25-nov-2026 en Madrid por Claudia Ana Núñez Buttiglione, administradora
-solidaria de MILBROTES, S.L., con firma electrónica (la 1.0.0, el 1-nov-2026, por Iván Escudero Salas).** Ver «Historial» al final.
+**Estado: versión 1.2.0 SUSCRITA el 27-nov-2026 en Madrid por Claudia Ana Núñez Buttiglione, administradora
+solidaria de MILBROTES, S.L., con firma electrónica (la 1.1.0, el 25-nov-2026, por la misma firmante; la 1.0.0,
+el 1-nov-2026, por Iván Escudero Salas).** Ver «Historial» al final.
 
 ## Base legal
 
@@ -67,5 +68,19 @@ anterior (13.3: hay que conservar las declaraciones de TODAS las versiones).
   una declaración por versión). Suscrita: Madrid, 2026-11-25, Claudia Ana Núñez Buttiglione, administradora
   solidaria, con firma electrónica (certificado de representante de MILBROTES). Archivar el PDF firmado
   junto al de la 1.0.0.
+- 27-nov-2026: **versión 1.2.0**. Recoge lo publicado en el componente de facturación después de la
+  1.1.0 (26-nov-2026), que había salido con el mismo número: fecha de operación en la factura, en el
+  registro de alta (`FechaOperacion`) y en el bloqueo de la factura emitida (e47daef y migración
+  `20261126100000`); opción «precios con IVA incluido» y redondeo al céntimo (3062b45); numeración en el
+  servidor de las facturas de las cuentas sin VERI*FACTU (35589cf); y, en la ruta del TPV, cobro por
+  transferencia y venta al por menor con simplificada hasta 3.000 € (0d9248c). No cuentan como cambio de
+  versión el aspecto del PDF (modelos de factura por cuenta, separador de millares) ni la API v1 y el
+  conector de IA del 27-nov, que leen datos, dan de alta clientes y preparan borradores: no emiten
+  facturas ni generan registros. El texto de la declaración no cambia; cambian el número, la fecha y la
+  firma. Declaración nueva, decisión de Iván del 27-nov-2026 (art. 13.2-13.3 RRSIF; aclaraciones de la
+  AEAT a desarrolladores n.º 8 y 9). Suscrita: Madrid, 2026-11-27, Claudia Ana Núñez Buttiglione,
+  administradora solidaria, con firma electrónica. Archivar el PDF firmado junto a los de la 1.0.0 y la
+  1.1.0. Las facturas emitidas desde el 26-nov hasta la publicación de esta versión llevan «1.1.0» en su
+  registro: son registros ya remitidos y no se modifican.
 - Pendiente: archivar el PDF suscrito de la v1.0.0 (13.3 RRSIF) y publicar `verifactu.html` en
   kuentas.eu con el mismo texto al salir de mantenimiento.

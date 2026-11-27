@@ -5,8 +5,13 @@
 // garantizar la coincidencia 1:1 con el bloque SistemaInformatico que viaja en
 // cada registro de facturación (art. 10.1.l RRSIF).
 //
-// ESTADO: versión 1.1.0 SUSCRITA el 25-nov-2026 (la 1.0.0, el 1-nov-2026). La 1.1.0 añade la
-// causa de exención, las rectificativas y la anulación desde la app y las series por clase de factura.
+// ESTADO: versión 1.2.0 SUSCRITA el 27-nov-2026 (la 1.1.0, el 25-nov-2026; la 1.0.0, el 1-nov-2026).
+// La 1.2.0 recoge lo publicado en el componente de facturación después de la 1.1.0: la fecha de operación
+// (en la factura, en el registro de alta y en el bloqueo de la factura emitida), la opción «precios con
+// IVA incluido» con el redondeo al céntimo, la numeración en el servidor de las facturas de las cuentas
+// sin VERI*FACTU y la venta al por menor por el TPV (simplificada hasta 3.000 €, art. 4.2 RD 1619/2012).
+// La 1.1.0 añadió la causa de exención, las rectificativas y la anulación desde la app y las series por
+// clase de factura.
 // ESTADO (1-nov-2026): SUSCRITA. Texto revisado por el asesor (OK comunicado
 // por Iván el 23-oct-2026), productor con NIF e inscripción y suscripción en
 // SUSCRIPCION_DECLARACION. Si un cambio la devolviera a borrador (suscripción
@@ -39,10 +44,11 @@ export interface SuscripcionDeclaracion {
 
 // v1.0.0: Iván Escudero Salas, administrador solidario (1-nov-2026). v1.1.0: Claudia Ana Núñez Buttiglione,
 // administradora solidaria, que la firma con el certificado de representante de MILBROTES (25-nov-2026;
-// confirmado por Iván en el chat).
+// confirmado por Iván en el chat). v1.2.0: la misma firmante (27-nov-2026; versión nueva decidida por Iván
+// en el chat ese día).
 export const SUSCRIPCION_DECLARACION: Readonly<SuscripcionDeclaracion> = Object.freeze({
   lugar: 'Madrid',
-  fecha: '2026-11-25',
+  fecha: '2026-11-27',
   firmante: 'Claudia Ana Núñez Buttiglione',
   cargo: 'administradora solidaria',
 })
