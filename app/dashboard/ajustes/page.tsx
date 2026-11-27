@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { estadoPlan, NOMBRE_PLAN } from "@/lib/plan";
 import CertificadoCard from "./certificado-card";
+import ConexionesIaCard from "./conexiones-ia-card";
 import RenovarPlan from "./renovar-plan";
 
 const PLAN_LABELS: Record<string, { label: string; price: string; color: string }> = {
@@ -439,6 +440,9 @@ export default function AjustesPage() {
 
           {/* Certificado digital VERI*FACTU (V11) */}
           <CertificadoCard />
+
+          {/* Conexiones con IA (MCP / API v1, 27-nov-2026) */}
+          <ConexionesIaCard />
 
           {/* Notifications */}
           <div className="bg-white rounded-xl p-6 border border-brand-border/50 shadow-sm">

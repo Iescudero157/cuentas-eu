@@ -169,6 +169,47 @@ export default function NuevaFacturaPage() {
     }
   }, [user, isDemo]);
 
+  // Borrador preparado por un asistente de IA (conector MCP / API v1, 27-nov-2026): ?borrador=<id> lo carga en
+  // el formulario. No es una factura hasta que el usuario la guarda aquí (con VERI*FACTU activo, eso la emite).
+  const [borradorIaId, setBorradorIaId] = useState<string | null>(null);
+  useEffect(() => {
+    if (isDemo || !user) return;
+    const id = new URLSearchParams(window.location.search).get("borrador");
+    if (!id) return;
+    fetch(`/api/borradores-ia/${encodeURIComponent(id)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const b = d?.borrador;
+        if (!b || b.estado !== "pendiente") return;
+        const x = b.datos ?? {};
+        const c = x.cliente ?? {};
+        setBorradorIaId(b.id);
+        setSelectedClientId(c.id ?? "");
+        setClientName(c.nombre ?? "");
+        setClientNif(c.nif ?? "");
+        setClientAddress(c.direccion ?? "");
+        setClientEmail(c.email ?? "");
+        setIvaRate(Number(x.iva_tipo ?? 21));
+        setIvaIncluido(x.iva_incluido === true);
+        setFechaOperacion(x.fecha_operacion ?? "");
+        setOperacionExenta(x.operacion_exenta ?? "");
+        setExencionDetalle(x.exencion_detalle ?? "");
+        setIrpfRate(Number(x.irpf_tipo ?? 15));
+        setDaysUntilDue(Number(x.dias_vencimiento ?? 30));
+        setNotes(x.notas ?? "");
+        if (Array.isArray(x.lineas) && x.lineas.length > 0) {
+          setItems(
+            x.lineas.map((l: { description?: unknown; quantity?: unknown; unitPrice?: unknown }) => ({
+              description: String(l.description ?? ""),
+              quantity: Number(l.quantity) || 1,
+              unitPrice: Number(l.unitPrice) || 0,
+            }))
+          );
+        }
+      })
+      .catch(() => {});
+  }, [user, isDemo]);
+
   const filteredClients = clients.filter(
     (c) =>
       c.name.toLowerCase().includes(clientSearch.toLowerCase()) ||
@@ -302,6 +343,13 @@ export default function NuevaFacturaPage() {
             verifactuEstado: data.invoice.verifactu_estado || undefined,
             tipoFactura: data.invoice.tipo_factura || undefined,
           });
+          if (borradorIaId) {
+            fetch(`/api/borradores-ia/${borradorIaId}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ accion: "convertido", invoice_id: data.invoice.id }),
+            }).catch(() => {});
+          }
         } else {
           // El servidor NO ha guardado la factura (validación fiscal, emisión
           // rechazada…): se enseña el motivo en vez de darla por guardada.
@@ -354,6 +402,14 @@ export default function NuevaFacturaPage() {
           <p className="text-brand-muted text-sm mt-1">Número: {nextNumber} (provisional: el definitivo se asigna al guardar)</p>
         </div>
       </div>
+
+      {borradorIaId && !savedInvoice && (
+        <div className="rounded-xl border border-brand-blue/30 bg-brand-blue/5 p-4 text-sm text-brand-text">
+          <strong>Borrador preparado por tu asistente de IA.</strong> Revisa el cliente, los conceptos, los importes y los
+          impuestos antes de guardar: al guardar se crea la factura como cualquier otra (con VERI*FACTU activo, se emite
+          y ya no se puede borrar). Si no la quieres, descártala desde Facturas.
+        </div>
+      )}
 
       {savedInvoice && (
         <div className="bg-brand-success/10 border border-brand-success/20 rounded-xl p-4">

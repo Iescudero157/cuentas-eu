@@ -9,6 +9,7 @@ import { useInvoices } from "@/lib/hooks/useInvoices";
 import { useAuth } from "@/lib/hooks/useAuth";
 import type { Invoice, PaymentMethod } from "@/lib/types";
 import PlanLimitBanner from "@/components/PlanLimitBanner";
+import BorradoresIaAviso from "@/components/BorradoresIaAviso";
 import { TIPOS_RECTIFICATIVA } from "@/lib/verifactu/factura-fiscal";
 
 /** Longitud máxima del motivo de una rectificativa (la misma que valida el servidor). */
@@ -431,6 +432,9 @@ export default function FacturasPage() {
           </Link>
         </div>
       </div>
+
+      {/* Borradores preparados por la IA (conector MCP, 27-nov-2026) */}
+      <BorradoresIaAviso />
 
       {/* Plan limit banner */}
       {profile?.plan === "gratis" && monthlyInvoiceCount >= 4 && (
